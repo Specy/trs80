@@ -1,0 +1,60 @@
+{
+  "name": "z80-machine",
+  "version": "1.0.0",
+  "description": "Ready-to-use Z80 machine: assemble, run, and debug Z80 code with pluggable IO",
+  "main": "dist/index.umd.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.umd.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "unpkg": "dist/index.umd.cjs",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "docs": "typedoc -p . --target es6 --excludeNotExported --excludePrivate --out docs src && touch docs/.nojekyll",
+    "test": "tsx src/Z80Machine.spec.ts && tsx src/CallStack.spec.ts && tsx src/Assemble.spec.ts && tsx src/SourceMap.spec.ts",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "z80",
+    "emulator",
+    "assembler",
+    "machine"
+  ],
+  "author": "Specy <specy.dev@gmail.com> (https://github.com/Specy)",
+  "repository": "https://github.com/lkesteloot/trs80.git",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lkesteloot/trs80/issues"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.0.1",
+    "@types/node": "^22.13.0",
+    "chai": "^5.1.2",
+    "tsx": "^4.7.0",
+    "typedoc": "^0.27.6",
+    "vite": "^6.0.11",
+    "vite-plugin-dts": "^4.5.0",
+    "z80-asm": "^2.3.0",
+    "z80-base": "^2.0.1",
+    "z80-disasm": "^2.3.0",
+    "z80-emulator": "^2.3.0",
+    "z80-inst": "^2.0.1"
+  }
+}

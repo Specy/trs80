@@ -5,7 +5,7 @@
   "scripts": {
     "build": "lerna run build",
     "clean": "lerna run clean",
-    "test": "npm run test -w packages/z80-asm -w packages/z80-disasm -w packages/z80-emulator"
+    "test": "npm run test -w packages/z80-asm -w packages/z80-disasm -w packages/z80-emulator -w packages/z80-machine"
   },
   "devDependencies": {
     "css-loader": "^7.1.2",
@@ -28,6 +28,7 @@
     "packages/z80-asm",
     "packages/z80-asm-web",
     "packages/z80-emulator",
+    "packages/z80-machine",
     "packages/z80-test",
     "packages/trs80-logger",
     "packages/trs80-base",
