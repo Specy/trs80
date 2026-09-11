@@ -1,6 +1,6 @@
 {
   "name": "@specy/z80",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ready-to-use Z80 machine: assemble, run, and debug Z80 code with pluggable IO",
   "main": "dist/index.umd.cjs",
   "module": "dist/index.js",
