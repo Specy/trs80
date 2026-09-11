@@ -9,7 +9,7 @@ in TypeScript. The subprojects are:
 * [z80-test](packages/z80-test): Tests for Z80 emulators. Any Z80 emulator can be plugged in here, in case you want to test your own emulator.
 * [z80-disasm](packages/z80-disasm): Z80 disassembler.
 * [z80-asm](packages/z80-asm): Z80 assembler.
-* [z80-machine](packages/z80-machine): Ready-to-use Z80 computer with pluggable IO and a debuggable run loop, built on the Z80 packages above.
+* [z80-machine](packages/z80-machine): Ready-to-use Z80 computer with pluggable IO and a debuggable run loop, built on the Z80 packages above. Published to npm as [@specy/z80](https://www.npmjs.com/package/@specy/z80).
 * [trs80-logger](packages/trs80-logger): Logging functions for other TRS-80 libraries and tools.
 * [trs80-asm](packages/trs80-asm): Small library to help z80-asm and trs80-base work together.
 * [trs80-base](packages/trs80-base): Classes for reading and writing a variety of TRS-80 file formats.

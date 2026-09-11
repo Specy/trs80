@@ -1,0 +1,139 @@
+name: CD
+
+# This workflow publishes @specy/z80 - packages/z80-machine, the one package
+# of this monorepo that is ours rather than upstream's - to npm with trusted
+# publishing (OIDC).
+#
+# IT CANNOT PUBLISH UNTIL the trusted publisher is registered on npmjs.com:
+# @specy/z80 -> Settings -> Trusted publisher -> GitHub Actions, repository
+# Specy/trs80, workflow file cd.yml. 1.0.0 was published by hand, so until
+# that is done the first tag will build everything and then fail at the last
+# step with no credential.
+#
+# Once registered, THIS FILE'S PATH AND FILENAME ARE LOAD-BEARING: they are
+# what npm matches against. Renaming or moving this workflow breaks
+# publishing, and the failure only shows up on the next release. Update the
+# package's trusted publisher settings on npmjs.com first if you must move it.
+
+on:
+  push:
+    tags:
+      # Release tags, e.g. v1.1.0. The tag must match the version in
+      # packages/z80-machine/package.json; the job below refuses to publish
+      # otherwise.
+      #
+      # Upstream (lkesteloot/trs80) uses v* tags for its own whole-monorepo
+      # releases, and those are numbered 2.x while this package is 1.x. This
+      # fork has no tags of its own, but if upstream's are ever pushed here
+      # they land on this pattern: the two guards below then reject them -
+      # visibly, as a failed run - rather than publishing something.
+      - v*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Tag refs are unique and this job publishes, so never cancel a run.
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish @specy/z80 to npm
+    # Only the repository owner can cut a release. A tag pushed by anyone else
+    # skips this job rather than failing it, so it never reaches the step that
+    # requests an OIDC token. Note that a skipped job is reported as a green
+    # run, so a tag pushed by someone else publishes nothing and says nothing.
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      # Lets GitHub mint the short-lived OIDC token that npm trades for a
+      # publish credential. Without this, trusted publishing cannot work.
+      id-token: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          # Full history, so the guard below can prove the tag is on the
+          # default branch.
+          fetch-depth: 0
+
+      # Tags are not branches: a tag can point at any commit, including one
+      # that was never reviewed or merged. Releasing only what the default
+      # branch contains keeps a side branch - or a tag that came in with an
+      # upstream sync - from being published.
+      - name: Verify tag is on the default branch
+        env:
+          # Read from the repository rather than hardcoded, so this works
+          # whether the default branch is master or main, and survives a
+          # rename.
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git fetch --no-tags --quiet origin "$DEFAULT_BRANCH"
+          # FETCH_HEAD is what the fetch above just wrote; the remote-tracking
+          # ref is not reliably populated in a tag checkout.
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" FETCH_HEAD; then
+            echo "Tag $GITHUB_REF_NAME points at a commit that is not on $DEFAULT_BRANCH; refusing to publish." >&2
+            exit 1
+          fi
+          echo "Tag $GITHUB_REF_NAME is contained in $DEFAULT_BRANCH"
+
+      # Second, and before anything is installed or built: a mistyped tag
+      # should cost seconds. The runner image's preinstalled node is enough to
+      # read a manifest, so this runs before actions/setup-node. POSIX test
+      # rather than bash's [[ ]], which would report "command not found" - and
+      # so read as false, letting a mismatched tag through - if this step ever
+      # ran under a plain sh.
+      - name: Verify tag matches package version
+        working-directory: packages/z80-machine
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          manifest="$(node -p "require('./package.json').version")"
+          if [ "$tagged" != "$manifest" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $manifest" >&2
+            exit 1
+          fi
+          echo "Publishing @specy/z80 $manifest"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          # npm >= 11.5.1 and Node >= 22.14.0 are required for trusted
+          # publishing; Node 24 ships a new enough npm.
+          node-version: 24
+          # Deliberately no registry-url: it makes setup-node write an .npmrc
+          # containing `_authToken=${NODE_AUTH_TOKEN}`. With no token set, npm
+          # sends an empty credential, considers itself authenticated, and so
+          # never performs the OIDC exchange - which fails the publish with a
+          # misleading 404. npm defaults to registry.npmjs.org anyway.
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # packages/*/dist is generated and never committed (see .gitignore), so
+      # what gets published is always bundled from the tagged sources rather
+      # than from whatever a working tree happened to contain.
+      - name: Build the library and its dependencies
+        run: npm run build -- --scope @specy/z80 --include-dependencies
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run smoke test
+        run: npm run test:dist -w packages/z80-machine
+
+      # No NODE_AUTH_TOKEN: npm detects the OIDC environment and exchanges it
+      # for a short-lived, run-scoped credential. Provenance attestations are
+      # generated automatically for public packages, so --provenance is not
+      # passed explicitly; they require package.json's repository field to name
+      # this repository, which is why it points at the fork and not upstream.
+      # What lands in the tarball is the "files" allowlist in
+      # packages/z80-machine/package.json, not whatever .gitignore says. The
+      # package's own prepublishOnly script rebuilds dist/ once more here.
+      - name: Publish to npm
+        working-directory: packages/z80-machine
+        run: npm publish --access public

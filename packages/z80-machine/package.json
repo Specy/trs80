@@ -1,5 +1,5 @@
 {
-  "name": "z80-machine",
+  "name": "@specy/z80",
   "version": "1.0.0",
   "description": "Ready-to-use Z80 machine: assemble, run, and debug Z80 code with pluggable IO",
   "main": "dist/index.umd.cjs",
@@ -20,7 +20,6 @@
   },
   "unpkg": "dist/index.umd.cjs",
   "type": "module",
-  "private": true,
   "files": [
     "dist"
   ],
@@ -28,6 +27,7 @@
     "build": "tsc --noEmit && vite build",
     "docs": "typedoc -p . --target es6 --excludeNotExported --excludePrivate --out docs src && touch docs/.nojekyll",
     "test": "tsx src/Z80Machine.spec.ts && tsx src/CallStack.spec.ts && tsx src/Assemble.spec.ts && tsx src/SourceMap.spec.ts",
+    "test:dist": "node tests/dist-smoke.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
@@ -38,10 +38,14 @@
     "machine"
   ],
   "author": "Specy <specy.dev@gmail.com> (https://github.com/Specy)",
-  "repository": "https://github.com/lkesteloot/trs80.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Specy/trs80.git",
+    "directory": "packages/z80-machine"
+  },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lkesteloot/trs80/issues"
+    "url": "https://github.com/Specy/trs80/issues"
   },
   "devDependencies": {
     "@types/chai": "^5.0.1",

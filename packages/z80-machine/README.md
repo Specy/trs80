@@ -1,4 +1,4 @@
-# z80-machine
+# @specy/z80
 
 A ready-to-use Z80 computer: 64 kB of RAM, IO through plain callbacks, a run
 loop with breakpoints and budgets, execution history with undo, whole-machine
@@ -8,7 +8,7 @@ wired up to it.
 ## Assemble, load, run
 
 ```ts
-import {assemble, StopReason, Z80Machine} from "z80-machine";
+import {assemble, StopReason, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -53,7 +53,7 @@ picks up where it left off. A browser can give the machine one slice per
 animation frame this way and stay responsive:
 
 ```ts
-import {assemble, StopReason, Z80Machine} from "z80-machine";
+import {assemble, StopReason, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -85,7 +85,7 @@ address bus. The port number is in the lower byte, so mask the address with
 A for `in a, (n)` and `out (n), a`, B for the `(c)` forms.
 
 ```ts
-import {assemble, Z80Machine} from "z80-machine";
+import {assemble, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -116,7 +116,7 @@ again: the `in` re-executes and calls the handler again.
 An array works as the input queue:
 
 ```ts
-import {assemble, StopReason, Z80Machine} from "z80-machine";
+import {assemble, StopReason, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -162,7 +162,7 @@ the CPU will execute it. When a read has side effects, give `onDebugRead` a
 side-effect-free variant, or `() => undefined` to read RAM only:
 
 ```ts
-import {assemble, Z80Machine} from "z80-machine";
+import {assemble, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -206,7 +206,7 @@ bypasses the hooks and the history journal.
 assembly, so breakpoints can be set by line and the current address named:
 
 ```ts
-import {assemble, SourceMap, StopReason, toHexWord, Z80Machine} from "z80-machine";
+import {assemble, SourceMap, StopReason, toHexWord, Z80Machine} from "@specy/z80";
 
 const source = `
         .org 0x8000
@@ -248,7 +248,7 @@ and `restore()` snapshot and restore the whole machine: registers, RAM,
 clock, stop state, and the stack provenance the call stack is rebuilt from.
 
 ```ts
-import {assemble, StopReason, Z80Machine} from "z80-machine";
+import {assemble, StopReason, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -283,7 +283,7 @@ backwards, restoring the CPU state and reversing each instruction's RAM
 writes. History is off by default, and costs nothing while off.
 
 ```ts
-import {assemble, toHexWord, Z80Machine} from "z80-machine";
+import {assemble, toHexWord, Z80Machine} from "@specy/z80";
 
 const result = assemble(`
         .org 0x8000
@@ -324,7 +324,7 @@ machine when a `ret` executes with the stack pointer back at the top, which
 suits calling a single routine and reading its result:
 
 ```ts
-import {StopReason, Z80Machine} from "z80-machine";
+import {StopReason, Z80Machine} from "@specy/z80";
 
 // ld a, b / add a, c / ret
 const machine = new Z80Machine({exitOnReturn: true});
@@ -351,7 +351,7 @@ for completion; `getAsmDirectiveDocs()` documents the directives; and
 `AsmTokenizer` tokenizes a line, for highlighting.
 
 ```ts
-import {AsmTokenizer, check, getAsmDirectiveDocs, getAsmInstructionTrie, mnemonicMap} from "z80-machine";
+import {AsmTokenizer, check, getAsmDirectiveDocs, getAsmInstructionTrie, mnemonicMap} from "@specy/z80";
 
 const [diagnostic] = check("        ld a, 5\n        jp nowhere\n");
 console.log(diagnostic.pathname, diagnostic.lineNumber, diagnostic.message);
@@ -382,14 +382,14 @@ declarations have no external imports, so nothing else has to be present.
 
 As an ES module:
 ```ts
-import {assemble, StopReason, Z80Machine} from "z80-machine";
+import {assemble, StopReason, Z80Machine} from "@specy/z80";
 ```
 
 Or as a UMD bundle from a script tag, which puts everything on a global named
 `Z80Machine`:
 
 ```html
-<script src="z80-machine/dist/index.umd.cjs"></script>
+<script src="https://unpkg.com/@specy/z80/dist/index.umd.cjs"></script>
 <script>
 const {assemble, StopReason, Z80Machine: Machine} = Z80Machine;
 

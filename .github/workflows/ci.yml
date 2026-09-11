@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      # master is this repository's default branch; main is listed so a rename
+      # does not silently stop running CI.
+      - master
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          # One lockfile at the root covers every workspace in the monorepo.
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Only @specy/z80 (packages/z80-machine) and the five z80-* packages it
+      # is compiled from. The rest of this monorepo - the TRS-80 emulator, the
+      # cassette tools, the web apps - is upstream's and is not published from
+      # here, so building it would only add minutes and failures that no
+      # release depends on. The scope is the package name, not the directory.
+      #
+      # z80-machine's own build script starts with `tsc --noEmit`, so this
+      # type-checks the library as well as bundling it.
+      - name: Build the library and its dependencies
+        run: npm run build -- --scope @specy/z80 --include-dependencies
+
+      # The root test script, which runs the suites of z80-asm, z80-disasm,
+      # z80-emulator and z80-machine. All four are compiled into the published
+      # bundle, so all four are this package's correctness. They run against
+      # src/ and need the build above, which is what puts the dependencies'
+      # dist/ in place for tsx to resolve.
+      - name: Run tests
+        run: npm test
+
+      # Assembles and runs programs through the built dist/, which is the one
+      # thing the suites above cannot see: they import the workspace packages
+      # directly, never the bundle that vite rolls them into or the
+      # declarations vite-plugin-dts inlines, and both can break with every
+      # test still green.
+      - name: Run smoke test
+        run: npm run test:dist -w packages/z80-machine
