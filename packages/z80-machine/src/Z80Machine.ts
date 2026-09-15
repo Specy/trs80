@@ -1,12 +1,15 @@
-import {Hal, Z80} from "z80-emulator";
+import {Hal, Z80, Z80State} from "z80-emulator";
 import {Instruction} from "z80-disasm";
-import {toHexWord} from "z80-base";
+import {isRegisterSetField, Register, toHexWord} from "z80-base";
 import {AssemblyResult} from "./Assemble.js";
 import {CallStackFrame, disassembleInstructionAt, reconstructCallStack} from "./CallStack.js";
 import {DEFAULT_INITIAL_SP, DEFAULT_PORT_READ_VALUE, MEMORY_SIZE} from "./Constants.js";
 import {
     ExecutionRecord,
     isTerminalStopReason,
+    MemoryWrite,
+    POKE_RECORD_ADDRESS,
+    PokeWrite,
     RunOptions,
     RunResult,
     StopReason,
@@ -81,6 +84,90 @@ function makeBreakpointMap(breakpoints: Iterable<number> | undefined): Uint8Arra
 }
 
 /**
+ * The registers that hold a word. Every other register of the core's
+ * RegisterSet holds a byte, so this is what {@link Z80Machine.setRegisterValue}
+ * clamps a value against. The shadow registers are spelled with the "Prime"
+ * suffix, the way the core's RegisterSet spells its fields.
+ */
+const WORD_REGISTERS = new Set<Register>([
+    "af", "bc", "de", "hl",
+    "afPrime", "bcPrime", "dePrime", "hlPrime",
+    "ix", "iy", "sp", "pc", "memptr",
+]);
+
+/**
+ * One register journaled by an open poke, with the value the register held
+ * before the poke first wrote it. The value it ends up with is read back at
+ * {@link Z80Machine.endPoke}, so writing the same register twice stays one
+ * entry, whose old value is the one from before the poke.
+ */
+interface RegisterJournalEntry {
+    name: Register;
+    old: number;
+
+    /**
+     * When this register was first written inside the poke, so that the
+     * writes of the record come out in the order the host made them.
+     */
+    order: number;
+}
+
+/**
+ * One byte of RAM journaled by an open poke, with the value the byte held
+ * before the poke first wrote it. Bytes are keyed by address exactly as
+ * registers are keyed by name, so that writing the same address twice stays
+ * one journaled byte holding the value from before the poke, never a value
+ * that only ever existed inside the transaction.
+ * {@link Z80Machine.endPoke} gathers the journaled bytes back into runs of
+ * consecutive addresses, one entry of the record's writes each.
+ */
+interface MemoryJournalEntry {
+    old: number;
+
+    /**
+     * When this address was first written; see
+     * {@link RegisterJournalEntry.order}.
+     */
+    order: number;
+}
+
+/**
+ * An open poke transaction: what the machine looked like when it began, and
+ * what has been written into it so far.
+ */
+interface PokeJournal {
+    /**
+     * CPU state at beginPoke, which is what undoing the poke restores.
+     */
+    stateBefore: Z80State;
+    tStateCountBefore: number;
+
+    /**
+     * RAM writes, one per changed byte, in the same shape an instruction's
+     * record uses, so that undo reverses them with no special case.
+     */
+    memoryWrites: MemoryWrite[];
+
+    /**
+     * The registers written so far, by name, so that a second write to the
+     * same register finds the first one.
+     */
+    registerEntries: Map<Register, RegisterJournalEntry>;
+
+    /**
+     * The bytes of RAM written so far, by address, so that a second write to
+     * the same address finds the first one.
+     */
+    memoryEntries: Map<number, MemoryJournalEntry>;
+
+    /**
+     * Hands out the order of the entries above, one number per register or
+     * address the poke touches for the first time.
+     */
+    nextOrder: number;
+}
+
+/**
  * A generic, ready-to-use Z80 computer: 64 kB of RAM, pluggable IO through
  * callbacks, a run loop with breakpoints and budgets, optional execution
  * history with undo, and helpers for loading assembled or raw programs.
@@ -94,7 +181,9 @@ export class Z80Machine implements Hal {
 
     /**
      * The machine's 64 kB of RAM. Reading and writing this directly is
-     * allowed (it bypasses the onMemory hooks and history journal).
+     * allowed (it bypasses the onMemory hooks and history journal, and an
+     * open poke); see {@link Z80Machine.writeMemoryBytes} for a write that a
+     * poke can journal and undo.
      */
     public readonly memory: Uint8Array;
 
@@ -153,6 +242,15 @@ export class Z80Machine implements Hal {
     // Whether we're inside the CPU's step() method. Port reads can only be
     // rolled back (and therefore retried) from there.
     private executing = false;
+
+    // The open poke transaction, or undefined if no poke is open. While one
+    // is open the host setters journal into it instead of writing directly.
+    private pokeJournal: PokeJournal | undefined = undefined;
+
+    // Identity handed to the next record that enters the history. Never
+    // reset, so an id is never reused for the life of the machine, and a
+    // record that never entered the history keeps the 0 it was made with.
+    private nextStepId = 1;
 
     constructor(config?: Z80MachineConfig) {
         const memory = config?.memory;
@@ -413,6 +511,8 @@ export class Z80Machine implements Hal {
      * execution history and can be undone.
      */
     private deliverInterrupt(maskable: boolean): void {
+        this.requireNoOpenPoke("deliver an interrupt");
+
         // The core ignores a maskable interrupt while interrupts are off, and
         // an interrupt that never happened must not become an undo step.
         const taken = !maskable || this.z80.regs.iff1 !== 0;
@@ -421,6 +521,9 @@ export class Z80Machine implements Hal {
 
         if (stateBefore !== undefined) {
             this.pendingRecord = {
+                kind: "instruction",
+                // Handed its identity by addRecord, if it gets that far.
+                stepId: 0,
                 address: stateBefore.regs.pc,
                 interrupt: maskable ? "maskable" : "nmi",
                 stateBefore: stateBefore,
@@ -509,20 +612,260 @@ export class Z80Machine implements Hal {
     }
 
     /**
-     * Whether there is an instruction to undo. Always false unless the
-     * historySize option enabled history.
+     * Set one CPU register to a value, on behalf of the host: the person
+     * debugging, or a tool acting for them.
+     *
+     * The name is the core's own spelling, a field of its RegisterSet: the
+     * pairs `af`, `bc`, `de`, `hl`, `ix`, `iy`, `sp` and `pc`, the shadow
+     * pairs `afPrime`, `bcPrime`, `dePrime` and `hlPrime` (with the "Prime"
+     * suffix, never an apostrophe), the halves `a`, `f`, `b`, `c`, `d`, `e`,
+     * `h`, `l`, `ixh`, `ixl`, `iyh` and `iyl`, and the internal registers
+     * `i`, `r`, `memptr`, `iff1`, `iff2`, `im` and `halted`. Throws on any
+     * other name.
+     *
+     * The value is clamped to what the register can hold, a word for a pair
+     * and a byte for everything else, so that the machine is never left in a
+     * state a real Z80 could not be in.
+     *
+     * Outside a poke transaction this writes the register directly and
+     * records nothing, which is what setting up a test's initial state
+     * wants. Inside one, between {@link Z80Machine.beginPoke} and
+     * {@link Z80Machine.endPoke}, the write is journaled into the poke.
+     * Either way, writing the value the register already holds does nothing
+     * at all.
+     */
+    public setRegisterValue(name: Register, value: number): void {
+        if (!isRegisterSetField(name)) {
+            throw new Error("unknown register \"" + name + "\" (the shadow registers are " +
+                "spelled afPrime, bcPrime, dePrime and hlPrime)");
+        }
+
+        const regs = this.z80.regs;
+        const masked = WORD_REGISTERS.has(name) ? value & 0xFFFF : value & 0xFF;
+        const old = regs.getValue(name);
+        if (old === masked) {
+            // Nothing changed, so there is nothing to journal.
+            return;
+        }
+
+        const journal = this.pokeJournal;
+        if (journal !== undefined && journal.registerEntries.get(name) === undefined) {
+            journal.registerEntries.set(name, {
+                name: name,
+                old: old,
+                order: journal.nextOrder++,
+            });
+        }
+
+        regs[name] = masked;
+    }
+
+    /**
+     * Write bytes into RAM on behalf of the host, wrapping at the top of the
+     * address space. Like {@link Z80Machine.setRegisterValue}, this is the
+     * host writing, not the CPU: the onMemoryWrite hook is not called, so a
+     * memory-mapped device is the embedder's to refresh.
+     *
+     * Outside a poke transaction the bytes are written directly and nothing
+     * is recorded. Inside one each byte is journaled under its address, with
+     * the value it held before the poke: writing an address a second time
+     * keeps that first value, so a range written and then written back is no
+     * change at all, and a range written twice is one entry of the record,
+     * not two overlapping ones.
+     */
+    public writeMemoryBytes(address: number, bytes: ArrayLike<number>): void {
+        const journal = this.pokeJournal;
+        if (journal === undefined) {
+            this.writeBytes(bytes, address);
+            return;
+        }
+
+        const start = address & 0xFFFF;
+
+        for (let i = 0; i < bytes.length; i++) {
+            const at = (start + i) & 0xFFFF;
+            const before = this.memory[at];
+            const value = bytes[i] & 0xFF;
+
+            if (journal.memoryEntries.get(at) === undefined) {
+                // The first time this poke touches the address, and so the
+                // value the record will report as the old one. An unchanged
+                // byte is journaled too, so that the record shows the whole
+                // range the host wrote and not only the bytes that moved.
+                journal.memoryEntries.set(at, {old: before, order: journal.nextOrder++});
+            }
+
+            if (before === value) {
+                continue;
+            }
+            journal.memoryWrites.push({address: at, before: before, value: value});
+            this.memory[at] = value;
+        }
+    }
+
+    /**
+     * Begin a poke: a transaction in which the host setters
+     * ({@link Z80Machine.setRegisterValue} and
+     * {@link Z80Machine.writeMemoryBytes}) journal what they write, so that
+     * {@link Z80Machine.endPoke} can record all of it as one entry of the
+     * execution history, undone like any other entry.
+     *
+     * Throws if a poke is already open, or if an instruction is executing
+     * (from inside a memory or port hook, say): a poke is something the host
+     * does between two instructions.
+     */
+    public beginPoke(): void {
+        if (this.pokeJournal !== undefined) {
+            throw new Error("a poke is already open; call endPoke() before beginning another");
+        }
+        if (this.executing || this.pendingRecord !== undefined) {
+            throw new Error("cannot begin a poke while an instruction is executing");
+        }
+
+        this.pokeJournal = {
+            stateBefore: this.z80.save(),
+            tStateCountBefore: this.tStateCount,
+            memoryWrites: [],
+            registerEntries: new Map<Register, RegisterJournalEntry>(),
+            memoryEntries: new Map<number, MemoryJournalEntry>(),
+            nextOrder: 0,
+        };
+    }
+
+    /**
+     * End the open poke, recording everything written inside it as a single
+     * execution record of kind "poke", at its place in the same history the
+     * instructions use and taking one of its slots. Returns whether a record
+     * was added: false if the poke changed nothing in the end (including a
+     * register or a range of RAM written and then written back to what it
+     * held before the poke), and false when history is disabled, since then
+     * there is nothing to add it to.
+     *
+     * The record's writes hold one entry per register the poke changed and
+     * one per run of consecutive addresses it changed, each with the value
+     * from before the poke and the one the machine is left with, however
+     * many calls wrote them: the same address written twice is one entry,
+     * never two.
+     *
+     * The record is a step of its own, with an identity of its own: its
+     * {@link ExecutionRecord.stepId} is a number no other record has, and
+     * its {@link ExecutionRecord.address} is
+     * {@link POKE_RECORD_ADDRESS}, never the address of the instruction
+     * that is about to run, so nothing that keys steps by either can take a
+     * poke for an instruction. The PC the poke was made at is in the
+     * record's stateBefore.
+     *
+     * A poke doesn't touch the clock, the stop reason or the pending input
+     * port, and undoing one leaves them alone too.
+     *
+     * Throws if no poke is open.
+     */
+    public endPoke(): boolean {
+        const journal = this.pokeJournal;
+        if (journal === undefined) {
+            throw new Error("no poke is open; call beginPoke() first");
+        }
+        this.pokeJournal = undefined;
+
+        // What the machine ended up with, which is only now known: a value
+        // may have been written more than once inside the transaction. Each
+        // register and each byte is compared against the value it held
+        // before the poke, so anything written back to where it started
+        // drops out here, and the entries come out in the order the host
+        // first wrote them.
+        const ordered: {order: number; write: PokeWrite}[] = [];
+
+        for (const entry of journal.registerEntries.values()) {
+            const now = this.z80.regs.getValue(entry.name);
+            if (now !== entry.old) {
+                ordered.push({
+                    order: entry.order,
+                    write: {type: "register", name: entry.name, old: entry.old, new: now},
+                });
+            }
+        }
+
+        // The journaled bytes, gathered back into runs of consecutive
+        // addresses however many calls wrote them. A run that ends up
+        // holding what it held before the poke is dropped whole; one that
+        // moved is reported whole, unchanged bytes included.
+        const addresses = Array.from(journal.memoryEntries.keys()).sort((a, b) => a - b);
+        for (let i = 0; i < addresses.length; ) {
+            const start = addresses[i];
+            const old: number[] = [];
+            const now: number[] = [];
+            let order = Number.MAX_SAFE_INTEGER;
+            let changed = false;
+            let end = i;
+
+            while (end < addresses.length && addresses[end] === start + (end - i)) {
+                const entry = journal.memoryEntries.get(addresses[end]) as MemoryJournalEntry;
+                const value = this.memory[addresses[end]];
+                old.push(entry.old);
+                now.push(value);
+                order = Math.min(order, entry.order);
+                changed = changed || value !== entry.old;
+                end++;
+            }
+            i = end;
+
+            if (changed) {
+                ordered.push({
+                    order: order,
+                    write: {type: "memory", address: start, old: old, new: now},
+                });
+            }
+        }
+
+        ordered.sort((a, b) => a.order - b.order);
+        const writes = ordered.map(entry => entry.write);
+
+        if (writes.length === 0) {
+            return false;
+        }
+
+        this.addRecord({
+            kind: "poke",
+            // Handed its identity by addRecord.
+            stepId: 0,
+            // A poke ran no instruction, so it reports no instruction
+            // address: this one is negative, which no address can be, and
+            // in particular is not the address of the instruction about to
+            // run, which is where the next instruction record will sit. The
+            // PC the poke was made at is in stateBefore.
+            address: POKE_RECORD_ADDRESS,
+            stateBefore: journal.stateBefore,
+            tStateCountBefore: journal.tStateCountBefore,
+            memoryWrites: journal.memoryWrites,
+            portWrites: [],
+            writes: writes,
+        });
+
+        return this.historyBuffer.length > 0;
+    }
+
+    /**
+     * Whether there is a record to undo, an instruction or a poke alike.
+     * Always false unless the historySize option enabled history.
      */
     public canUndo(): boolean {
         return this.historyCount > 0;
     }
 
     /**
-     * Undo the most recent record, which is an instruction or an interrupt
-     * being delivered: restore the CPU state and clock, and reverse its RAM
-     * writes. Port writes are not undone. Clears the stop state. Returns
-     * false if there was nothing to undo.
+     * Undo the most recent record, whether it is an instruction, an
+     * interrupt being delivered, or a poke: restore the CPU state and clock,
+     * and reverse its RAM writes. Port writes are not undone. Returns false
+     * if there was nothing to undo.
+     *
+     * Undoing an instruction clears the stop state, since the machine is
+     * back before whatever stopped it. Undoing a poke does not: a poke set
+     * no stop reason, so the machine stays stopped for the reason it already
+     * was, waiting on the same input port.
      */
     public undo(): boolean {
+        this.requireNoOpenPoke("undo");
+
         const record = this.removeNewestRecord();
         if (record === undefined) {
             return false;
@@ -539,14 +882,21 @@ export class Z80Machine implements Hal {
             this.memory[memoryWrite.address] = memoryWrite.before;
         }
 
-        this.clearStopState();
+        if (record.kind !== "poke") {
+            this.clearStopState();
+        }
 
         return true;
     }
 
     /**
      * The most recent execution records, oldest first, up to max (or all
-     * retained records if max is omitted).
+     * retained records if max is omitted). Instructions, interrupts and
+     * pokes all appear, each telling which it is through its
+     * {@link ExecutionRecord.kind} and identified by its
+     * {@link ExecutionRecord.stepId}. Only an instruction or an interrupt
+     * carries an instruction address; a poke's address is
+     * {@link POKE_RECORD_ADDRESS}.
      */
     public getHistory(max?: number): ExecutionRecord[] {
         const capacity = this.historyBuffer.length;
@@ -682,6 +1032,8 @@ export class Z80Machine implements Hal {
      * back and leaves the machine waiting for input.
      */
     private executeInstruction(): void {
+        this.requireNoOpenPoke("execute an instruction");
+
         // We're about to make a new attempt, so forget the old outcome.
         this.clearStopState();
 
@@ -693,6 +1045,10 @@ export class Z80Machine implements Hal {
 
         if (keepHistory && stateBefore !== undefined) {
             this.pendingRecord = {
+                kind: "instruction",
+                // Handed its identity by addRecord; an instruction rolled
+                // back for want of input never gets one.
+                stepId: 0,
                 // Replaced after the step with what the CPU actually fetched.
                 address: this.z80.regs.pc,
                 stateBefore: stateBefore,
@@ -800,6 +1156,16 @@ export class Z80Machine implements Hal {
     }
 
     /**
+     * Refuse to do something that the machine can't do while a poke is open,
+     * which is anything that would add to or take from the history.
+     */
+    private requireNoOpenPoke(what: string): void {
+        if (this.pokeJournal !== undefined) {
+            throw new Error("cannot " + what + " while a poke is open; call endPoke() first");
+        }
+    }
+
+    /**
      * Make the machine runnable again.
      */
     private clearStopState(): void {
@@ -826,6 +1192,7 @@ export class Z80Machine implements Hal {
             return;
         }
 
+        record.stepId = this.nextStepId++;
         this.historyBuffer[(this.historyStart + this.historyCount) % capacity] = record;
         if (this.historyCount < capacity) {
             this.historyCount += 1;
@@ -859,5 +1226,8 @@ export class Z80Machine implements Hal {
         this.historyStart = 0;
         this.historyCount = 0;
         this.pendingRecord = undefined;
+        // A reset or a load happening in the middle of a poke leaves nothing
+        // for that poke to be recorded against.
+        this.pokeJournal = undefined;
     }
 }

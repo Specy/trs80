@@ -317,6 +317,88 @@ console.log(toHexWord(machine.z80.regs.pc), machine.memory[0x9000]);
 Port writes are recorded in the journal for display. `undo()` leaves them
 alone, since they have already reached the outside world.
 
+## Poking registers and memory
+
+`setRegisterValue()` and `writeMemoryBytes()` change the machine on behalf of
+the host: the person debugging it, or a tool acting for them. On their own
+they write directly and record nothing, which is what setting up a program's
+starting state wants. Wrapped in `beginPoke()` and `endPoke()`, everything
+they write becomes one entry of the same history the instructions use — a
+*poke* — which `undo()` reverts like any other entry, restoring every value
+it changed and nothing else: not the clock, not the stop reason, not the
+call stack.
+
+Registers are named the way the core's `RegisterSet` names its fields: the
+pairs `af`, `bc`, `de`, `hl`, `ix`, `iy`, `sp` and `pc`, the shadow pairs
+`afPrime`, `bcPrime`, `dePrime` and `hlPrime` (the "Prime" suffix, never an
+apostrophe), the halves `a`, `f`, `b`, `c`, `d`, `e`, `h`, `l`, `ixh`, `ixl`,
+`iyh` and `iyl`, and the internal `i`, `r`, `memptr`, `iff1`, `iff2`, `im`
+and `halted`. A value is clamped to what the register can hold, a word for a
+pair and a byte for everything else.
+
+```ts
+import {assemble, isPokeRecord, toHexWord, Z80Machine} from "@specy/z80";
+
+const machine = new Z80Machine({historySize: 1000});
+machine.loadAssembly(assemble(`
+        .org 0x8000
+        ld a, (0x9000)
+        add a, a
+        halt
+`));
+
+// Outside a poke the write is direct and nothing is recorded.
+machine.writeMemoryBytes(0x9000, [0x02]);
+machine.step();
+console.log(machine.z80.regs.a, machine.getHistory().length);
+// 2 1
+
+// Between two instructions: one entry of the history, undoable.
+machine.beginPoke();
+machine.setRegisterValue("a", 0x20);
+console.log(machine.endPoke());
+// true
+
+machine.step();
+console.log(machine.z80.regs.a);
+// 64
+
+for (const record of machine.getHistory()) {
+    console.log(record.stepId, record.kind,
+        isPokeRecord(record) ? record.writes : toHexWord(record.address));
+}
+// 1 instruction 8000
+// 2 poke [ { type: 'register', name: 'a', old: 2, new: 32 } ]
+// 3 instruction 8003
+
+machine.undo();                       // the add
+machine.undo();                       // the poke
+console.log(machine.z80.regs.a);
+// 2
+```
+
+Every record says which it is through its `kind`, `"instruction"` (an
+instruction, or an interrupt being delivered) or `"poke"`; `isPokeRecord()`
+narrows one to a record that has its `writes`. A poke is a step of its own,
+with an identity of its own: its `stepId` is a number no other record has,
+increasing in the order the records were made and never reused for the life
+of the machine, and its `address` is `POKE_RECORD_ADDRESS` (-1), which no
+instruction can have, rather than the address of the instruction that is
+about to run. So a journal that hangs its effects on the machine's steps,
+keyed by either, never takes a poke for an instruction. The PC the poke was
+made at is in its `stateBefore`, as `stateBefore.regs.pc`.
+
+The `writes` hold one entry per register the poke changed and one per run of
+consecutive addresses it changed, each with the value from before the poke
+and the value the machine was left with, however many calls wrote them:
+writing the same register or the same address twice is one entry, and a
+value written and then written back to what it held before the poke is no
+entry at all. A poke that changes nothing in the end records nothing, and
+`endPoke()` returns false; so does a poke made with history turned off,
+which applies but cannot be undone. A poke is something the host does
+between two instructions: beginning one while an instruction is executing
+throws, and so does stepping, running or undoing while one is open.
+
 ## Calling a routine
 
 `loadBinary()` loads raw bytes at an address, and `exitOnReturn` stops the

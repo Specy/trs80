@@ -1,7 +1,14 @@
 import {expect} from "chai";
 import {assemble} from "./Assemble.js";
 import {Z80Machine} from "./Z80Machine.js";
-import {PortWrite, StopReason, Z80MachineConfig, Z80MachineState} from "./Z80MachineTypes.js";
+import {
+    isPokeRecord,
+    POKE_RECORD_ADDRESS,
+    PortWrite,
+    StopReason,
+    Z80MachineConfig,
+    Z80MachineState,
+} from "./Z80MachineTypes.js";
 
 // I can't get mocha to work with TypeScript and ESM, so just provide their
 // functions.
@@ -884,6 +891,523 @@ describe("history and undo", () => {
 
         expect(machine.run().reason).to.equal(StopReason.WAITING_FOR_INPUT);
         expect(machine.getHistory().map(record => record.address)).to.deep.equal([0x0000]);
+    });
+});
+
+describe("pokes", () => {
+    // ld a,0x11 / ld (0x2000),a / halt: one register write and one memory
+    // write, so a poke can be made between two instructions that touch both.
+    const PROGRAM = [
+        0x3E, 0x11,             // 0x0000  ld a,0x11
+        0x32, 0x00, 0x20,       // 0x0002  ld (0x2000),a
+        0x76,                   // 0x0005  halt
+    ];
+
+    it("refuses a second begin, an end with nothing open, and a poke while executing", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        // No poke open yet.
+        expect(() => machine.endPoke()).to.throw();
+
+        machine.beginPoke();
+        expect(() => machine.beginPoke()).to.throw();
+        expect(machine.endPoke()).to.be.false;
+        expect(() => machine.endPoke()).to.throw();
+    });
+
+    it("refuses a poke while an instruction is executing", () => {
+        let error: unknown = undefined;
+        let machine: Z80Machine | undefined = undefined;
+        machine = makeMachine(PROGRAM, {
+            historySize: 10,
+            onMemoryWrite: () => {
+                try {
+                    machine?.beginPoke();
+                } catch (e) {
+                    error = e;
+                }
+                return false;
+            },
+        });
+
+        expect(machine.run().reason).to.equal(StopReason.HALTED);
+        expect(error).to.be.an("error");
+        // And the failed attempt left no transaction behind.
+        expect(() => machine.endPoke()).to.throw();
+    });
+
+    it("refuses to execute, undo or interrupt while a poke is open", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        expect(machine.step()).to.be.undefined;
+        machine.beginPoke();
+        expect(() => machine.step()).to.throw();
+        expect(() => machine.run()).to.throw();
+        expect(() => machine.undo()).to.throw();
+        expect(() => machine.raiseNmi()).to.throw();
+        expect(machine.endPoke()).to.be.false;
+
+        // And everything works again once the poke is closed.
+        expect(machine.step()).to.be.undefined;
+        expect(machine.undo()).to.be.true;
+    });
+
+    it("writes registers and memory directly outside a poke", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        expect(machine.step()).to.be.undefined;
+        const tStateCount = machine.tStateCount;
+        const historyLength = machine.getHistory().length;
+
+        machine.setRegisterValue("hl", 0x1234);
+        machine.setRegisterValue("a", 0x22);
+        machine.writeMemoryBytes(0x3000, [0xAA, 0xBB]);
+
+        expect(machine.z80.regs.hl).to.equal(0x1234);
+        expect(machine.z80.regs.a).to.equal(0x22);
+        expect(machine.memory[0x3000]).to.equal(0xAA);
+        expect(machine.memory[0x3001]).to.equal(0xBB);
+        // Nothing was recorded, which is what a testcase's preset values want.
+        expect(machine.getHistory().length).to.equal(historyLength);
+        expect(machine.tStateCount).to.equal(tStateCount);
+
+        // And undoing the instruction doesn't restore the register the host
+        // wrote to a value the program never gave it, it just goes back to
+        // what the machine had before the instruction.
+        expect(machine.undo()).to.be.true;
+        expect(machine.memory[0x3000]).to.equal(0xAA);
+    });
+
+    it("clamps a poked register to what it can hold", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        machine.setRegisterValue("hl", 0x12345);
+        expect(machine.z80.regs.hl).to.equal(0x2345);
+        machine.setRegisterValue("a", 0x1FF);
+        expect(machine.z80.regs.a).to.equal(0xFF);
+        machine.setRegisterValue("sp", -1);
+        expect(machine.z80.regs.sp).to.equal(0xFFFF);
+
+        machine.beginPoke();
+        machine.setRegisterValue("bcPrime", 0xABCDE);
+        expect(machine.endPoke()).to.be.true;
+        expect(machine.z80.regs.bcPrime).to.equal(0xBCDE);
+
+        expect(() => machine.setRegisterValue("hl'" as never, 0)).to.throw();
+        expect(() => machine.setRegisterValue("nope" as never, 0)).to.throw();
+    });
+
+    it("records nothing when a write leaves the value unchanged", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+        machine.setRegisterValue("hl", 0x1234);
+        machine.writeMemoryBytes(0x3000, [0xAA, 0xBB]);
+
+        machine.beginPoke();
+        machine.setRegisterValue("hl", 0x1234);
+        machine.writeMemoryBytes(0x3000, [0xAA, 0xBB]);
+        expect(machine.endPoke()).to.be.false;
+        expect(machine.getHistory()).to.deep.equal([]);
+        expect(machine.canUndo()).to.be.false;
+
+        // A value written and then written back is no change either, in a
+        // register and in memory alike: the poke is measured against what
+        // the machine held before it, never against a value that only ever
+        // existed inside the transaction.
+        machine.beginPoke();
+        machine.setRegisterValue("hl", 0x4321);
+        machine.setRegisterValue("hl", 0x1234);
+        machine.writeMemoryBytes(0x3000, [0xFF, 0xFF]);
+        machine.writeMemoryBytes(0x3000, [0xAA, 0xBB]);
+        expect(machine.endPoke()).to.be.false;
+        expect(machine.getHistory()).to.deep.equal([]);
+        expect(machine.canUndo()).to.be.false;
+        expect(machine.memory[0x3000]).to.equal(0xAA);
+        expect(machine.memory[0x3001]).to.equal(0xBB);
+
+        // And memory written back on its own, with nothing else in the poke.
+        machine.beginPoke();
+        machine.writeMemoryBytes(0x3000, [0x00, 0x00]);
+        machine.writeMemoryBytes(0x3000, [0xAA, 0xBB]);
+        expect(machine.endPoke()).to.be.false;
+        expect(machine.canUndo()).to.be.false;
+        expect(machine.getHistory()).to.deep.equal([]);
+    });
+
+    it("records one memory entry however often the range is written", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+        machine.writeMemoryBytes(0x9000, [0x01, 0x02, 0x03]);
+
+        machine.beginPoke();
+        // The same address twice, then a range overlapping it, then a range
+        // continuing it: one run of three bytes in the end.
+        machine.writeMemoryBytes(0x9000, [0xAA]);
+        machine.writeMemoryBytes(0x9000, [0xBB]);
+        machine.writeMemoryBytes(0x9001, [0xCC, 0xDD]);
+        machine.writeMemoryBytes(0x9002, [0xEE]);
+        expect(machine.endPoke()).to.be.true;
+
+        const poke = machine.getHistory()[0];
+        // One entry, with the bytes from before the poke: the transient
+        // 0xAA and 0xDD, which the machine held only inside the
+        // transaction, appear nowhere.
+        expect(poke.writes).to.deep.equal([
+            {type: "memory", address: 0x9000, old: [0x01, 0x02, 0x03], new: [0xBB, 0xCC, 0xEE]},
+        ]);
+
+        expect(machine.undo()).to.be.true;
+        expect(Array.from(machine.memory.slice(0x9000, 0x9003)))
+            .to.deep.equal([0x01, 0x02, 0x03]);
+        expect(machine.canUndo()).to.be.false;
+    });
+
+    it("undoes memory a poke wrote and wrote back, alongside what it did change", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+        machine.writeMemoryBytes(0x9000, [0x01, 0x02]);
+
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x1234);
+        machine.writeMemoryBytes(0x9000, [0xFF, 0xFF]);
+        machine.writeMemoryBytes(0x9000, [0x01, 0x02]);
+        expect(machine.endPoke()).to.be.true;
+
+        // The memory came back to where it started, so only the register is
+        // reported, and the transient 0xFF is nowhere in the record.
+        expect(machine.getHistory()[0].writes).to.deep.equal([
+            {type: "register", name: "bc", old: 0x0000, new: 0x1234},
+        ]);
+
+        expect(machine.undo()).to.be.true;
+        expect(machine.z80.regs.bc).to.equal(0x0000);
+        expect(Array.from(machine.memory.slice(0x9000, 0x9002))).to.deep.equal([0x01, 0x02]);
+    });
+
+    it("keeps the ranges the host wrote apart apart, in the order it wrote them", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        machine.beginPoke();
+        machine.writeMemoryBytes(0x9100, [0x11]);
+        machine.setRegisterValue("de", 0x0042);
+        machine.writeMemoryBytes(0x9000, [0x22]);
+        expect(machine.endPoke()).to.be.true;
+
+        expect(machine.getHistory()[0].writes).to.deep.equal([
+            {type: "memory", address: 0x9100, old: [0x00], new: [0x11]},
+            {type: "register", name: "de", old: 0x0000, new: 0x0042},
+            {type: "memory", address: 0x9000, old: [0x00], new: [0x22]},
+        ]);
+    });
+
+    it("records one entry with the old and the new values", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+        machine.writeMemoryBytes(0x2000, [0x01, 0x02, 0x03]);
+
+        expect(machine.step()).to.be.undefined;
+
+        machine.beginPoke();
+        machine.setRegisterValue("hl", 0x1234);
+        machine.setRegisterValue("hl", 0x4321);
+        machine.setRegisterValue("hlPrime", 0x0009);
+        machine.writeMemoryBytes(0x2000, [0xAA, 0x02, 0xCC]);
+        expect(machine.endPoke()).to.be.true;
+
+        const history = machine.getHistory();
+        expect(history.length).to.equal(2);
+        expect(history[0].kind).to.equal("instruction");
+        expect(history[0].writes).to.be.undefined;
+
+        const poke = history[1];
+        expect(poke.kind).to.equal("poke");
+        expect(poke.portWrites).to.deep.equal([]);
+        // One entry per register, whatever the number of writes, with the
+        // value found at the first write and the one left at the end.
+        expect(poke.writes).to.deep.equal([
+            {type: "register", name: "hl", old: 0x0000, new: 0x4321},
+            {type: "register", name: "hlPrime", old: 0x0000, new: 0x0009},
+            // The whole range that was written, unchanged bytes included.
+            {type: "memory", address: 0x2000, old: [0x01, 0x02, 0x03], new: [0xAA, 0x02, 0xCC]},
+        ]);
+        expect(isPokeRecord(poke)).to.be.true;
+        expect(isPokeRecord(history[0])).to.be.false;
+    });
+
+    it("gives a poke an identity of its own", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        expect(machine.step()).to.be.undefined;
+        const stoppedAt = machine.z80.regs.pc;
+        machine.beginPoke();
+        machine.setRegisterValue("de", 0x0042);
+        expect(machine.endPoke()).to.be.true;
+
+        const history = machine.getHistory();
+        expect(history.map(record => record.kind)).to.deep.equal(["instruction", "poke"]);
+        expect(history[0].address).to.equal(0x0000);
+        // The poke ran no instruction, so it reports no instruction
+        // address: not the PC the machine is stopped at, which is where the
+        // next instruction will be recorded, and nothing a 16-bit address
+        // could be.
+        expect(history[1].address).to.equal(POKE_RECORD_ADDRESS);
+        expect(POKE_RECORD_ADDRESS).to.equal(-1);
+        expect(history[1].address).to.not.equal(stoppedAt);
+        expect(history[1].interrupt).to.be.undefined;
+        // The PC it was made at is still there, in the state it restores.
+        expect(history[1].stateBefore.regs.pc).to.equal(stoppedAt);
+
+        // Stepping records the instruction that was about to run at the PC
+        // the poke was made at, and that record's address is its own: no
+        // reader of the history can mistake the one for the other.
+        expect(machine.step()).to.be.undefined;
+        const after = machine.getHistory();
+        expect(after.map(record => record.kind))
+            .to.deep.equal(["instruction", "poke", "instruction"]);
+        expect(after[2].address).to.equal(stoppedAt);
+        expect(after[2].address).to.not.equal(after[1].address);
+        expect(after.filter(record => record.address === POKE_RECORD_ADDRESS).length).to.equal(1);
+
+        // And every entry carries a step id no other entry has, in the
+        // order the entries were made, poke and instructions alike.
+        const ids = after.map(record => record.stepId);
+        expect(ids).to.deep.equal([1, 2, 3]);
+        expect(new Set(ids).size).to.equal(ids.length);
+    });
+
+    it("never repeats a step id, across pokes, undos and resets", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x0001);
+        expect(machine.endPoke()).to.be.true;
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x0002);
+        expect(machine.endPoke()).to.be.true;
+
+        // Two consecutive pokes are two entries with two identities, even
+        // though both sit at the same address and the same t-state count.
+        const pokes = machine.getHistory();
+        expect(pokes.map(record => record.kind)).to.deep.equal(["poke", "poke"]);
+        expect(pokes[0].address).to.equal(pokes[1].address);
+        expect(pokes[0].tStateCountBefore).to.equal(pokes[1].tStateCountBefore);
+        expect(pokes[0].stepId).to.not.equal(pokes[1].stepId);
+
+        // An id an undone entry had is not handed out again.
+        const undone = pokes[1].stepId;
+        expect(machine.undo()).to.be.true;
+        expect(machine.step()).to.be.undefined;
+        expect(machine.getHistory().map(record => record.stepId))
+            .to.deep.equal([pokes[0].stepId, undone + 1]);
+
+        machine.reset();
+        expect(machine.step()).to.be.undefined;
+        expect(machine.getHistory()[0].stepId).to.equal(undone + 2);
+    });
+
+    it("takes one slot of the history", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 2});
+
+        expect(machine.step()).to.be.undefined;
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x0001);
+        expect(machine.endPoke()).to.be.true;
+        expect(machine.getHistory().map(record => record.kind))
+            .to.deep.equal(["instruction", "poke"]);
+
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x0002);
+        expect(machine.endPoke()).to.be.true;
+        // The oldest record fell off the end, the poke included.
+        expect(machine.getHistory().map(record => record.kind)).to.deep.equal(["poke", "poke"]);
+        expect(machine.getHistory(1).map(record => record.writes?.length)).to.deep.equal([1]);
+    });
+
+    it("applies but doesn't record a poke when history is disabled", () => {
+        const machine = makeMachine(PROGRAM);
+
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x1234);
+        expect(machine.endPoke()).to.be.false;
+        expect(machine.z80.regs.bc).to.equal(0x1234);
+        expect(machine.canUndo()).to.be.false;
+        expect(machine.getHistory()).to.deep.equal([]);
+    });
+
+    it("undoes a poke and touches nothing else", () => {
+        const machine = makeMachine([
+            0xCD, 0x06, 0x00,       // 0x0000  call 0x0006
+            0x00,                   // 0x0003  nop
+            0x00,                   // 0x0004  nop
+            0x76,                   // 0x0005  halt
+            0x3E, 0x11,             // 0x0006  ld a,0x11
+            0xC9,                   // 0x0008  ret
+        ], {historySize: 10});
+        machine.memory[0x2000] = 0xEE;
+
+        // Stop inside the routine, so there's a call stack to disturb.
+        expect(machine.run({breakpoints: [0x0008]}).reason).to.equal(StopReason.BREAKPOINT);
+        const before = {
+            pc: machine.z80.regs.pc,
+            sp: machine.z80.regs.sp,
+            f: machine.z80.regs.f,
+            a: machine.z80.regs.a,
+            tStateCount: machine.tStateCount,
+            stopReason: machine.stopReason,
+            callStack: machine.getCallStack().length,
+            historyLength: machine.getHistory().length,
+        };
+        expect(before.callStack).to.equal(1);
+
+        machine.beginPoke();
+        machine.setRegisterValue("a", 0x77);
+        machine.setRegisterValue("ix", 0x5678);
+        machine.writeMemoryBytes(0x2000, [0xAB, 0xCD]);
+        expect(machine.endPoke()).to.be.true;
+
+        expect(machine.z80.regs.a).to.equal(0x77);
+        expect(machine.z80.regs.ix).to.equal(0x5678);
+        expect(machine.memory[0x2000]).to.equal(0xAB);
+        expect(machine.memory[0x2001]).to.equal(0xCD);
+        // The poke itself costs no time and doesn't resume the machine.
+        expect(machine.tStateCount).to.equal(before.tStateCount);
+        expect(machine.stopReason).to.equal(before.stopReason);
+        expect(machine.getCallStack().length).to.equal(before.callStack);
+
+        expect(machine.canUndo()).to.be.true;
+        expect(machine.undo()).to.be.true;
+
+        expect(machine.z80.regs.a).to.equal(before.a);
+        expect(machine.z80.regs.ix).to.equal(0x0000);
+        expect(machine.memory[0x2000]).to.equal(0xEE);
+        expect(machine.memory[0x2001]).to.equal(0x00);
+        expect(machine.z80.regs.pc).to.equal(before.pc);
+        expect(machine.z80.regs.sp).to.equal(before.sp);
+        expect(machine.z80.regs.f).to.equal(before.f);
+        expect(machine.tStateCount).to.equal(before.tStateCount);
+        // The poke set no stop reason, so undoing it clears none.
+        expect(machine.stopReason).to.equal(before.stopReason);
+        expect(machine.getCallStack().length).to.equal(before.callStack);
+        expect(machine.getHistory().length).to.equal(before.historyLength);
+
+        // And the program runs on from exactly where it was.
+        expect(machine.run().reason).to.equal(StopReason.HALTED);
+        expect(machine.z80.regs.a).to.equal(0x11);
+    });
+
+    it("keeps a poke out of a peripheral's way", () => {
+        // A poke writes RAM itself: the onMemoryWrite hook, which is how a
+        // memory-mapped device sees the CPU's writes, is not called.
+        const writes: number[] = [];
+        const machine = makeMachine(PROGRAM, {
+            historySize: 10,
+            onMemoryWrite: (address) => {
+                writes.push(address);
+                return false;
+            },
+        });
+
+        machine.beginPoke();
+        machine.writeMemoryBytes(0x2000, [0x01]);
+        expect(machine.endPoke()).to.be.true;
+        expect(writes).to.deep.equal([]);
+
+        machine.writeMemoryBytes(0x2001, [0x02]);
+        expect(writes).to.deep.equal([]);
+
+        // The CPU's own write still goes through it.
+        expect(machine.run().reason).to.equal(StopReason.HALTED);
+        expect(writes).to.deep.equal([0x2000]);
+    });
+
+    it("leaves a machine waiting for input waiting for it", () => {
+        const machine = makeMachine([
+            0x00,             // 0x0000  nop
+            0xDB, 0x10,       // 0x0001  in a,(0x10)
+            0x76,             // 0x0003  halt
+        ], {
+            historySize: 10,
+            onPortRead: () => undefined,
+        });
+
+        expect(machine.run().reason).to.equal(StopReason.WAITING_FOR_INPUT);
+        expect(machine.pendingInputPort).to.equal(0x0010);
+
+        machine.beginPoke();
+        machine.setRegisterValue("de", 0x1111);
+        expect(machine.endPoke()).to.be.true;
+        expect(machine.undo()).to.be.true;
+
+        // The poke didn't stop the machine, so undoing it doesn't start it.
+        expect(machine.z80.regs.de).to.equal(0x0000);
+        expect(machine.stopReason).to.equal(StopReason.WAITING_FOR_INPUT);
+        expect(machine.pendingInputPort).to.equal(0x0010);
+
+        // Undoing the instruction underneath does clear it, as it always has.
+        expect(machine.undo()).to.be.true;
+        expect(machine.stopReason).to.be.undefined;
+        expect(machine.pendingInputPort).to.be.undefined;
+    });
+
+    it("undoes two pokes one at a time", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x0001);
+        expect(machine.endPoke()).to.be.true;
+        machine.beginPoke();
+        machine.setRegisterValue("bc", 0x0002);
+        expect(machine.endPoke()).to.be.true;
+
+        expect(machine.getHistory().map(record => record.kind)).to.deep.equal(["poke", "poke"]);
+
+        expect(machine.undo()).to.be.true;
+        expect(machine.z80.regs.bc).to.equal(0x0001);
+        expect(machine.undo()).to.be.true;
+        expect(machine.z80.regs.bc).to.equal(0x0000);
+        expect(machine.canUndo()).to.be.false;
+    });
+
+    it("undoes an instruction before the poke that came before it", () => {
+        const machine = makeMachine(PROGRAM, {historySize: 10});
+        machine.memory[0x2000] = 0xEE;
+
+        // Stop between the two instructions.
+        expect(machine.step()).to.be.undefined;
+        const before = {
+            a: machine.z80.regs.a,
+            hl: machine.z80.regs.hl,
+            pc: machine.z80.regs.pc,
+            tStateCount: machine.tStateCount,
+        };
+
+        machine.beginPoke();
+        machine.setRegisterValue("a", 0x55);
+        machine.setRegisterValue("hl", 0x4321);
+        expect(machine.endPoke()).to.be.true;
+
+        // The instruction stores the poked accumulator.
+        expect(machine.step()).to.be.undefined;
+        expect(machine.memory[0x2000]).to.equal(0x55);
+
+        expect(machine.getHistory().map(record => record.kind))
+            .to.deep.equal(["instruction", "poke", "instruction"]);
+
+        // The instruction goes first, taking its memory write with it.
+        expect(machine.undo()).to.be.true;
+        expect(machine.memory[0x2000]).to.equal(0xEE);
+        expect(machine.z80.regs.a).to.equal(0x55);
+        expect(machine.z80.regs.hl).to.equal(0x4321);
+        expect(machine.z80.regs.pc).to.equal(before.pc);
+
+        // Then the poke, leaving exactly the state from before it.
+        expect(machine.undo()).to.be.true;
+        expect(machine.z80.regs.a).to.equal(before.a);
+        expect(machine.z80.regs.hl).to.equal(before.hl);
+        expect(machine.z80.regs.pc).to.equal(before.pc);
+        expect(machine.tStateCount).to.equal(before.tStateCount);
+        expect(machine.memory[0x2000]).to.equal(0xEE);
+
+        // And the first instruction is still undoable underneath.
+        expect(machine.undo()).to.be.true;
+        expect(machine.z80.regs.pc).to.equal(0x0000);
+        expect(machine.canUndo()).to.be.false;
     });
 });
 

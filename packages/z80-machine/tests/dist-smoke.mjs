@@ -21,7 +21,8 @@ if (!existsSync(fileURLToPath(ESM))) {
     process.exit(1);
 }
 
-const {assemble, StopReason, Z80Machine, toHexWord, mnemonicMap} = await import(ESM);
+const {assemble, isPokeRecord, POKE_RECORD_ADDRESS, StopReason, Z80Machine, toHexWord, mnemonicMap} =
+    await import(ESM);
 
 // ---------------------------------------------------------------------------
 // Assembling and running
@@ -77,6 +78,75 @@ assert.equal(io.pendingInputPort & 0xFF, 0x01, "and says which port it is waitin
 input.push(72, 105, 0);
 assert.equal(io.run().reason, StopReason.HALTED, "resuming re-executes the `in` and runs on");
 assert.deepEqual(writes, [[0x02, 72], [0x02, 105]], "both bytes reached the write callback");
+
+// ---------------------------------------------------------------------------
+// Pokes
+// ---------------------------------------------------------------------------
+
+// A host write journaled into the machine's own history as one undoable
+// entry, which is how the editor lets a person change a register mid-debug.
+const poked = new Z80Machine({historySize: 100});
+poked.loadAssembly(assemble(ADD));
+assert.equal(poked.step(), undefined, "one instruction, then the poke");
+
+poked.beginPoke();
+poked.setRegisterValue("a", 0x10);
+poked.writeMemoryBytes(0x9000, [0xAB, 0xCD]);
+assert.equal(poked.endPoke(), true, "the poke was recorded");
+
+const pokeRecord = poked.getHistory().at(-1);
+assert.equal(pokeRecord.kind, "poke", "and it is a poke, not an instruction");
+assert.ok(isPokeRecord(pokeRecord), "which the type guard agrees with");
+assert.deepEqual(pokeRecord.writes, [
+    {type: "register", name: "a", old: 5, new: 0x10},
+    {type: "memory", address: 0x9000, old: [0x00, 0x00], new: [0xAB, 0xCD]},
+], "carrying what it changed, with the old and the new values");
+
+// The entry is a step of its own: a step id no other entry has, and an
+// address that is no instruction's, so nothing keyed on either takes the
+// poke for the instruction that is about to run.
+assert.equal(POKE_RECORD_ADDRESS, -1, "a poke's address is not one a Z80 could have");
+assert.equal(pokeRecord.address, POKE_RECORD_ADDRESS, "the poke reports no instruction address");
+assert.equal(pokeRecord.stateBefore.regs.pc, poked.z80.regs.pc, "the PC it was made at is in its state");
+assert.equal(poked.step(), undefined, "and the instruction it was made before still runs");
+const afterPoke = poked.getHistory();
+assert.equal(afterPoke.at(-1).address, pokeRecord.stateBefore.regs.pc,
+    "recorded at the address the poke was made at");
+assert.notEqual(afterPoke.at(-1).address, pokeRecord.address, "which is not the poke's own");
+assert.equal(new Set(afterPoke.map((record) => record.stepId)).size, afterPoke.length,
+    "and every entry of the history has a step id of its own");
+assert.equal(poked.undo(), true, "roll that instruction back off again");
+
+// A range written and then written back inside one transaction is no change
+// at all, and an address written twice is one entry, not two overlapping
+// ones: the record is measured against what the machine held before the
+// poke, never against a value that only existed inside it.
+const history = poked.getHistory().length;
+poked.beginPoke();
+poked.writeMemoryBytes(0x9000, [0x11, 0x22]);
+poked.writeMemoryBytes(0x9000, [0xAB, 0xCD]);
+assert.equal(poked.endPoke(), false, "a poke written back to where it started records nothing");
+assert.equal(poked.getHistory().length, history, "and adds no row to the history");
+
+poked.beginPoke();
+poked.writeMemoryBytes(0x9000, [0x11]);
+poked.writeMemoryBytes(0x9000, [0x22]);
+assert.equal(poked.endPoke(), true, "an address written twice is still one poke");
+assert.deepEqual(poked.getHistory().at(-1).writes, [
+    {type: "memory", address: 0x9000, old: [0xAB], new: [0x22]},
+], "with one entry holding the byte from before the poke");
+assert.equal(poked.undo(), true);
+assert.equal(poked.memory[0x9000], 0xAB, "and undoing it puts that byte back");
+
+assert.equal(poked.run().reason, StopReason.HALTED, "the program runs on from the poked state");
+assert.equal(poked.z80.regs.a, 0x10 + 37, "using what was poked into it");
+
+// Undo walks back over the instructions and then the poke itself.
+while (poked.canUndo()) {
+    poked.undo();
+}
+assert.equal(poked.z80.regs.a, 0, "every register is back");
+assert.equal(poked.memory[0x9000], 0, "and so is the poked memory");
 
 // ---------------------------------------------------------------------------
 // The bundled packages

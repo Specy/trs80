@@ -1,4 +1,5 @@
 import {Z80State} from "z80-emulator";
+import {Register} from "z80-base";
 import type {Z80Machine} from "./Z80Machine.js";
 
 /**
@@ -94,12 +95,109 @@ export interface PortWrite {
 }
 
 /**
- * One instruction's worth of execution history.
+ * The {@link ExecutionRecord.address} of a poke record. No instruction can
+ * have it: an address is a 16-bit number, and this one is negative. A poke
+ * runs no instruction, so it has no instruction address to report; the PC
+ * the machine was stopped at when the poke was made is in the record's
+ * {@link ExecutionRecord.stateBefore}, as `stateBefore.regs.pc`.
+ */
+export const POKE_RECORD_ADDRESS = -1;
+
+/**
+ * What an execution record describes: the CPU running an instruction (or
+ * taking an interrupt), or a poke, a register or memory value changed by
+ * the host between two instructions through
+ * {@link Z80Machine.beginPoke}/{@link Z80Machine.endPoke}.
+ */
+export type ExecutionRecordKind = "instruction" | "poke";
+
+/**
+ * One register changed by a poke. The name is the machine's own spelling,
+ * a field of the core's RegisterSet: the shadow registers are `afPrime`,
+ * `bcPrime`, `dePrime` and `hlPrime`, never an apostrophe.
+ */
+export interface RegisterPokeWrite {
+    type: "register";
+
+    /**
+     * Which register was written, as {@link Z80Machine.setRegisterValue}
+     * names it.
+     */
+    name: Register;
+
+    /**
+     * Value the register held when the poke first wrote it.
+     */
+    old: number;
+
+    /**
+     * Value the register holds at the end of the poke.
+     */
+    new: number;
+}
+
+/**
+ * One run of consecutive memory addresses changed by a poke, however many
+ * calls to {@link Z80Machine.writeMemoryBytes} wrote them: the poke journals
+ * every address it touches, and {@link Z80Machine.endPoke} gathers the
+ * journaled addresses back into runs, so two calls writing neighbouring
+ * bytes are one entry and a range written twice is one entry, never two
+ * overlapping ones. Both arrays cover the whole run, including bytes the
+ * poke left at the value they already held.
+ */
+export interface MemoryPokeWrite {
+    type: "memory";
+
+    /**
+     * Address of the first byte of the run.
+     */
+    address: number;
+
+    /**
+     * Bytes the run held before the poke, never a value that existed only
+     * inside it: writing an address twice keeps the first byte found there.
+     */
+    old: number[];
+
+    /**
+     * Bytes the run holds at the end of the poke.
+     */
+    new: number[];
+}
+
+/**
+ * One value changed by a poke, with what it was and what it became.
+ */
+export type PokeWrite = RegisterPokeWrite | MemoryPokeWrite;
+
+/**
+ * One entry of the execution history: an instruction the CPU executed, an
+ * interrupt it took, or a poke the host made.
  */
 export interface ExecutionRecord {
     /**
+     * Whether this entry is an instruction (or an interrupt) or a poke.
+     * Always set, so a reader never has to guess.
+     */
+    kind: ExecutionRecordKind;
+
+    /**
+     * This entry's identity: a number handed out when the entry entered the
+     * history, increasing in the order the entries were made and never
+     * reused for the life of the machine, a reset or a load included. Two
+     * entries never share one, whatever their kind, so a journal that hangs
+     * effects on the machine's steps can key them by this and never see a
+     * poke where it expects an instruction. Records start at 1; a record
+     * that never entered the history (because history is disabled) has 0.
+     */
+    stepId: number;
+
+    /**
      * Address of the instruction that was executed, or, for an interrupt
-     * entry, the address that was interrupted.
+     * entry, the address that was interrupted. A poke has
+     * {@link POKE_RECORD_ADDRESS} here, which is no instruction's address:
+     * no instruction ran, and the PC the poke was made at is in
+     * {@link ExecutionRecord.stateBefore} as `stateBefore.regs.pc`.
      */
     address: number;
 
@@ -126,9 +224,35 @@ export interface ExecutionRecord {
     memoryWrites: MemoryWrite[];
 
     /**
-     * Port writes performed by the instruction, in order.
+     * Port writes performed by the instruction, in order. Always empty on a
+     * poke entry: a poke writes no ports.
      */
     portWrites: PortWrite[];
+
+    /**
+     * What the poke changed, in the order it was written, with the old and
+     * the new value of each. Present exactly on entries whose kind is
+     * "poke"; see {@link isPokeRecord}.
+     */
+    writes?: PokeWrite[];
+}
+
+/**
+ * An execution record made by a poke, which always carries its
+ * {@link ExecutionRecord.writes}.
+ */
+export interface PokeExecutionRecord extends ExecutionRecord {
+    kind: "poke";
+    address: typeof POKE_RECORD_ADDRESS;
+    writes: PokeWrite[];
+}
+
+/**
+ * Whether an execution record is a poke rather than an instruction or an
+ * interrupt, narrowing it to one that has its writes.
+ */
+export function isPokeRecord(record: ExecutionRecord): record is PokeExecutionRecord {
+    return record.kind === "poke";
 }
 
 /**
