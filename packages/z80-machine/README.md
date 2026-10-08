@@ -482,6 +482,20 @@ console.log(StopReason[machine.run().reason], machine.z80.regs.a);
 </script>
 ```
 
+## Memory layout and stack bounds
+
+`AssemblyResult.asm.assembledLines` exposes `kind` (`code`, `data`, `reserved`, or
+`undefined`) and `alignment` on each line. The occupied range is `address` through
+`nextAddress`. A `ds` is reserved with or without a fill byte; `align` describes
+reserved padding, while `org` and other lines that emit nothing have no kind.
+These facts also apply to lines expanded from includes and macros. The assembler's
+existing symbol table supplies data names, with Z80's case-insensitive lookup.
+
+`machine.getStackTop()` reports the tracked stack region's top independently of
+`machine.stackTop`, which keeps its existing configuration meaning. A change of SP
+larger than 4096 bytes starts a new stack; SP rising above the top raises the top.
+Undo and machine snapshots restore the tracked top.
+
 # License
 
 Copyright &copy; Lawrence Kesteloot and Specy, [MIT license](LICENSE).

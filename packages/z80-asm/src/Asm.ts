@@ -303,6 +303,9 @@ export class AssembledLine {
     public address = 0;
     // Decoded opcodes and parameters:
     public binary: number[] = [];
+    /** Semantic emission kind, including unfilled ds/defs reservations. */
+    public kind: 'code' | 'data' | 'reserved' | undefined;
+    public alignment = 1;
     // Any error found in the line.
     public error: string | undefined;
     // The variant of the instruction, if any.
@@ -692,6 +695,9 @@ export class Asm {
         };
         computeBeginEndLineNumbers(sourceFile.fileInfo);
 
+        for (const line of this.assembledLines) {
+            if (line.binary.length > 0 && line.kind === undefined) line.kind = line.variant ? "code" : "data";
+        }
         // Fill in symbols of each line.
         for (const scope of this.scopes) {
             for (const symbol of scope.symbols.values()) {
@@ -1249,6 +1255,8 @@ class LineParser {
                 this.assembledLine.nextAddress = this.readExpression();
             } else if (PSEUDO_ALIGN.has(mnemonic)) {
                 const align = this.readExpression();
+                this.assembledLine.alignment = align;
+                this.assembledLine.kind = "reserved";
                 if (align <= 0) {
                     this.assembledLine.error = "alignment value expected";
                 } else {
@@ -1271,6 +1279,7 @@ class LineParser {
                 }
             } else if (PSEUDO_FILL.has(mnemonic)) {
                 const length = this.readExpression();
+                this.assembledLine.kind = "reserved";
                 if (length === undefined) {
                     this.assembledLine.error = "length value expected";
                 } else if (length < 0) {

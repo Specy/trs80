@@ -175,6 +175,8 @@ export type PokeWrite = RegisterPokeWrite | MemoryPokeWrite;
  * interrupt it took, or a poke the host made.
  */
 export interface ExecutionRecord {
+    /** Stack extent before this instruction; restored by Undo. */
+    stackTopBefore?: number;
     /**
      * Whether this entry is an instruction (or an interrupt) or a poke.
      * Always set, so a reader never has to guess.
@@ -385,6 +387,7 @@ export interface RunResult {
  * core's Z80State covers registers only; this covers the whole machine.
  */
 export class Z80MachineState {
+    public stackRegionTop?: number;
     public readonly z80State: Z80State;
     public readonly memory: Uint8Array;
     public readonly tStateCount: number;

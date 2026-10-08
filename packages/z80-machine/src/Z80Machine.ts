@@ -217,6 +217,8 @@ export class Z80Machine implements Hal {
      * call-stack reconstruction and the exitOnReturn option.
      */
     public readonly stackTop: number;
+    private stackRegionTop: number;
+    public getStackTop(): number { return this.stackRegionTop; }
 
     // The configured hooks, or undefined if the embedder didn't supply them.
     private readonly onPortRead: ((port: number) => number | undefined) | undefined;
@@ -262,6 +264,7 @@ export class Z80Machine implements Hal {
         this.z80 = new Z80(this);
         this.memory = memory ?? new Uint8Array(MEMORY_SIZE);
         this.stackTop = config?.initialSp ?? DEFAULT_INITIAL_SP;
+        this.stackRegionTop = this.stackTop;
         this.onPortRead = config?.onPortRead;
         this.onPortWrite = config?.onPortWrite;
         this.onMemoryRead = config?.onMemoryRead;
@@ -271,6 +274,7 @@ export class Z80Machine implements Hal {
         this.historyBuffer = new Array<ExecutionRecord | undefined>(Math.max(0, config?.historySize ?? 0))
             .fill(undefined);
         this.z80.regs.sp = this.stackTop;
+        this.stackRegionTop = this.stackTop;
     }
 
     // The Hal interface. These apply the configured hooks and (when
@@ -356,6 +360,7 @@ export class Z80Machine implements Hal {
     public reset(): void {
         this.z80.reset();
         this.z80.regs.sp = this.stackTop;
+        this.stackRegionTop = this.stackTop;
         this.tStateCount = 0;
         this.clearStopState();
         this.clearHistory();
@@ -580,9 +585,11 @@ export class Z80Machine implements Hal {
     public save(): Z80MachineState {
         // Only the live part of the stack can ever be walked, so that's all
         // the provenance we keep.
-        return new Z80MachineState(this.z80.save(), this.memory.slice(),
+        const state = new Z80MachineState(this.z80.save(), this.memory.slice(),
             this.tStateCount, this.stopReason, this.pendingInputPort,
             this.z80.pushInstructionAddress.slice(this.stackBottom(), this.stackTopOffset()));
+        state.stackRegionTop = this.stackRegionTop;
+        return state;
     }
 
     /**
@@ -591,6 +598,7 @@ export class Z80Machine implements Hal {
      */
     public restore(state: Z80MachineState): void {
         this.z80.restore(state.z80State);
+        this.stackRegionTop = state.stackRegionTop ?? this.stackTop;
         // Copy into our buffer, the embedder may be holding on to it.
         this.memory.set(state.memory.subarray(0, this.memory.length));
         this.tStateCount = state.tStateCount;
@@ -873,6 +881,7 @@ export class Z80Machine implements Hal {
 
         this.z80.restore(record.stateBefore);
         this.tStateCount = record.tStateCountBefore;
+        if (record.stackTopBefore !== undefined) this.stackRegionTop = record.stackTopBefore;
 
         // Reverse the writes in the opposite order, in case the instruction
         // wrote to the same address twice.
@@ -1041,6 +1050,7 @@ export class Z80Machine implements Hal {
         // if its input isn't available.
         const keepHistory = this.historyBuffer.length > 0;
         const stateBefore = keepHistory || this.onPortRead !== undefined ? this.z80.save() : undefined;
+        const spBefore = this.z80.regs.sp;
         const tStateCountBefore = this.tStateCount;
 
         if (keepHistory && stateBefore !== undefined) {
@@ -1053,6 +1063,7 @@ export class Z80Machine implements Hal {
                 address: this.z80.regs.pc,
                 stateBefore: stateBefore,
                 tStateCountBefore: tStateCountBefore,
+                stackTopBefore: this.stackRegionTop,
                 memoryWrites: [],
                 portWrites: [],
             };
@@ -1067,6 +1078,8 @@ export class Z80Machine implements Hal {
         this.executing = true;
         try {
             this.z80.step();
+            const sp = this.z80.regs.sp;
+            if (Math.abs(sp - spBefore) > 4096 || sp > this.stackRegionTop) this.stackRegionTop = sp;
         } catch (e) {
             this.pendingRecord = undefined;
             if (e instanceof InputPendingError && stateBefore !== undefined) {

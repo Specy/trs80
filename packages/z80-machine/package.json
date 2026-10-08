@@ -26,7 +26,7 @@
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "docs": "typedoc -p . --target es6 --excludeNotExported --excludePrivate --out docs src && touch docs/.nojekyll",
-    "test": "tsx src/Z80Machine.spec.ts && tsx src/CallStack.spec.ts && tsx src/Assemble.spec.ts && tsx src/SourceMap.spec.ts",
+    "test": "tsx src/Z80Machine.spec.ts && tsx src/CallStack.spec.ts && tsx src/Assemble.spec.ts && tsx src/SourceMap.spec.ts && tsx src/MemoryRegions.spec.ts",
     "test:dist": "node tests/dist-smoke.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
