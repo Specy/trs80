@@ -230,10 +230,11 @@ export class Z80Machine implements Hal {
     // Whether a top-level return stops the machine.
     private readonly exitOnReturn: boolean;
 
-    // Ring buffer of execution records. Empty (zero length) if history is
-    // disabled. The oldest record is at historyStart, and there are
-    // historyCount records.
-    private readonly historyBuffer: (ExecutionRecord | undefined)[];
+    // Ring buffer of execution records, allocated as execution reaches its
+    // slots, up to historyCapacity. The oldest record is at historyStart,
+    // and there are historyCount records.
+    private readonly historyCapacity: number;
+    private historyBuffer: (ExecutionRecord | undefined)[] = [];
     private historyStart = 0;
     private historyCount = 0;
 
@@ -271,8 +272,10 @@ export class Z80Machine implements Hal {
         this.onDebugRead = config?.onDebugRead ?? config?.onMemoryRead;
         this.onMemoryWrite = config?.onMemoryWrite;
         this.exitOnReturn = config?.exitOnReturn ?? false;
-        this.historyBuffer = new Array<ExecutionRecord | undefined>(Math.max(0, config?.historySize ?? 0))
-            .fill(undefined);
+        this.historyCapacity = Math.max(0, config?.historySize ?? 0);
+        if (!Number.isInteger(this.historyCapacity) || this.historyCapacity > 0xFFFFFFFF) {
+            throw new RangeError("Invalid history size");
+        }
         this.z80.regs.sp = this.stackTop;
         this.stackRegionTop = this.stackTop;
     }
@@ -521,7 +524,7 @@ export class Z80Machine implements Hal {
         // The core ignores a maskable interrupt while interrupts are off, and
         // an interrupt that never happened must not become an undo step.
         const taken = !maskable || this.z80.regs.iff1 !== 0;
-        const stateBefore = taken && this.historyBuffer.length > 0 ? this.z80.save() : undefined;
+        const stateBefore = taken && this.historyCapacity > 0 ? this.z80.save() : undefined;
         const spBefore = this.z80.regs.sp;
 
         if (stateBefore !== undefined) {
@@ -849,7 +852,7 @@ export class Z80Machine implements Hal {
             writes: writes,
         });
 
-        return this.historyBuffer.length > 0;
+        return this.historyCapacity > 0;
     }
 
     /**
@@ -1048,7 +1051,7 @@ export class Z80Machine implements Hal {
 
         // We need the CPU state to undo the instruction, and to roll it back
         // if its input isn't available.
-        const keepHistory = this.historyBuffer.length > 0;
+        const keepHistory = this.historyCapacity > 0;
         const stateBefore = keepHistory || this.onPortRead !== undefined ? this.z80.save() : undefined;
         const spBefore = this.z80.regs.sp;
         const tStateCountBefore = this.tStateCount;
@@ -1200,9 +1203,19 @@ export class Z80Machine implements Hal {
      * the buffer is full. Does nothing if history is disabled.
      */
     private addRecord(record: ExecutionRecord): void {
-        const capacity = this.historyBuffer.length;
-        if (capacity === 0) {
+        if (this.historyCapacity === 0) {
             return;
+        }
+        let capacity = this.historyBuffer.length;
+        if (this.historyCount === capacity && capacity < this.historyCapacity) {
+            const grown = new Array<ExecutionRecord | undefined>(
+                Math.min(this.historyCapacity, capacity === 0 ? 64 : capacity * 2));
+            for (let i = 0; i < this.historyCount; i++) {
+                grown[i] = this.historyBuffer[(this.historyStart + i) % capacity];
+            }
+            this.historyBuffer = grown;
+            this.historyStart = 0;
+            capacity = grown.length;
         }
 
         record.stepId = this.nextStepId++;
@@ -1235,7 +1248,7 @@ export class Z80Machine implements Hal {
      * Forget the execution history.
      */
     private clearHistory(): void {
-        this.historyBuffer.fill(undefined);
+        this.historyBuffer = [];
         this.historyStart = 0;
         this.historyCount = 0;
         this.pendingRecord = undefined;

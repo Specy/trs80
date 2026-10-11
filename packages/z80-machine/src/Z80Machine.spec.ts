@@ -757,6 +757,33 @@ describe("step over", () => {
 });
 
 describe("history and undo", () => {
+    it("grows storage on demand and preserves history through growth, wrap, and undo", () => {
+        // INC A; JP 0. The non-power-of-two limit exercises the last partial growth.
+        const machine = makeMachine([0x3C, 0xC3, 0x00, 0x00], {historySize: 130});
+        const allocated = () => (machine as unknown as {historyBuffer: unknown[]}).historyBuffer.length;
+        expect(allocated()).to.equal(0);
+        for (let i = 0; i < 64; i++) machine.step();
+        expect(allocated()).to.equal(64);
+        const beforeGrowth = machine.getHistory();
+        machine.step();
+        expect(allocated()).to.equal(128);
+        expect(machine.getHistory().slice(0, 64)).to.deep.equal(beforeGrowth);
+        for (let i = 65; i < 150; i++) machine.step();
+        expect(allocated()).to.equal(130);
+        expect(machine.getHistory().map(record => record.stepId)).to.deep.equal(
+            Array.from({length: 130}, (_, i) => i + 21));
+        for (let i = 0; i < 130; i++) machine.undo();
+        expect(machine.z80.regs.a).to.equal(10);
+        expect(machine.getHistory()).to.deep.equal([]);
+        for (let i = 0; i < 130; i++) machine.step();
+        expect(machine.getHistory().length).to.equal(130);
+        machine.reset();
+        expect(allocated()).to.equal(0);
+        machine.step();
+        expect(machine.getHistory().length).to.equal(1);
+        expect(allocated()).to.equal(64);
+    });
+
     it("has no history by default", () => {
         const machine = makeMachine([0x00, 0x76]);
 
