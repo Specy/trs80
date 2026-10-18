@@ -1954,7 +1954,7 @@ const variant_44_4D_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "444D",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 2,
@@ -2282,7 +2282,7 @@ const variant_4E_23_46_2B_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "4E23462B",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 4,
@@ -2370,7 +2370,7 @@ const variant_50_59_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "5059",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 2,
@@ -2516,7 +2516,7 @@ const variant_54_5D_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "545D",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 2,
@@ -2898,7 +2898,7 @@ const variant_60_69_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "6069",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 2,
@@ -2986,7 +2986,7 @@ const variant_62_6B_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "626B",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 2,
@@ -3463,7 +3463,7 @@ const variant_71_23_70_2B_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "7123702B",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 4,
@@ -3559,7 +3559,7 @@ const variant_73_23_72_2B_pseudo = {
   "isPseudo": true,
   "clr": {
     "opcodes": "7323722B",
-    "undocumented": true,
+    "undocumented": false,
     "z180": false,
     "flags": "------",
     "byte_count": 4,

@@ -238,6 +238,9 @@ function parseClr(clr: ClrFile, mnemonicMap: Mnemonics) {
 /**
  * Add fake convenience instructions.
  *
+ * These are sequences of documented instructions, not opcodes, so none of them is
+ * undocumented.
+ *
  * https://k1.spdns.de/Develop/Projects/zasm/Documentation/z79.htm#G
  */
 function addPseudoInstructions(mnemonics: Mnemonics) {
@@ -250,7 +253,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "6069",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 2,
@@ -269,7 +272,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "444D",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 2,
@@ -288,7 +291,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "545D",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 2,
@@ -307,7 +310,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "626B",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 2,
@@ -326,7 +329,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "4E23462B",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 4,
@@ -345,7 +348,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "7123702B",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 4,
@@ -364,7 +367,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "7323722B",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 4,
@@ -383,7 +386,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
         aliasOf: undefined,
         clr: {
             opcodes: "5059",
-            undocumented: true,
+            undocumented: false,
             z180: false,
             flags: "------",
             byte_count: 2,
