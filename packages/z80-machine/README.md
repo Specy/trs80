@@ -46,6 +46,7 @@ The reasons are:
   stopped before executing it.
 * `T_STATES_EXHAUSTED`, `INSTRUCTIONS_EXHAUSTED`: the run's budget ran out.
 * `STEP_COMPLETE`: a `stepOver()` or `stepOut()` reached its destination.
+* `PAUSED`: a handler called `pause()`. See below.
 
 Only the first two mean the program is over, which is what `isTerminated()`
 reports. The rest leave the machine resumable: call `run()` again and it
@@ -147,6 +148,26 @@ console.log(StopReason[machine.run().reason]);
 
 `shift()` on an empty array returns `undefined`, the same value that signals
 "nothing here yet", so the queue needs no extra code around it.
+
+### Pausing from a handler
+
+A write cannot wait the way a read does: `out` has nothing to roll back. A
+handler that needs the host to do something first, such as loading what the
+written value asks for, calls `machine.pause()`. The instruction completes,
+and the run stops after it with `PAUSED`, unless a breakpoint at the next
+instruction stops it first. Calling `run()` again carries on from the next
+instruction. A `pause()` made outside a run, or during a `step()`, does
+nothing.
+
+```ts
+let machine: Z80Machine;
+machine = new Z80Machine({onPortWrite: () => machine.pause()});
+machine.loadBinary([0x3E, 0x05, 0xD3, 0x60, 0x76], 0); // ld a,5; out (0x60),a; halt
+console.log(StopReason[machine.run().reason], machine.z80.regs.pc);
+// PAUSED 4
+console.log(StopReason[machine.run().reason]);
+// HALTED
+```
 
 ## Memory
 

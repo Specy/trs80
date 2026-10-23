@@ -58,6 +58,13 @@ export enum StopReason {
      * A stepOver or stepOut reached its destination.
      */
     STEP_COMPLETE,
+
+    /**
+     * A handler called {@link Z80Machine.pause} during the instruction that
+     * just executed, and the run stopped after it. The machine is runnable:
+     * the next run carries on from the following instruction.
+     */
+    PAUSED,
 }
 
 /**

@@ -1611,6 +1611,39 @@ describe("call stack", () => {
     });
 });
 
+describe("pause", () => {
+    // ld a,5; out (0x60),a; ld b,1; halt
+    const program = [0x3E, 0x05, 0xD3, 0x60, 0x06, 0x01, 0x76];
+
+    it("stops a run after the instruction whose handler paused it, and resumes from there", () => {
+        let machine: Z80Machine;
+        machine = makeMachine(program, {onPortWrite: () => machine.pause()});
+        const first = machine.run();
+        expect(first.reason).to.equal(StopReason.PAUSED);
+        expect(first.instructions).to.equal(2);
+        expect(machine.z80.regs.pc).to.equal(0x0004);
+        const second = machine.run();
+        expect(second.reason).to.equal(StopReason.HALTED);
+        expect(machine.z80.regs.b).to.equal(1);
+    });
+
+    it("lets a breakpoint at the next instruction win", () => {
+        let machine: Z80Machine;
+        machine = makeMachine(program, {onPortWrite: () => machine.pause()});
+        expect(machine.run({breakpoints: [0x0004]}).reason).to.equal(StopReason.BREAKPOINT);
+        expect(machine.run().reason).to.equal(StopReason.HALTED);
+    });
+
+    it("ignores a request made outside a run, and one made during a step", () => {
+        let machine: Z80Machine;
+        machine = makeMachine(program, {onPortWrite: () => machine.pause()});
+        machine.pause();
+        expect(machine.step()).to.equal(undefined);
+        expect(machine.step()).to.equal(undefined);
+        expect(machine.run().reason).to.equal(StopReason.HALTED);
+    });
+});
+
 console.log(successCount + " successful out of " + testCount, successCount === testCount ? "✅" : "❌");
 if (successCount !== testCount) {
     process.exitCode = 1;

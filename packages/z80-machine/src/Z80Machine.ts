@@ -241,6 +241,8 @@ export class Z80Machine implements Hal {
     // Record being filled in by the instruction currently executing, or
     // undefined if history is disabled or no instruction is executing.
     private pendingRecord: ExecutionRecord | undefined = undefined;
+    /** Set by {@link pause} while an instruction runs, read once it has. */
+    private pauseRequested = false;
 
     // Whether we're inside the CPU's step() method. Port reads can only be
     // rolled back (and therefore retried) from there.
@@ -416,12 +418,25 @@ export class Z80Machine implements Hal {
         }
 
         this.executeInstruction();
+        // a single step ends after its instruction anyway
+        this.pauseRequested = false;
 
         return this.stopReason;
     }
 
     /**
-     * Run until a breakpoint, halt, input wait, or budget exhaustion.
+     * Ask the run in progress to stop after the instruction executing now,
+     * with {@link StopReason.PAUSED}. Meant for a port or memory handler
+     * whose host has to do something asynchronous before the program goes
+     * on, such as loading what a port write needs. A breakpoint at the next
+     * instruction wins, and a request made outside a run does nothing.
+     */
+    public pause(): void {
+        this.pauseRequested = true;
+    }
+
+    /**
+     * Run until a breakpoint, halt, input wait, pause, or budget exhaustion.
      */
     public run(options?: RunOptions): RunResult {
         return this.runUntil(options, undefined);
@@ -977,6 +992,7 @@ export class Z80Machine implements Hal {
         const breakpoints = makeBreakpointMap(options?.breakpoints);
         const startTStateCount = this.tStateCount;
         let instructions = 0;
+        this.pauseRequested = false;
 
         while (true) {
             // Check the budgets before executing, so that a budget of zero
@@ -1009,6 +1025,10 @@ export class Z80Machine implements Hal {
             // breakpoint always makes progress.
             if (breakpoints !== undefined && breakpoints[this.z80.regs.pc] !== 0) {
                 return this.stopRun(StopReason.BREAKPOINT, tStates, instructions);
+            }
+            if (this.pauseRequested) {
+                this.pauseRequested = false;
+                return this.stopRun(StopReason.PAUSED, tStates, instructions);
             }
         }
     }
