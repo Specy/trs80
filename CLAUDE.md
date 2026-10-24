@@ -234,3 +234,22 @@ in that case run `git merge master`.
   done in a separate issue.)
 - **GitHub comments:** when commenting on an issue or pull request, start with a
   note saying that Claude wrote it, since it's posted under the user's account.
+
+## This fork (Specy/trs80)
+
+This is a fork of lkesteloot/trs80 (remote `upstream`). It adds one package,
+`packages/z80-machine`, published to npm as `@specy/z80`, and differs from the
+notes above where that package needs it:
+
+- z80-machine is the one package that is built and published. Its vite build
+  bundles the z80-* packages from source into a self-contained `dist/`, with
+  rolled-up declarations (vite-plugin-dts + API Extractor; the comments in its
+  `vite.config.ts` explain the TypeScript 6/7 workarounds). It keeps its own
+  `tsconfig.json`, which the declaration build reads.
+- Its tests are `src/*.spec.ts` under Vitest, like the others.
+- CI and releases are `.github/workflows/ci.yml` and `cd.yml` (a `v*` tag
+  publishes), not upstream's `build.yml`, which the fork deletes. They build
+  only z80-machine and run only the z80-* suites:
+  `npm run build -w packages/z80-machine`, `npx vitest run packages/z80-`,
+  `npm run test:dist -w packages/z80-machine`.
+- To take upstream's changes: `git fetch upstream && git merge upstream/master`.
