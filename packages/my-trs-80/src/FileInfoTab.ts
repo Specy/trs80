@@ -1,14 +1,6 @@
 import {Trs80File} from "trs80-base";
 import {PageTab} from "./PageTab";
-import {
-    formatDate,
-    makeIcon,
-    makeIconButton,
-    makeTagCapsule,
-    makeTextButton,
-    TagCapsuleOptions,
-    TRASH_TAG
-} from "./Utils";
+import {formatDate, makeIcon, makeIconButton, makeTagCapsule, makeTextButton, reportError, TagCapsuleOptions, TRASH_TAG} from "./Utils";
 import {LibraryModifyEvent, LibraryRemoveEvent} from "./Library";
 import {clearElement, withCommas} from "teamten-ts-utils";
 import isEmpty from "lodash/isEmpty";
@@ -17,6 +9,7 @@ import {IFilePanel} from "./IFilePanel";
 import {TagSet} from "./TagSet";
 import {withCanvasScreen} from "./ScreenPool";
 import {BasicLevel, ModelType} from "trs80-emulator";
+import {downloadBlob} from "trs80-emulator-web";
 
 const SCREENSHOT_ATTR = `data-screenshot`;
 
@@ -172,12 +165,9 @@ export class FileInfoTab extends PageTab {
 
         const exportButton = makeTextButton("Export", "get_app", "export-button", () => {
             // Download binary.
-            const a = document.createElement("a");
             const contents = this.filePanel.file.binary;
             const blob = new Blob([new Uint8Array(contents)], {type: "application/octet-stream"});
-            a.href = window.URL.createObjectURL(blob);
-            a.download = this.filePanel.file.filename;
-            a.click();
+            downloadBlob(blob, this.filePanel.file.filename);
         });
         actionBar.append(exportButton);
         if (this.trs80File.className === "Cassette") {
@@ -207,8 +197,7 @@ export class FileInfoTab extends PageTab {
                     this.filePanel.context.panelManager.popPanel();
                 })
                 .catch(error => {
-                    // TODO.
-                    console.error(error);
+                    reportError("Couldn't delete the file.", error);
                 });
         });
         this.undeleteButton = makeTextButton("Undelete File", "restore_from_trash", "delete-button", () => {
@@ -225,8 +214,7 @@ export class FileInfoTab extends PageTab {
                     this.filePanel.context.library.modifyFile(newFile);
                 })
                 .catch(error => {
-                    // TODO.
-                    console.error(error);
+                    reportError("Couldn't restore the file.", error);
                 });
         });
         this.revertButton = makeTextButton("Revert", "undo", "revert-button", undefined);
@@ -285,7 +273,9 @@ export class FileInfoTab extends PageTab {
 
         if (isSame) {
             this.filePanel.context.panelManager.popPanel();
-        } else {
+        } else if (!this.saveButton.disabled) {
+            // Only if the Save button could be clicked: the name and filename must be filled in, and a
+            // save can't already be in progress.
             this.save(() => {
                 this.filePanel.context.panelManager.popPanel();
             });
@@ -320,10 +310,9 @@ export class FileInfoTab extends PageTab {
             })
             .catch(error => {
                 this.saveButton.classList.remove("saving");
-                // TODO show error.
-                // The document probably doesn't exist.
-                console.error("Error updating document: ", error);
-                this.updateUi();
+                // Keep the user's edits so they can try again; just re-enable the buttons.
+                this.updateButtonStatus();
+                reportError("Couldn't save your changes.", error);
             });
     }
 
@@ -362,7 +351,9 @@ export class FileInfoTab extends PageTab {
             this.tags.add(...file.tags);
             this.updateTagsInput();
         }
-        this.sharedInput.checked = file.shared;
+        if (updateData === undefined || updateData.hasOwnProperty("shared")) {
+            this.sharedInput.checked = file.shared;
+        }
         if (updateData === undefined || updateData.hasOwnProperty("modelType")) {
             const selector = `input[name="modelType"][value="${file.modelType}"]`;
             const modelType = this.computer.querySelector(selector) as HTMLInputElement;
@@ -449,7 +440,7 @@ export class FileInfoTab extends PageTab {
         } else if (count === 0) {
             const instructions = document.createElement("div");
             instructions.classList.add("tags-instructions");
-            instructions.innerText = "There are to tags for this file.";
+            instructions.innerText = "There are no tags for this file.";
             tagListElement.append(instructions);
 
         }

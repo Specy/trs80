@@ -25,8 +25,7 @@
   ],
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "docs": "typedoc -p . --target es6 --excludeNotExported --excludePrivate --out docs src && touch docs/.nojekyll",
-    "test": "tsx src/Z80Machine.spec.ts && tsx src/CallStack.spec.ts && tsx src/Assemble.spec.ts && tsx src/SourceMap.spec.ts && tsx src/MemoryRegions.spec.ts",
+    "test": "vitest run",
     "test:dist": "node tests/dist-smoke.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
@@ -48,17 +47,16 @@
     "url": "https://github.com/Specy/trs80/issues"
   },
   "devDependencies": {
-    "@types/chai": "^5.0.1",
-    "@types/node": "^22.13.0",
-    "chai": "^5.1.2",
-    "tsx": "^4.7.0",
-    "typedoc": "^0.27.6",
-    "vite": "^6.0.11",
-    "vite-plugin-dts": "^4.5.0",
-    "z80-asm": "^2.3.0",
-    "z80-base": "^2.0.1",
-    "z80-disasm": "^2.3.0",
-    "z80-emulator": "^2.3.0",
-    "z80-inst": "^2.0.1"
+    "@microsoft/api-extractor": "^7.59.4",
+    "@types/node": "^24.13.4",
+    "@typescript/typescript6": "^6.0.2",
+    "vite": "^8.3.0",
+    "vite-plugin-dts": "^5.1.2",
+    "z80-asm": "*",
+    "z80-base": "*",
+    "z80-disasm": "*",
+    "z80-emulator": "*",
+    "z80-inst": "*",
+    "z80-logger": "*"
   }
 }

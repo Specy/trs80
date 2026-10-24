@@ -1,36 +1,40 @@
-import {hi, lo, toHex, toHexByte, toHexWord, word} from "z80-base";
+import {assertNever, hi, lo, toHex, toHexByte, toHexWord, word} from "z80-base";
 import {Hal, Z80, Z80State} from "z80-emulator";
 import {CassettePlayer} from "./CassettePlayer.js";
 import {Keyboard} from "./Keyboard.js";
 import {model1Level1Rom} from "./Model1Level1Rom.js";
 import {model1Level2Rom} from "./Model1Level2Rom.js";
 import {model3Rom} from "./Model3Rom.js";
+import {model1CompiledRom, model3CompiledRom, model4CompiledRom} from "./CompiledRoms.js";
 import {model4Rom} from "./Model4Rom.js";
-import {Trs80Screen, Trs80ScreenState} from "./Trs80Screen.js";
+import {model1ScreenCodeToModel3, Trs80Screen, Trs80ScreenState} from "./Trs80Screen.js";
 import {BasicLevel, CGChip, Config, Configurable, ModelType} from "./Config.js";
 import {
     BASIC_HEADER_BYTE,
     BasicProgram,
     CmdProgram,
     decodeBasicProgram,
-    ElementType, isFloppy,
+    ElementType,
+    FloppyDisk,
+    isFloppy,
+    Level1Program,
     SystemProgram,
     TRS80_SCREEN_BEGIN,
     TRS80_SCREEN_END,
-    Trs80File,
-    Level1Program
+    Trs80File
 } from "trs80-base";
-import {LogLevel, TRS80_EMULATOR_LOGGER} from "trs80-logger";
-import {FloppyDisk} from "trs80-base";
-import {FdcState, FLOPPY_DRIVE_COUNT, FloppyDiskController} from "./FloppyDiskController.js";
+import {TRS80_EMULATOR_LOGGER} from "z80-logger";
+import {FdcChip, FdcState, FLOPPY_DRIVE_COUNT, FloppyDiskController} from "./FloppyDiskController.js";
 import {Machine} from "./Machine.js";
 import {EventScheduler} from "./EventScheduler.js";
 import {SoundPlayer} from "./SoundPlayer.js";
-import {SignalDispatcher,SimpleEventDispatcher} from "strongly-typed-events";
+import {SignalDispatcher, SimpleEventDispatcher} from "strongly-typed-events";
 import {ConsolePrinter, Printer} from "./Printer.js";
 
 // IRQs
 const M1_TIMER_IRQ_MASK = 0x80;
+// Floppy controller INTRQ, which the Model I's expansion interface routes to the interrupt latch.
+const M1_DISK_IRQ_MASK = 0x40;
 const M3_CASSETTE_RISE_IRQ_MASK = 0x01;
 const M3_CASSETTE_FALL_IRQ_MASK = 0x02;
 const M3_TIMER_IRQ_MASK = 0x04;
@@ -111,6 +115,23 @@ function computeVideoBit6(value: number): number {
 }
 
 /**
+ * The floppy disk controller chip that the model has.
+ */
+function getFdcChip(modelType: ModelType): FdcChip {
+    switch (modelType) {
+        case ModelType.MODEL1:
+            return FdcChip.WD1771;
+
+        case ModelType.MODEL3:
+        case ModelType.MODEL4:
+            return FdcChip.WD1791;
+
+        default:
+            assertNever(modelType);
+    }
+}
+
+/**
  * setTimeout() returns a different type on the browser and in node, so auto-detect the type.
  */
 type TimeoutHandle = ReturnType<typeof setTimeout>;
@@ -124,7 +145,13 @@ export class Trs80State {
                 public readonly memory: Uint8Array,
                 public readonly printerState: any,
                 public readonly fdcState: FdcState,
-                public readonly screenState: Trs80ScreenState) {
+                public readonly screenState: Trs80ScreenState,
+                public readonly modeImage: number,
+                public readonly irqMask: number,
+                public readonly irqLatch: number,
+                public readonly nmiMask: number,
+                public readonly nmiLatch: number,
+                public readonly nmiSeen: boolean) {
 
         // Nothing.
     }
@@ -191,6 +218,8 @@ export class Trs80 implements Hal, Machine, Configurable {
     // When we turned on the motor (started reading the file) and how many samples
     // we've read since then.
     private cassetteMotorOnClock = 0;
+    // Scheduled event that kicks off the cassette after the motor starts, if any.
+    private kickOffCassetteHandle: number | undefined = undefined;
     private cassetteSamplesRead = 0;
     private cassetteRiseInterruptCount = 0;
     private cassetteFallInterruptCount = 0;
@@ -275,6 +304,9 @@ export class Trs80 implements Hal, Machine, Configurable {
         this.memory.fill(0);
         this.loadRom();
 
+        this.fdc.setChip(getFdcChip(this.config.modelType));
+        this.keyboard.setModelType(this.config.modelType);
+
         switch (this.config.modelType) {
             case ModelType.MODEL1:
                 this.timerHz = M1_TIMER_HZ;
@@ -302,15 +334,23 @@ export class Trs80 implements Hal, Machine, Configurable {
             new Uint8Array(this.memory),
             this.printer.save(),
             this.fdc.save(),
-            this.screen.save());
+            this.screen.save(),
+            this.modeImage,
+            this.irqMask,
+            this.irqLatch,
+            this.nmiMask,
+            this.nmiLatch,
+            this.nmiSeen);
     }
 
     /**
      * Restore the complete state of the machine, saved by {@link #save()}.
      */
     public restore(state: Trs80State): void {
-        this.reset();
         this.config = state.config;
+        this.screen.setConfig(this.config);
+        this.updateFromConfig();
+        this.reset();
         this.z80.restore(state.z80State);
 
         // Restore ROM.
@@ -324,6 +364,13 @@ export class Trs80 implements Hal, Machine, Configurable {
         this.printer.restore(state.printerState);
         this.fdc.restore(state.fdcState);
         this.screen.restore(state.screenState);
+        // Restore the interrupt and port state, which reset() cleared.
+        this.modeImage = state.modeImage;
+        this.irqMask = state.irqMask;
+        this.irqLatch = state.irqLatch;
+        this.nmiMask = state.nmiMask;
+        this.nmiLatch = state.nmiLatch;
+        this.nmiSeen = state.nmiSeen;
     }
 
     /**
@@ -363,29 +410,68 @@ export class Trs80 implements Hal, Machine, Configurable {
                         default:
                             rom = model1Level2Rom;
                             break;
+
+                        case BasicLevel.COMPILED:
+                            rom = model1CompiledRom;
+                            break;
                     }
                     break;
 
                 case ModelType.MODEL3:
                 default:
-                    rom = model3Rom;
+                    switch (this.config.basicLevel) {
+                        case BasicLevel.LEVEL2:
+                        default:
+                            rom = model3Rom;
+                            break;
+
+                        case BasicLevel.COMPILED:
+                            rom = model3CompiledRom;
+                            break;
+                    }
                     break;
 
                 case ModelType.MODEL4:
-                    rom = model4Rom;
+                    // rom = model4Rom;
+                    switch (this.config.basicLevel) {
+                        case BasicLevel.LEVEL2:
+                        default:
+                            rom = model4Rom;
+                            break;
+
+                        case BasicLevel.COMPILED:
+                            rom = model4CompiledRom;
+                            break;
+                    }
                     break;
             }
         }
 
         // Sanity check.
-        if (rom.length > this.config.romSize) {
-            throw new Error("ROM is too large (" + rom.length + " > " + this.config.romSize + ")");
+        if (rom.length > this.config.romSize && this.config.basicLevel !== BasicLevel.COMPILED) {
+            if (this.config.customRom === undefined) {
+                throw new Error("ROM is too large (" + rom.length + " > " + this.config.romSize + ")");
+            }
+            // A custom ROM carries over when the model changes, so it can be sized for the old
+            // model (like the IDE's 14K Model III ROM when switching to the Model I's 12K).
+            // Throwing would leave setConfig() half done, with the new config but no event, so
+            // load what fits. Whoever made the ROM can rebuild it for the new model.
+            this.warnOnce("Custom ROM is too large (" + rom.length + " > " + this.config.romSize +
+                "), truncating");
+            rom = rom.substring(0, this.config.romSize);
         }
 
         // Load into memory.
         this.memory.fill(0, 0, this.config.romSize);
         for (let i = 0; i < rom.length; i++) {
             this.memory[i] = rom.charCodeAt(i);
+        }
+
+        // This has some stuff in RAM.
+        if (this.config.basicLevel === BasicLevel.COMPILED) {
+            for (let i = 16*1024; i < rom.length; i++) {
+                this.memory[i] = rom.charCodeAt(i);
+            }
         }
     }
 
@@ -413,7 +499,46 @@ export class Trs80 implements Hal, Machine, Configurable {
         this.resetCassette();
         this.keyboard.clearKeyboard();
         this.setTimerInterrupt(false);
+        this.eventScheduler.cancelAll();
+        this.fdc.reset();
+        if (this.config.modelType === ModelType.MODEL1) {
+            // The controller's INTRQ doesn't survive its reset.
+            this.irqLatch &= ~M1_DISK_IRQ_MASK;
+        }
         this.z80.reset();
+    }
+
+    /**
+     * Press the machine's reset button. On a Model I that only raises a non-maskable interrupt: the
+     * ROM's handler at 0x0066 reboots from disk if the expansion interface shows a controller,
+     * and otherwise warm-starts Basic with memory intact. The Model III and 4 have a real reset
+     * line, which is the same as {@link reset()}. Use {@link reset()} for a power-on reset.
+     */
+    public pressResetButton(): void {
+        switch (this.config.modelType) {
+            case ModelType.MODEL1:
+                // The NMI is taken (and the button released) in the next step().
+                this.resetButtonInterrupt(true);
+                break;
+
+            case ModelType.MODEL3:
+            case ModelType.MODEL4:
+                this.reset();
+                break;
+
+            default:
+                assertNever(this.config.modelType);
+        }
+    }
+
+    /**
+     * Whether this address is the printer. The Model I's expansion interface decodes four
+     * addresses (0x37E8 to 0x37EB). The Model III only has the first two (despite these being
+     * in the ROM there).
+     */
+    private isPrinterAddress(address: number): boolean {
+        const lastAddress = this.config.modelType === ModelType.MODEL1 ? 0x37EB : 0x37E9;
+        return address >= 0x37E8 && address <= lastAddress;
     }
 
     /**
@@ -525,11 +650,15 @@ export class Trs80 implements Hal, Machine, Configurable {
         this.updateNmiSeen();
     }
 
+    /**
+     * Read the IRQ latch. The Model I's expansion interface (at 0x37E0) returns the latch
+     * as-is and acknowledges the timer interrupt. The Model III and 4 (port E0) return it
+     * inverted and acknowledge nothing.
+     */
     private interruptLatchRead(): number {
         if (this.config.modelType === ModelType.MODEL1) {
             const irqLatch = this.irqLatch;
             this.setTimerInterrupt(false);
-            // TODO irq = this.irqLatch !== 0;
             return irqLatch;
         } else {
             return ~this.irqLatch & 0xFF;
@@ -544,6 +673,15 @@ export class Trs80 implements Hal, Machine, Configurable {
 
         this.z80.step();
 
+        // On a Model I the CPU's halt line is wired to the same NMI as the reset button, so
+        // executing HALT goes back to the ROM instead of stopping.
+        if (this.config.modelType === ModelType.MODEL1) {
+            const halted = this.z80.regs.halted !== 0;
+            if (halted) {
+                this.pressResetButton();
+            }
+        }
+
         // Handle non-maskable interrupts.
         if ((this.nmiLatch & this.nmiMask) !== 0 && !this.nmiSeen) {
             this.z80.nonMaskableInterrupt();
@@ -553,15 +691,21 @@ export class Trs80 implements Hal, Machine, Configurable {
             this.resetButtonInterrupt(false);
         }
 
-        // Handle interrupts.
-        if ((this.irqLatch & this.irqMask) !== 0) {
+        // Handle interrupts. The Model I has no IRQ mask: the expansion interface's latch
+        // (timer and floppy controller) drives the INT line directly.
+        const irqMask = this.config.modelType === ModelType.MODEL1 ?
+            M1_TIMER_IRQ_MASK | M1_DISK_IRQ_MASK : this.irqMask;
+        if ((this.irqLatch & irqMask) !== 0) {
             this.z80.maskableInterrupt();
         }
 
         // Set off a timer interrupt.
-        if (this.tStateCount > this.previousTimerClock + this.clockHz / this.timerHz) {
+        // Rounded to keep the clocks integers. (The periods divide exactly today.)
+        const timerPeriod = Math.round(this.clockHz / this.timerHz);
+        if (this.tStateCount > this.previousTimerClock + timerPeriod) {
             this.handleTimer();
-            this.previousTimerClock = this.tStateCount;
+            // Advance by exactly one period so that the ticks don't drift.
+            this.previousTimerClock += timerPeriod;
         }
 
         // Update cassette state.
@@ -582,9 +726,7 @@ export class Trs80 implements Hal, Machine, Configurable {
     }
 
     public readMemory(address: number): number {
-        if (address == 0x37E8 || address == 0x37E9) {
-            // Both Model I and Model III map these two addresses to the printer (despite
-            // these being in the ROM on the Model III).
+        if (this.isPrinterAddress(address)) {
             return PRINTER_STATUS;
         }
 
@@ -603,10 +745,8 @@ export class Trs80 implements Hal, Machine, Configurable {
                 case 0x37E1:
                 case 0x37E2:
                 case 0x37E3:
-                    // TODO return expansion interface interrupt status byte and
-                    // clear the top bit (0x80, timer interrupt status).
-                    this.warnOnce("Reading from expansion interface interrupt status");
-                    return 0x3F;
+                    // Expansion interface interrupt latch.
+                    return this.interruptLatchRead();
 
                 case 0x37EC:
                     return this.fdc.readStatus();
@@ -669,27 +809,39 @@ export class Trs80 implements Hal, Machine, Configurable {
                 }
                 break;
 
+            // The Model I's floppy controller and printer are memory mapped, so on a Model I
+            // these ports (0xF0 to 0xFB) are unconnected and read as 0xFF.
             case 0xF0:
-                value = this.fdc.readStatus();
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    value = this.fdc.readStatus();
+                }
                 break;
 
             case 0xF1:
-                value = this.fdc.readTrack();
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    value = this.fdc.readTrack();
+                }
                 break;
 
             case 0xF2:
-                value = this.fdc.readSector();
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    value = this.fdc.readSector();
+                }
                 break;
 
             case 0xF3:
-                value = this.fdc.readData();
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    value = this.fdc.readData();
+                }
                 break;
 
             case 0xF8:
             case 0xF9:
             case 0xFA:
             case 0xFB:
-                value = PRINTER_STATUS;
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    value = PRINTER_STATUS;
+                }
                 break;
 
             case 0xFF:
@@ -777,52 +929,66 @@ export class Trs80 implements Hal, Machine, Configurable {
                 }
                 break;
 
+            // The Model I's floppy controller and printer are memory mapped, so on a Model I
+            // writes to these ports (0xF0 to 0xFB) go nowhere.
             case 0xF0:
-                this.fdc.writeCommand(value);
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    this.fdc.writeCommand(value);
+                }
                 break;
 
             case 0xF1:
-                this.fdc.writeTrack(value);
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    this.fdc.writeTrack(value);
+                }
                 break;
 
             case 0xF2:
-                this.fdc.writeSector(value);
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    this.fdc.writeSector(value);
+                }
                 break;
 
             case 0xF3:
-                this.fdc.writeData(value);
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    this.fdc.writeData(value);
+                }
                 break;
 
             case 0xF4:
             case 0xF5:
             case 0xF6:
             case 0xF7:
-                this.fdc.writeSelect(value);
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    this.fdc.writeSelect(value);
+                }
                 break;
 
             case 0xF8:
             case 0xF9:
             case 0xFA:
             case 0xFB:
-                // Printer write.
-                this.printer.printChar(value);
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    // Printer write.
+                    this.printer.printChar(value);
+                }
                 break;
 
             case 0xFC:
             case 0xFD:
             case 0xFE:
+                // The Model I decodes only port 0xFF, so these go nowhere there.
+                if (this.config.modelType !== ModelType.MODEL1) {
+                    this.writeCassettePort(value);
+                }
+                break;
+
             case 0xFF:
                 if (this.config.modelType === ModelType.MODEL1) {
                     this.setCassetteMotor((value & 0x04) !== 0);
                     this.screen.setExpandedCharacters((value & 0x08) !== 0);
                 }
-                if ((value & 0x20) !== 0) {
-                    // Model III Micro Labs graphics card.
-                    console.log("Sending 0x" + toHex(value, 2) + " to Micro Labs graphics card");
-                } else {
-                    // Do cassette emulation.
-                    this.putCassetteByte(value & 0x03);
-                }
+                this.writeCassettePort(value);
                 break;
 
             default:
@@ -833,22 +999,41 @@ export class Trs80 implements Hal, Machine, Configurable {
     }
 
     /**
+     * Handle a write to the cassette output port (0xFF, and on the Model III and 4 also 0xFC to 0xFE).
+     * On the Model III and 4 a value with bit 5 set goes to the Micro Labs graphics card, an add-on.
+     * The Model I has no such card, so every value goes to the cassette output.
+     */
+    private writeCassettePort(value: number): void {
+        if (this.config.modelType !== ModelType.MODEL1 && (value & 0x20) !== 0) {
+            // Model III Micro Labs graphics card.
+            console.log("Sending 0x" + toHex(value, 2) + " to Micro Labs graphics card");
+        } else {
+            // Do cassette emulation.
+            this.putCassetteByte(value & 0x03);
+        }
+    }
+
+    /**
      * Write the given value to the screen. Does not update RAM. The address
      * must be in the screen range.
+     *
+     * @return the value that was displayed, which is also the value that video RAM holds. With the
+     * original character generator that's the written byte with bit 6 computed, since a stock
+     * Model I has no bit 6 in video RAM. Otherwise it's the byte as written.
      */
-    private writeToScreenMemory(address: number, value: number): void {
+    private writeToScreenMemory(address: number, value: number): number {
         if (this.config.cgChip === CGChip.ORIGINAL) {
             // No bit 6 in video memory, need to compute it.
             value = computeVideoBit6(value);
         }
 
         this.screen.writeChar(address, value);
+
+        return value;
     }
 
     public writeMemory(address: number, value: number): void {
-        if (address == 0x37E8 || address == 0x37E9) {
-            // Both Model I and Model III map these two addresses to the printer (despite
-            // these being in the ROM on the Model III).
+        if (this.isPrinterAddress(address)) {
             this.printer.printChar(value);
             return;
         }
@@ -865,6 +1050,14 @@ export class Trs80 implements Hal, Machine, Configurable {
                 case 0x37E2:
                 case 0x37E3:
                     this.fdc.writeSelect(value & 0x0F);
+                    return;
+
+                case 0x37E4:
+                case 0x37E5:
+                case 0x37E6:
+                case 0x37E7:
+                    // Expansion interface cassette select (which of two cassette decks).
+                    // We only have one deck, so there's nothing to select.
                     return;
 
                 case 0x37EC:
@@ -897,8 +1090,9 @@ export class Trs80 implements Hal, Machine, Configurable {
         }
 
         if (address >= TRS80_SCREEN_BEGIN && address < TRS80_SCREEN_END) {
-            this.writeToScreenMemory(address, value);
-            this.memory[address] = value;
+            // Store what the hardware would keep, so that reads (which DOSes use to detect a
+            // lowercase modification) see the computed bit 6.
+            this.memory[address] = this.writeToScreenMemory(address, value);
             return;
         }
 
@@ -972,18 +1166,28 @@ export class Trs80 implements Hal, Machine, Configurable {
 
         // Run-length encode bytes with (value,count) pairs, with a max count of 255. Bytes
         // in the range 33 to 127 inclusive have an implicit count of 1.
+        // Index in buf of the count of the run we're in, or undefined if the last entry was
+        // a byte without a count. We can't just look at the last two bytes of buf, since they
+        // might not be a (value,count) pair.
+        let runCountIndex: number | undefined = undefined;
+        const isModel1 = this.config.modelType === ModelType.MODEL1;
         for (let address = TRS80_SCREEN_BEGIN; address < TRS80_SCREEN_END; address++) {
-            const value = this.memory[address];
+            let value = this.memory[address];
+            if (isModel1) {
+                // Screenshots are drawn later on a Model III screen, so use the codes that look the same there.
+                value = model1ScreenCodeToModel3(value);
+            }
             if (value > 32 && value < 128) {
                 // Bytes in this range don't store a count.
                 buf.push(value);
-            } else if (buf.length < 2 || buf[buf.length - 1] === 255 || buf[buf.length - 2] !== value) {
-                // New entry.
-                buf.push(value);
-                buf.push(1);
-            } else {
+                runCountIndex = undefined;
+            } else if (runCountIndex !== undefined && buf[runCountIndex - 1] === value && buf[runCountIndex] < 255) {
                 // Increment existing count.
-                buf[buf.length - 1] += 1;
+                buf[runCountIndex] += 1;
+            } else {
+                // New entry.
+                buf.push(value, 1);
+                runCountIndex = buf.length - 1;
             }
         }
 
@@ -1110,12 +1314,23 @@ export class Trs80 implements Hal, Machine, Configurable {
 
     // Set the state of the disk interrupt.
     public diskIntrqInterrupt(state: boolean): void {
-        if (state) {
-            this.nmiLatch |= DISK_INTRQ_NMI_MASK;
+        if (this.config.modelType === ModelType.MODEL1) {
+            // The Model I's expansion interface puts INTRQ in bit 6 of the interrupt latch (read at
+            // 0x37E0) and raises INT while it's set. It follows the controller's INTRQ line, so
+            // nothing acknowledges it except the controller dropping INTRQ.
+            if (state) {
+                this.irqLatch |= M1_DISK_IRQ_MASK;
+            } else {
+                this.irqLatch &= ~M1_DISK_IRQ_MASK;
+            }
         } else {
-            this.nmiLatch &= ~DISK_INTRQ_NMI_MASK;
+            if (state) {
+                this.nmiLatch |= DISK_INTRQ_NMI_MASK;
+            } else {
+                this.nmiLatch &= ~DISK_INTRQ_NMI_MASK;
+            }
+            this.updateNmiSeen();
         }
-        this.updateNmiSeen();
     }
 
     // Set the state of the disk interrupt.
@@ -1183,12 +1398,16 @@ export class Trs80 implements Hal, Machine, Configurable {
                 this.cassetteLastNonZeroValue = CassetteValue.NEUTRAL;
 
                 // Waits a second before kicking off the cassette.
-                // TODO this should be in CPU cycles, not browser cycles.
                 if (this.config.modelType !== ModelType.MODEL1) {
-                    setTimeout(() => this.kickOffCassette(), 1000);
+                    this.kickOffCassetteHandle = this.eventScheduler.add(undefined,
+                        this.tStateCount + this.clockHz, () => this.kickOffCassette());
                 }
             } else {
                 this.setCassetteState(CassetteState.CLOSE);
+                if (this.kickOffCassetteHandle !== undefined) {
+                    this.eventScheduler.cancel(this.kickOffCassetteHandle);
+                    this.kickOffCassetteHandle = undefined;
+                }
             }
             this.cassetteMotorOn = cassetteMotorOn;
 
@@ -1423,16 +1642,53 @@ export class Trs80 implements Hal, Machine, Configurable {
     public runBasicProgram(basicProgram: BasicProgram): void {
         this.reset();
 
-        // Wait for Cass?
+        // Wait for Cass? (Model III and 4 only) and Memory Size?
         this.eventScheduler.add(undefined, this.tStateCount + this.clockHz*0.1, () => {
-            this.keyboard.simulateKeyboardText("\n0\n");
+            // Press Enter for each question. The Model I doesn't ask Cass?. Enter for Memory
+            // Size? means the ROM tests memory, which takes a couple of seconds. On the Model III
+            // and 4, "0" would skip the test, but the ROM only takes it with 48 KB installed.
+            const startupAnswers = this.config.modelType === ModelType.MODEL1 ? "\n" : "\n\n";
+            this.keyboard.simulateKeyboardText(startupAnswers);
 
-            // Wait for Ready prompt.
-            this.eventScheduler.add(undefined, this.tStateCount + this.clockHz*0.2, () => {
+            this.whenScreenShows("READY", 10, () => {
                 this.loadBasicProgram(basicProgram);
                 this.keyboard.simulateKeyboardText("RUN\n");
             });
         });
+    }
+
+    /**
+     * Whether the screen shows this text anywhere, ignoring line breaks. On a Model I the
+     * screen codes are converted the way they look, since the Level II ROM stores capitals
+     * as 0x00 to 0x1F.
+     */
+    private screenShows(text: string): boolean {
+        const isModel1 = this.config.modelType === ModelType.MODEL1;
+        let screen = "";
+        for (let address = TRS80_SCREEN_BEGIN; address < TRS80_SCREEN_END; address++) {
+            const value = this.memory[address];
+            screen += String.fromCharCode(isModel1 ? model1ScreenCodeToModel3(value) : value);
+        }
+        return screen.includes(text);
+    }
+
+    /**
+     * Call the callback once the screen shows this text, checking every 50 ms of emulated time.
+     * Gives up with an error after maxSeconds of emulated time. A reset cancels the wait.
+     */
+    private whenScreenShows(text: string, maxSeconds: number, callback: () => void): void {
+        const deadline = this.tStateCount + maxSeconds*this.clockHz;
+        const check = () => {
+            const shown = this.screenShows(text);
+            if (shown) {
+                callback();
+            } else if (this.tStateCount >= deadline) {
+                console.error(`Gave up waiting for "${text}" on the screen`);
+            } else {
+                this.eventScheduler.add(undefined, this.tStateCount + Math.round(this.clockHz*0.05), check);
+            }
+        };
+        check();
     }
 
     /**

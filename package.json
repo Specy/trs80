@@ -3,34 +3,28 @@
   "private": true,
   "repository": "https://github.com/lkesteloot/trs80.git",
   "scripts": {
-    "build": "lerna run build",
-    "clean": "lerna run clean",
-    "test": "npm run test -w packages/z80-asm -w packages/z80-disasm -w packages/z80-emulator -w packages/z80-machine"
+    "build": "npm run typecheck && npm run build --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "test": "vitest run",
+    "pretest": "npm run generateRoms -w packages/trs80-emulator --silent",
+    "pretypecheck": "npm run updateBuildInfo --workspaces --if-present --silent && npm run generateRoms -w packages/trs80-emulator --silent",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "css-loader": "^7.1.2",
-    "file-loader": "^6.2.0",
-    "html-webpack-plugin": "^5.5.0",
-    "lerna": "^8.1.9",
-    "mini-css-extract-plugin": "^2.6.0",
-    "raw-loader": "^4.0.2",
-    "ts-essentials": "^10.0.4",
-    "ts-loader": "^9.2.8",
-    "vite": "^6.0.11",
-    "webpack-dev-server": "^5.2.0"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
   },
   "workspaces": [
     "packages/fp-215",
     "packages/retrostore-api",
     "packages/z80-base",
+    "packages/z80-logger",
     "packages/z80-inst",
     "packages/z80-disasm",
     "packages/z80-asm",
-    "packages/z80-asm-web",
     "packages/z80-emulator",
     "packages/z80-machine",
     "packages/z80-test",
-    "packages/trs80-logger",
     "packages/trs80-base",
     "packages/trs80-asm",
     "packages/trs80-emulator",
@@ -41,8 +35,5 @@
     "packages/trs80-ide",
     "packages/trs80-tool",
     "packages/my-trs-80"
-  ],
-  "dependencies": {
-    "typescript": "^5.7.3"
-  }
+  ]
 }

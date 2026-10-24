@@ -1,21 +1,6 @@
-import {expect} from "chai";
+import {describe, expect, it} from "vitest";
 import {CallStackFrame, disassembleInstructionAt, reconstructCallStack} from "./CallStack.js";
 import type {Z80Machine} from "./Z80Machine.js";
-
-// I can't get mocha to work with TypeScript and ESM, so just provide their
-// functions.
-let testCount = 0;
-let successCount = 0;
-function describe(name: string, f: () => void): void {
-    testCount++
-    try {
-        f();
-        successCount += 1;
-    } catch (e) {
-        console.log(name + ": " + e);
-    }
-}
-const it = describe;
 
 /**
  * Stand-in for a {@link Z80Machine}, with just the fields that the call stack
@@ -398,8 +383,3 @@ describe("reconstructCallStack", () => {
         expect(frames[depth - 1].callSiteAddress).to.equal(0x8000);
     });
 });
-
-console.log(successCount + " successful out of " + testCount, successCount === testCount ? "✅" : "❌");
-if (successCount !== testCount) {
-    process.exitCode = 1;
-}

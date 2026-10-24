@@ -1,53 +1,27 @@
 
-import {decodeTrs80File, Trs80File, Trsdos, trsdosProtectionLevelToString} from "trs80-base";
+import {decodeTrs80File, FloppyDisk, Trsdos, trsdosProtectionLevelToString} from "trs80-base";
 import {PageTab} from "./PageTab";
 import {withCommas} from "teamten-ts-utils";
-import {makeIcon, makeTextButton} from "./Utils";
+import {makeIcon, reportError} from "./Utils";
 import {IFilePanel} from "./IFilePanel";
 import {FileBuilder} from "./File";
-import JSZip from "jszip";
+import {makeExportZipButton} from "./FloppyZip";
+import {makeFloppyInfo} from "./FloppyInfo";
 
 /**
  * Handles the TRSDOS tab in the file panel.
  */
 export class TrsdosTab extends PageTab {
-    constructor(filePanel: IFilePanel, trs80File: Trs80File, trsdos: Trsdos) {
-        super("TRSDOS");
+    constructor(filePanel: IFilePanel, trs80File: FloppyDisk, trsdos: Trsdos) {
+        super("DOS");
 
-        this.element.classList.add("trsdos-tab");
+        this.element.classList.add("dos-tab");
 
         const mainContents = document.createElement("div");
-        mainContents.classList.add("trsdos");
+        mainContents.classList.add("dos", "trsdos");
         this.element.append(mainContents);
 
-        const infoDiv = document.createElement("div");
-        infoDiv.classList.add("info");
-        const addField = (label: string, value: string, cssClass: string): void => {
-            const labelSpan = document.createElement("div");
-            labelSpan.classList.add(cssClass + "-label", "label");
-            labelSpan.innerText = label + ":";
-            infoDiv.append(labelSpan);
-            const valueSpan = document.createElement("div");
-            valueSpan.classList.add(cssClass, "value");
-            if (value === "") {
-                valueSpan.classList.add("empty-field");
-                valueSpan.innerText = "None";
-            } else {
-                valueSpan.innerText = value;
-            }
-            infoDiv.append(valueSpan);
-        };
-        addField("File type", trs80File.getDescription(), "file-type");
-        addField("Version", trsdos.getOperatingSystemName() + " " + trsdos.getVersion(), "version");
-        const gatInfo = trsdos.getGatInfo();
-        if (typeof gatInfo === "string") {
-            addField("Error", gatInfo, "error");
-        } else {
-            addField("Disk name", gatInfo.name, "name");
-            addField("Date", gatInfo.date, "date");
-            addField("Auto command", gatInfo.autoCommand, "auto-command");
-        }
-        mainContents.append(infoDiv);
+        mainContents.append(makeFloppyInfo(trs80File, trsdos));
 
         // Add directory.
 
@@ -67,7 +41,14 @@ export class TrsdosTab extends PageTab {
         addDirEntryField("Date", "date", "header");
         addDirEntryField("Permission", "protection-level", "header");
         addDirEntryField("Run", "run", "header");
-        addDirEntryField("Import", "import", "header");
+        // Only signed-in users can import. Decide now, so that the header and the rows
+        // agree on the number of columns even if the user signs in or out later.
+        const user = filePanel.context.user;
+        if (user !== undefined) {
+            addDirEntryField("Import", "import", "header");
+        } else {
+            dirDiv.classList.add("no-import");
+        }
         const dirEntries = trsdos.getDirEntries(false);
         for (const dirEntry of dirEntries) {
             const extraCssClasses: string[] = [];
@@ -80,7 +61,7 @@ export class TrsdosTab extends PageTab {
 
             addDirEntryField(dirEntry.getFilename("/"), ... ["filename", ...extraCssClasses]);
             addDirEntryField(withCommas(dirEntry.getSize()), ... ["size", ...extraCssClasses]);
-            addDirEntryField(dirEntry.getDateString(), ... ["date", ...extraCssClasses]);
+            addDirEntryField(dirEntry.getFullDateString().trim(), ... ["date", ...extraCssClasses]);
             addDirEntryField(trsdosProtectionLevelToString(dirEntry.getProtectionLevel(), trsdos.version),
                 ... ["protection-level", ...extraCssClasses]);
 
@@ -98,8 +79,6 @@ export class TrsdosTab extends PageTab {
             });
             dirDiv.append(playButton);
 
-            // TODO this breaks the grid.
-            const user = filePanel.context.user;
             if (user !== undefined) {
                 const importButton = makeIcon("get_app");
                 importButton.classList.add(...["import", ...extraCssClasses]);
@@ -111,7 +90,7 @@ export class TrsdosTab extends PageTab {
                         .withName(dirEntry.getBasename())
                         .withNote(`Imported from "${filePanel.file.name}" floppy disk.`)
                         .withAuthor(filePanel.file.author)
-                        .withReleaseYear(dirEntry.year > 75 ? (1900 + dirEntry.year).toString() : filePanel.file.releaseYear)
+                        .withReleaseYear(dirEntry.year !== undefined && dirEntry.year > 1975 ? dirEntry.year.toString() : filePanel.file.releaseYear)
                         .withFilename(dirEntry.getFilename("."))
                         .withShared(filePanel.file.shared)
                         .withModelType(filePanel.file.modelType)
@@ -126,8 +105,7 @@ export class TrsdosTab extends PageTab {
                             filePanel.context.openFilePanel(file);
                         })
                         .catch(error => {
-                            // TODO
-                            console.error("Error adding document: ", error);
+                            reportError("Couldn't add the file to your library.", error);
                         });
                 });
                 dirDiv.append(importButton);
@@ -139,41 +117,7 @@ export class TrsdosTab extends PageTab {
         this.element.append(actionBar);
 
         // Make a ZIP file for export.
-        const exportZipButton = makeTextButton("Export ZIP", "get_app", "export-zip-button", () => {
-            const zip = new JSZip();
-
-            for (const dirEntry of dirEntries) {
-                zip.file(dirEntry.getFilename("."), trsdos.readFile(dirEntry), {
-                    date: dirEntry.getDate(),
-                });
-            }
-
-            zip.generateAsync({
-                type: "blob",
-            })
-                .then(blob => {
-                    let filename = filePanel.file.filename;
-                    let i = filename.lastIndexOf("/");
-                    if (i >= 0) {
-                        // Strip path.
-                        filename = filename.substring(i + 1);
-                    }
-                    i = filename.lastIndexOf(".");
-                    if (i > 0) {
-                        // Strip existing extension.
-                        filename = filename.substring(0, i);
-                    }
-                    if (filename === "") {
-                        filename = "trsdos"
-                    }
-                    filename += ".zip";
-
-                    const a = document.createElement("a");
-                    a.href = window.URL.createObjectURL(blob);
-                    a.download = filename;
-                    a.click();
-                });
-        });
+        const exportZipButton = makeExportZipButton(filePanel.file.filename, trsdos, dirEntries, "trsdos");
         actionBar.append(exportZipButton);
     }
 }

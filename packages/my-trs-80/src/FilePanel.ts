@@ -1,11 +1,15 @@
 
 import {File} from "./File";
 import {Context} from "./Context";
-import {BasicProgram, Cassette, CmdProgram, decodeTrs80File, decodeTrsdos, FloppyDisk, SystemProgram} from "trs80-base";
+import {BasicProgram, Cassette, CmdProgram, Cpm, decodeFloppyFileSystem, decodeTrs80File, FloppyDisk, MicroDos,
+    ModelIITrsdos, SystemProgram, Trsdos, TrsdosII, UcsdPascal, XenixTar} from "trs80-base";
 import {HexdumpTab} from "./HexdumpTab";
 import {FileInfoTab} from "./FileInfoTab";
 import {IFilePanel} from "./IFilePanel";
 import {TrsdosTab} from "./TrsdosTab";
+import {CpmTab} from "./CpmTab";
+import {MicroDosTab} from "./MicroDosTab";
+import {FloppyFileSystemTab} from "./FloppyFileSystemTab";
 import {BasicTab} from "./BasicTab";
 import {CmdTab} from "./CmdTab";
 import {DisassemblyTab} from "./DisassemblyTab";
@@ -48,9 +52,26 @@ export class FilePanel extends TabbedPanel implements IFilePanel {
             case "Jv1FloppyDisk":
             case "Jv3FloppyDisk":
             case "DmkFloppyDisk":
-                const trsdos = decodeTrsdos(trs80File);
-                if (trsdos !== undefined) {
-                    this.pageTabs.addTab(new TrsdosTab(this, trs80File, trsdos));
+            case "HfeFloppyDisk":
+            case "ImdFloppyDisk":
+                const fileSystem = decodeFloppyFileSystem(trs80File);
+                if (fileSystem instanceof Trsdos) {
+                    this.pageTabs.addTab(new TrsdosTab(this, trs80File, fileSystem));
+                } else if (fileSystem instanceof Cpm) {
+                    this.pageTabs.addTab(new CpmTab(this, trs80File, fileSystem));
+                } else if (fileSystem instanceof MicroDos) {
+                    this.pageTabs.addTab(new MicroDosTab(this, trs80File, fileSystem));
+                } else if (fileSystem instanceof ModelIITrsdos) {
+                    this.pageTabs.addTab(new FloppyFileSystemTab("Model II TRSDOS", this, trs80File, fileSystem,
+                        "trsdos2"));
+                } else if (fileSystem instanceof TrsdosII) {
+                    this.pageTabs.addTab(new FloppyFileSystemTab("TRSDOS-II", this, trs80File, fileSystem,
+                        "trsdos-ii"));
+                } else if (fileSystem instanceof UcsdPascal) {
+                    this.pageTabs.addTab(new FloppyFileSystemTab("UCSD Pascal", this, trs80File, fileSystem,
+                        "ucsd-pascal"));
+                } else if (fileSystem instanceof XenixTar) {
+                    this.pageTabs.addTab(new FloppyFileSystemTab("Xenix", this, trs80File, fileSystem, "xenix"));
                 }
                 this.pageTabs.addTab(new MountTab(this.context, trs80File));
                 break;

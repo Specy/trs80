@@ -1,3 +1,4 @@
+import {assertNever} from "z80-base";
 
 /**
  * The TRS-80 models we support.
@@ -32,6 +33,40 @@ export function modelTypeFromString(modelName: string): ModelType | undefined {
 }
 
 /**
+ * Convert a model type to its number (1, 3, or 4).
+ */
+export function modelTypeToNumber(modelType: ModelType): number {
+    switch (modelType) {
+        case ModelType.MODEL1:
+            return 1;
+
+        case ModelType.MODEL3:
+            return 3;
+
+        case ModelType.MODEL4:
+            return 4;
+
+        default:
+            assertNever(modelType);
+    }
+}
+
+/**
+ * The constants the assembler predefines so that source can test the target model, e.g.,
+ * "if __MODEL__ == __MODEL_1__". There is one constant per model (__MODEL_1__, __MODEL_3__,
+ * __MODEL_4__), each set to that model's number, plus __MODEL__ set to the number of the given
+ * model.
+ */
+export function modelTypeAsmConstants(modelType: ModelType): {name: string, value: number}[] {
+    return [
+        {name: "__MODEL_1__", value: modelTypeToNumber(ModelType.MODEL1)},
+        {name: "__MODEL_3__", value: modelTypeToNumber(ModelType.MODEL3)},
+        {name: "__MODEL_4__", value: modelTypeToNumber(ModelType.MODEL4)},
+        {name: "__MODEL__", value: modelTypeToNumber(modelType)},
+    ];
+}
+
+/**
  * The levels of Basic.
  *
  * This is serialized. Do not modify existing values.
@@ -39,6 +74,7 @@ export function modelTypeFromString(modelName: string): ModelType | undefined {
 export enum BasicLevel {
     LEVEL1,
     LEVEL2,
+    COMPILED,
 }
 
 /**
@@ -51,6 +87,9 @@ export function basicLevelFromString(basicLevelName: string): BasicLevel | undef
 
         case "2":
             return BasicLevel.LEVEL2;
+
+        case "C":
+            return BasicLevel.COMPILED;
 
         default:
             return undefined;
@@ -141,7 +180,7 @@ function computeRomSize(modelType: ModelType, basicLevel: BasicLevel): number {
                     break;
 
                 case BasicLevel.LEVEL2:
-                default:
+                case BasicLevel.COMPILED:
                     kb = 12;
                     break;
             }
@@ -149,7 +188,6 @@ function computeRomSize(modelType: ModelType, basicLevel: BasicLevel): number {
 
         case ModelType.MODEL3:
         case ModelType.MODEL4:
-        default:
             kb = 14;
             break;
     }
@@ -169,6 +207,7 @@ export class Config {
     public readonly phosphor: Phosphor;
     public readonly reflection: boolean;
     public readonly grid: boolean;
+    public readonly bezel: boolean;
     public readonly customRom: string | undefined;
     public readonly romSize: number;
     public readonly printerModel: PrinterModel;
@@ -176,7 +215,7 @@ export class Config {
 
     constructor(modelType: ModelType, basicLevel: BasicLevel, cgChip: CGChip, ramSize: RamSize,
                 displayType: DisplayType, phosphor: Phosphor, reflection: boolean,
-                grid: boolean, customRom: string | undefined, printerModel: PrinterModel,
+                grid: boolean, bezel: boolean, customRom: string | undefined, printerModel: PrinterModel,
                 inkColor: InkColor) {
 
         this.modelType = modelType;
@@ -187,6 +226,7 @@ export class Config {
         this.phosphor = phosphor;
         this.reflection = reflection;
         this.grid = grid;
+        this.bezel = bezel;
         this.customRom = customRom;
         this.printerModel = printerModel;
         this.inkColor = inkColor;
@@ -214,6 +254,8 @@ export class Config {
             displayType: this.displayType,
             phosphor: this.phosphor,
             reflection: this.reflection,
+            grid: this.grid,
+            bezel: this.bezel,
             printerModel: this.printerModel,
             inkColor: this.inkColor,
         });
@@ -221,10 +263,13 @@ export class Config {
 
     /**
      * Create a Config from the serialized string created by {@link #serialize}.
+     *
+     * @param s the serialized string.
+     * @param defaultConfig where to get values that weren't serialized.
      */
-    public static deserialize(s: string): Config {
+    public static deserialize(s: string, defaultConfig: Config = Config.makeDefault()): Config {
         const v = JSON.parse(s);
-        const builder = this.makeDefault().edit();
+        const builder = defaultConfig.edit();
         if (v.modelType !== undefined) {
             builder.withModelType(v.modelType);
         }
@@ -245,6 +290,12 @@ export class Config {
         }
         if (v.reflection !== undefined) {
             builder.withReflection(v.reflection);
+        }
+        if (v.grid !== undefined) {
+            builder.withGrid(v.grid);
+        }
+        if (v.bezel !== undefined) {
+            builder.withBezel(v.bezel);
         }
         if (v.printerModel !== undefined) {
             builder.withPrinterModel(v.printerModel);
@@ -267,6 +318,7 @@ export class Config {
             Phosphor.WHITE,
             false,
             false,
+            false,
             undefined,
             PrinterModel.EPSON_MX_80,
             InkColor.BLACK);
@@ -278,6 +330,12 @@ export class Config {
     public isValid(): boolean {
         // Only Model I had Level 1. (Well, there was a Model III with Level 1 but we don't support it.)
         if (this.modelType !== ModelType.MODEL1 && this.basicLevel === BasicLevel.LEVEL1) {
+            return false;
+        }
+
+        // The compiled Basic ROM puts its stack at the top of 48K, and its sample programs
+        // above 32K.
+        if (this.basicLevel === BasicLevel.COMPILED && this.ramSize !== RamSize.RAM_48_KB) {
             return false;
         }
 
@@ -318,6 +376,8 @@ export class Config {
             this.displayType === other.displayType &&
             this.phosphor === other.phosphor &&
             this.reflection === other.reflection &&
+            this.grid === other.grid &&
+            this.bezel === other.bezel &&
             this.customRom === other.customRom &&
             this.romSize === other.romSize &&
             this.printerModel === other.printerModel &&
@@ -362,6 +422,7 @@ export class ConfigBuilder {
     private phosphor: Phosphor;
     private reflection: boolean;
     private grid: boolean;
+    private bezel: boolean;
     private customRom: string | undefined;
     private printerModel: PrinterModel;
     private inkColor: InkColor;
@@ -375,6 +436,7 @@ export class ConfigBuilder {
         this.phosphor = config.phosphor;
         this.reflection = config.reflection;
         this.grid = config.grid;
+        this.bezel = config.bezel;
         this.customRom = config.customRom;
         this.printerModel = config.printerModel;
         this.inkColor = config.inkColor;
@@ -393,6 +455,7 @@ export class ConfigBuilder {
             this.phosphor,
             this.reflection,
             this.grid,
+            this.bezel,
             this.customRom,
             this.printerModel,
             this.inkColor);
@@ -435,6 +498,11 @@ export class ConfigBuilder {
 
     public withGrid(grid: boolean): this {
         this.grid = grid;
+        return this;
+    }
+
+    public withBezel(bezel: boolean): this {
+        this.bezel = bezel;
         return this;
     }
 

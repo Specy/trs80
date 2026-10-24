@@ -1,4 +1,4 @@
-import {expect} from "chai";
+import {describe, expect, it} from "vitest";
 import {
     assemble,
     AssemblyResult,
@@ -7,21 +7,6 @@ import {
     InMemoryFileSystem,
 } from "./Assemble.js";
 import {DEFAULT_ENTRY_PATHNAME} from "./Constants.js";
-
-// I can't get mocha to work with TypeScript and ESM, so just provide their
-// functions.
-let testCount = 0;
-let successCount = 0;
-function describe(name: string, f: () => void): void {
-    testCount++
-    try {
-        f();
-        successCount += 1;
-    } catch (e) {
-        console.log(name + ": " + e);
-    }
-}
-const it = describe;
 
 /**
  * The bytes of a segment, as a plain array, for easy comparison.
@@ -505,8 +490,3 @@ describe("entry pathname resolution", () => {
         expect(() => assemble({})).to.throw();
     });
 });
-
-console.log(successCount + " successful out of " + testCount, successCount === testCount ? "✅" : "❌");
-if (successCount !== testCount) {
-    process.exitCode = 1;
-}

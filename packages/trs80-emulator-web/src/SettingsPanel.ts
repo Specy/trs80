@@ -189,10 +189,23 @@ interface Option {
 }
 
 /**
+ * Optional features of the app hosting the emulator. Settings for a feature are
+ * only shown if the app supports it.
+ */
+export interface SettingsPanelFeatures {
+    // Whether the app can show a picture of the computer around the screen.
+    bezel?: boolean;
+}
+
+/**
  * A block of options that are mutually exclusive, like all the models.
  */
 interface OptionBlock<T> {
     title: string;
+    /**
+     * Only show this block if the app supports this feature.
+     */
+    feature?: keyof SettingsPanelFeatures;
     /**
      * Whether the option should be checked, based on this config.
      */
@@ -226,7 +239,15 @@ const HARDWARE_OPTION_BLOCKS: OptionBlock<any>[] = [
     {
         title: "Model",
         isChecked: (modelType: ModelType, config: Config) => modelType === config.modelType,
-        updateConfig: (modelType: ModelType, config: Config) => config.edit().withModelType(modelType).build(),
+        updateConfig: (modelType: ModelType, config: Config) => {
+            const builder = config.edit().withModelType(modelType);
+            if (modelType !== ModelType.MODEL1) {
+                // The Model III and 4 only had the lower case character generator. Set it so that
+                // these models are always selectable, whatever the Model I was set to.
+                builder.withCGChip(CGChip.LOWER_CASE);
+            }
+            return builder.build();
+        },
         options: [
             {
                 label: "Model I",
@@ -254,6 +275,10 @@ const HARDWARE_OPTION_BLOCKS: OptionBlock<any>[] = [
             {
                 label: "Level 2",
                 value: BasicLevel.LEVEL2,
+            },
+            {
+                label: "Compiled",
+                value: BasicLevel.COMPILED,
             },
         ]
     },
@@ -350,6 +375,22 @@ const VIEW_OPTION_BLOCKS: OptionBlock<any>[] = [
         title: "Design Grid",
         isChecked: (grid: boolean, config: Config) => grid === config.grid,
         updateConfig: (grid: boolean, config: Config) => config.edit().withGrid(grid).build(),
+        options: [
+            {
+                label: "Hide",
+                value: false,
+            },
+            {
+                label: "Show",
+                value: true,
+            },
+        ]
+    },
+    {
+        title: "Bezel",
+        feature: "bezel",
+        isChecked: (bezel: boolean, config: Config) => bezel === config.bezel,
+        updateConfig: (bezel: boolean, config: Config) => config.edit().withBezel(bezel).build(),
         options: [
             {
                 label: "Hide",
@@ -461,7 +502,15 @@ export class SettingsPanel {
     private readonly displayedOptions: DisplayedOption<any>[] = [];
     private readonly acceptButton: HTMLElement;
 
-    constructor(screenNode: HTMLElement, configurable: Configurable, panelType: PanelType) {
+    /**
+     * @param screenNode the node to cover with the panel.
+     * @param configurable what to configure.
+     * @param panelType which settings to show.
+     * @param features which optional features the app supports.
+     */
+    constructor(screenNode: HTMLElement, configurable: Configurable, panelType: PanelType,
+                features: SettingsPanelFeatures = {}) {
+
         this.panelType = panelType;
         this.configurable = configurable;
 
@@ -478,6 +527,10 @@ export class SettingsPanel {
         this.panelNode.appendChild(div);
 
         for (const block of optionBlocksForPanelType(panelType)) {
+            if (block.feature !== undefined && features[block.feature] !== true) {
+                continue;
+            }
+
             const name = gCssPrefix + "-" + gRadioButtonCounter++;
 
             const blockDiv = document.createElement("div");
@@ -498,7 +551,6 @@ export class SettingsPanel {
                 input.id = id;
                 input.type = "radio";
                 input.name = name;
-                input.addEventListener("change", () => this.updateEnabledOptions());
                 optionsDiv.appendChild(input);
 
                 const label = document.createElement("label");
@@ -515,7 +567,9 @@ export class SettingsPanel {
                 }
                 optionsDiv.appendChild(label);
 
-                this.displayedOptions.push(new DisplayedOption(input, block, option));
+                const displayedOption = new DisplayedOption(input, block, option);
+                input.addEventListener("change", () => this.optionChanged(displayedOption));
+                this.displayedOptions.push(displayedOption);
             }
         }
 
@@ -622,6 +676,21 @@ export class SettingsPanel {
         if (this.onClose !== undefined) {
             this.onClose();
         }
+    }
+
+    /**
+     * Handle the user selecting an option. Its side effects on other settings (such as selecting the
+     * Model III resetting the character generator) are applied last so that they win over what the
+     * other blocks currently have selected, and the other blocks' radio buttons are updated to match.
+     */
+    private optionChanged(changedOption: DisplayedOption<any>): void {
+        const config = changedOption.block.updateConfig(changedOption.option.value, this.getConfig());
+
+        for (const displayedOption of this.displayedOptions) {
+            displayedOption.input.checked = displayedOption.block.isChecked(displayedOption.option.value, config);
+        }
+
+        this.updateEnabledOptions();
     }
 
     /**

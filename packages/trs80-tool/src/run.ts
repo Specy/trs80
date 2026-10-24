@@ -1,18 +1,60 @@
 import fs from "fs";
-import chalk from "chalk";
-import {BasicLevel, CGChip, Config, ConsolePrinter, FLOPPY_DRIVE_COUNT, Keyboard,
-    LinePrinter, ModelType, RunningState, SilentSoundPlayer, Trs80, Trs80Screen } from "trs80-emulator";
+import path from "path";
+import util from "util";
+import {colors} from "./colors.js";
+import {BasicLevel, Config, ConsolePrinter, FLOPPY_DRIVE_COUNT, Keyboard,
+    LinePrinter, ModelType, RunningState, SilentSoundPlayer, Trs80, Trs80Screen,
+    model1ScreenCodeToModel3 } from "trs80-emulator";
 import {connectXray} from "./xray.js";
-import {TRS80_CHAR_HEIGHT, TRS80_CHAR_WIDTH, TRS80_SCREEN_BEGIN, isFloppy } from "trs80-base";
+import {FloppyDisk, TRS80_CHAR_HEIGHT, TRS80_CHAR_WIDTH, TRS80_SCREEN_BEGIN, isFloppy } from "trs80-base";
 import { AudioFileCassettePlayer } from "trs80-cassette-player";
 import { AudioFile } from "trs80-cassette";
 import { readTrs80File } from "./utils.js";
 import { word } from "z80-base";
-import {LogLevel, TRS80_MAIN_SINK, makeBatchingSink } from "trs80-logger";
+import {LogLevel, TRS80_FLOPPY_LOGGER, MAIN_SINK, makeBatchingSink } from "z80-logger";
 
 // Size of screen.
 const WIDTH = TRS80_CHAR_WIDTH;
 const HEIGHT = TRS80_CHAR_HEIGHT;
+
+// Indent of the continuation lines of a wrapped log message.
+const LOG_WRAP_INDENT = 4;
+
+/**
+ * Wrap text into lines of at most the given width, breaking at spaces or after hyphens where
+ * possible, and indenting all but the first line. Words too long for a line are broken anywhere.
+ *
+ * @param text the text to wrap.
+ * @param width the maximum length of each line, including its indent.
+ * @param indent the number of spaces before each line after the first.
+ * @return the lines, at least one.
+ */
+function wrapText(text: string, width: number, indent: number): string[] {
+    const lines: string[] = [];
+    const indentText = " ".repeat(indent);
+    let rest = text;
+    let prefix = "";
+
+    // Too narrow to indent and still make progress.
+    if (width <= indent) {
+        return [text];
+    }
+
+    while (prefix.length + rest.length > width) {
+        const room = width - prefix.length;
+        // Break at the last space or after the last hyphen that fits, or anywhere if there's neither.
+        let breakIndex = Math.max(rest.lastIndexOf(" ", room), rest.lastIndexOf("-", room - 1) + 1);
+        if (breakIndex <= 0) {
+            breakIndex = room;
+        }
+        lines.push(prefix + rest.slice(0, breakIndex).trimEnd());
+        rest = rest.slice(breakIndex).trimStart();
+        prefix = indentText;
+    }
+    lines.push(prefix + rest);
+
+    return lines;
+}
 
 /**
  * Class to update a VT-100 screen.
@@ -98,6 +140,14 @@ class TtyScreen extends Trs80Screen {
     private readonly drawnScreen = new Uint8Array(WIDTH*HEIGHT);
     private readonly vt100Control = new Vt100Control();
     private readonly logMessages: { level: LogLevel, message: string }[] = [];
+    // The console's methods before captureConsole() replaced them, for exit() to restore.
+    private readonly savedConsole = {
+        log: console.log,
+        info: console.info,
+        debug: console.debug,
+        warn: console.warn,
+        error: console.error,
+    };
     public readonly printer = new class extends LinePrinter {
         constructor(private ttyScreen: TtyScreen) {
             super();
@@ -117,6 +167,7 @@ class TtyScreen extends Trs80Screen {
         this.config = config;
         this.drawFrame();
         this.vt100Control.saveCursorPositionAs(HEIGHT + 3, 1);
+        this.captureConsole();
 
         // Update cursor periodically. Have to do this on a timer since the memory location
         // can be updated anytime.
@@ -126,8 +177,24 @@ class TtyScreen extends Trs80Screen {
         process.stdout.on("resize", () => this.redraw());
     }
 
+    /**
+     * Move the cursor below the screen and give the console back, so that whatever's printed
+     * after this goes below the screen.
+     */
     public exit(): void {
         this.vt100Control.moveTo(HEIGHT + 3, 1);
+        Object.assign(console, this.savedConsole);
+    }
+
+    /**
+     * Send console output to the log beside the screen. Written to the terminal, it would
+     * draw over the screen and throw off our idea of where the cursor is. Undone by {@link exit}.
+     */
+    private captureConsole(): void {
+        const sink = makeBatchingSink(this.logSink.bind(this));
+        const makeMethod = (level: LogLevel) => (...args: unknown[]) => sink(level, util.format(...args));
+        console.log = console.info = console.debug = makeMethod(LogLevel.INFO);
+        console.warn = console.error = makeMethod(LogLevel.WARN);
     }
 
     /**
@@ -135,7 +202,7 @@ class TtyScreen extends Trs80Screen {
      */
     private drawFrame(): void {
         // Draw frame.
-        const color = chalk.green;
+        const color = colors.frame;
         process.stdout.write(color("+" + "-".repeat(WIDTH) + "+\n"));
         for (let row = 0; row < HEIGHT; row++) {
             process.stdout.write(color("|" + " ".repeat(WIDTH) + "|\n"));
@@ -157,8 +224,15 @@ class TtyScreen extends Trs80Screen {
         }
     }
 
+    /**
+     * Add a message to the log beside the screen. A message with several lines becomes several
+     * messages, and other control characters become spaces, since writing them would move the
+     * cursor.
+     */
     public logSink(level: LogLevel, message: string): void {
-        this.logMessages.push({level, message});
+        for (const line of message.split(/\r?\n/)) {
+            this.logMessages.push({level, message: line.replace(/[\x00-\x1F\x7F]/g, " ")});
+        }
         while (this.logMessages.length > HEIGHT + 2) {
             this.logMessages.shift();
         }
@@ -184,12 +258,10 @@ class TtyScreen extends Trs80Screen {
             // Draw a space at the current cursor.
             let value = i === this.lastCursorIndex ? 32 : this.readMemory(i + TRS80_SCREEN_BEGIN);
             if (this.config.modelType === ModelType.MODEL1) {
-                // Level 2 used the letters from values 0 to 31.
-                if (value < 32) {
-                    value += 64;
-                } else if (this.config.cgChip === CGChip.ORIGINAL && value >= 96 && value < 128) {
-                    value -= 64;
-                }
+                // Level 2 used the letters from values 0 to 31. (With the original character
+                // generator the machine's video RAM reads back with bit 6 computed, so it never
+                // holds those values and this does nothing.)
+                value = model1ScreenCodeToModel3(value);
             }
 
             if (force || value !== this.drawnScreen[i]) {
@@ -202,7 +274,7 @@ class TtyScreen extends Trs80Screen {
                 const ch = value >= 128 && value <= 191
                     ? TtyScreen.trs80ToBraille(value)
                     : value < 32 || value >= 127
-                        ? chalk.gray("?")
+                        ? colors.muted("?")
                         : String.fromCodePoint(value);
 
                 // Draw at location.
@@ -224,7 +296,7 @@ class TtyScreen extends Trs80Screen {
     private redrawDrive(): void {
         for (let drive = 0; drive < FLOPPY_DRIVE_COUNT; drive++) {
             const ch = drive === this.drive ? "\u2022" : "|";
-            const color = drive === this.drive ? chalk.red : chalk.green;
+            const color = drive === this.drive ? colors.frameActive : colors.frame;
             this.vt100Control.moveTo(HEIGHT - drive + 1, WIDTH + 2);
             process.stdout.write(color(ch));
             this.vt100Control.advancedCol();
@@ -277,19 +349,32 @@ class TtyScreen extends Trs80Screen {
         this.vt100Control.moveTo(row + 1, col + 1);
     }
 
+    /**
+     * Redraw the log messages to the right of the screen, wrapping long ones, and
+     * showing as many of the newest lines as fit.
+     */
     public redrawLogMessages(): void {
         const terminalColumns = process.stdout.columns ?? 80;
         const messageColumn = WIDTH + 2;
         const maxMessageLength = Math.max(terminalColumns - messageColumn - 1, 0);
 
+        // Wrap each message, leaving room for the space that separates it from the frame.
+        const lines: { level: LogLevel, text: string }[] = [];
+        for (const logEvent of this.logMessages) {
+            for (const text of wrapText(logEvent.message, maxMessageLength - 1, LOG_WRAP_INDENT)) {
+                lines.push({level: logEvent.level, text});
+            }
+        }
+        const visibleLines = lines.slice(-(HEIGHT + 2));
+
         for (let i = 0; i < HEIGHT + 2; i++) {
             let message = "";
 
-            if (i < this.logMessages.length) {
-                const logEvent = this.logMessages[i];
-                message = (" " + logEvent.message).slice(0, maxMessageLength).padEnd(maxMessageLength, " ");
+            if (i < visibleLines.length) {
+                const line = visibleLines[i];
+                message = (" " + line.text).slice(0, maxMessageLength).padEnd(maxMessageLength, " ");
 
-                switch (logEvent.level) {
+                switch (line.level) {
                     case LogLevel.TRACE:
                         process.stdout.write("\x1B[90m"); // Gray.
                         break;
@@ -469,19 +554,57 @@ function fileIsWritable(pathname: string): boolean {
 }
 
 /**
+ * Prepare a floppy for mounting. Unless it's writable, it's write-protected, so the DOS
+ * refuses to write to it. If it's writable, its changes are saved back to its file.
+ * A floppy whose file is read-only, or whose image is write-protected, stays write-protected
+ * even if the user asked for writable floppies, and we warn them.
+ *
+ * @param floppy the floppy read from the file.
+ * @param pathname the file the floppy was read from.
+ * @param writable whether the user asked for floppies to be writable.
+ */
+function setUpFloppy(floppy: FloppyDisk, pathname: string, writable: boolean): void {
+    if (!writable) {
+        floppy.setMountedWriteProtected(true);
+        return;
+    }
+
+    const name = path.basename(pathname);
+    if (!fileIsWritable(pathname)) {
+        floppy.setMountedWriteProtected(true);
+        TRS80_FLOPPY_LOGGER.warn(name + ": file is read-only");
+        return;
+    }
+
+    // Now it's write-protected only by the image's own flag, or by a format we can't write.
+    floppy.setMountedWriteProtected(false);
+    if (floppy.isWriteProtected()) {
+        TRS80_FLOPPY_LOGGER.warn(name + ": image is write-protected");
+        return;
+    }
+
+    floppy.onWrite.subscribe(floppyWrite => {
+        const fd = fs.openSync(pathname, "r+");
+        fs.writeSync(fd, floppyWrite.data, 0, floppyWrite.data.length, floppyWrite.offset);
+        fs.closeSync(fd);
+    });
+}
+
+/**
  * Handle the "run" command.
  *
  * @param programFilename optional file to run
  * @param mountedFilenames optional cassette or floppy files to mount
  * @param xray whether to run the xray server
- * @param writeProtected mark mounted floppies as write-protected.
+ * @param writable make floppies writable and save their changes to their files,
+ * rather than write-protecting them.
  * @param config machine configuration
  * @param printerPathname file to write printer output to, or undefined to write to the console.
  */
 export function run(programFilename: string | undefined,
                     mountedFilenames: string[],
                     xray: boolean,
-                    writeProtected: boolean,
+                    writable: boolean,
                     config: Config,
                     printerPathname: string | undefined) {
 
@@ -503,8 +626,8 @@ export function run(programFilename: string | undefined,
         printer = ttyScreen.printer;
         keyboard = new TtyKeyboard(ttyScreen);
         screen = ttyScreen;
-        TRS80_MAIN_SINK.delegatedSinks.shift();
-        TRS80_MAIN_SINK.delegatedSinks.unshift(makeBatchingSink(ttyScreen.logSink.bind(ttyScreen)));
+        MAIN_SINK.delegatedSinks.shift();
+        MAIN_SINK.delegatedSinks.unshift(makeBatchingSink(ttyScreen.logSink.bind(ttyScreen)));
     }
 
     const cassette = new AudioFileCassettePlayer();
@@ -543,11 +666,16 @@ export function run(programFilename: string | undefined,
             console.log("Can't run WAV files directly");
             return;
         }
+        if (isFloppy(program)) {
+            setUpFloppy(program, programFilename, writable);
+        }
         trs80.runTrs80File(program);
     }
 
-    // Mount floppies or cassettes.
-    let driveNumber = 0;
+    // Mount floppies or cassettes. If the program was a floppy, it's the boot disk in drive 0,
+    // so the mounted floppies go in the next drives.
+    const bootDiskMounted = trs80.getFloppyDisk(0) !== undefined;
+    let driveNumber = bootDiskMounted ? 1 : 0;
     let mountedCassette = false;
     for (const mountedFilename of mountedFilenames) {
         const program = readTrs80File(mountedFilename);
@@ -564,13 +692,7 @@ export function run(programFilename: string | undefined,
             cassette.setAudioFile(program, 0);
             mountedCassette = true;
         } else if (isFloppy(program)) {
-            const fileIsReadOnly = !fileIsWritable(mountedFilename);
-            program.setMountedWriteProtected(writeProtected || fileIsReadOnly);
-            program.onWrite.subscribe(floppyWrite => {
-                const fd = fs.openSync(mountedFilename, "r+");
-                fs.writeSync(fd, floppyWrite.data, 0, floppyWrite.data.length, floppyWrite.offset);
-                fs.closeSync(fd);
-            });
+            setUpFloppy(program, mountedFilename, writable);
             trs80.loadFloppyDisk(program, driveNumber++);
         } else if (program.className === "Cassette") {
             // Cassette.

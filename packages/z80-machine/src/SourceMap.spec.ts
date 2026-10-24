@@ -1,24 +1,9 @@
-import {expect} from "chai";
+import {describe, expect, it} from "vitest";
 import {SymbolType} from "z80-asm";
 import {assemble} from "./Assemble.js";
 import {CallStackFrame} from "./CallStack.js";
 import {SourceMap} from "./SourceMap.js";
 import type {Z80Machine} from "./Z80Machine.js";
-
-// I can't get mocha to work with TypeScript and ESM, so just provide their
-// functions.
-let testCount = 0;
-let successCount = 0;
-function describe(name: string, f: () => void): void {
-    testCount++
-    try {
-        f();
-        successCount += 1;
-    } catch (e) {
-        console.log(name + ": " + e);
-    }
-}
-const it = describe;
 
 // Program used by most of the tests. Line numbers are zero-based.
 //
@@ -274,8 +259,3 @@ describe("namedCallStack", () => {
         expect(sourceMap.namedCallStack(fakeMachine([]))).to.deep.equal([]);
     });
 });
-
-console.log(successCount + " successful out of " + testCount, successCount === testCount ? "✅" : "❌");
-if (successCount !== testCount) {
-    process.exitCode = 1;
-}

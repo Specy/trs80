@@ -1,15 +1,13 @@
 {
   "name": "trs80-emulator",
-  "version": "2.3.1",
-  "description": "TRS-80 Model III emulator",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "description": "TRS-80 emulator",
+  "exports": "./src/index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build"
+    "generateRoms": "tsx tools/GenerateCompiledRoms.ts",
+    "pretest": "npm run generateRoms",
+    "test": "vitest run"
   },
   "keywords": [
     "trs-80",
@@ -19,16 +17,15 @@
   "author": "Lawrence Kesteloot <lk@teamten.com> (https://www.teamten.com/lawrence/)",
   "repository": "https://github.com/lkesteloot/trs80.git",
   "license": "MIT",
+  "devDependencies": {
+    "trs80-asm": "*",
+    "z80-asm": "*"
+  },
   "dependencies": {
     "strongly-typed-events": "^3.0.0",
-    "teamten-ts-utils": "^1.0.3",
-    "trs80-base": "^2.3.1",
-    "z80-base": "^2.0.1",
-    "z80-emulator": "^2.3.0"
-  },
-  "devDependencies": {
-    "source-map-loader": "^5.0.0",
-    "ts-loader": "^9.5.2",
-    "tslib": "^2.8.1"
+    "trs80-base": "*",
+    "z80-logger": "*",
+    "z80-base": "*",
+    "z80-emulator": "*"
   }
 }

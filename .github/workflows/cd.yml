@@ -117,11 +117,11 @@ jobs:
       # packages/*/dist is generated and never committed (see .gitignore), so
       # what gets published is always bundled from the tagged sources rather
       # than from whatever a working tree happened to contain.
-      - name: Build the library and its dependencies
-        run: npm run build -- --scope @specy/z80 --include-dependencies
+      - name: Build the library
+        run: npm run build -w packages/z80-machine
 
       - name: Run tests
-        run: npm test
+        run: npx vitest run packages/z80-
 
       - name: Run smoke test
         run: npm run test:dist -w packages/z80-machine

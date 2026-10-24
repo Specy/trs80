@@ -10,7 +10,7 @@ in TypeScript. The subprojects are:
 * [z80-disasm](packages/z80-disasm): Z80 disassembler.
 * [z80-asm](packages/z80-asm): Z80 assembler.
 * [z80-machine](packages/z80-machine): Ready-to-use Z80 computer with pluggable IO and a debuggable run loop, built on the Z80 packages above. Published to npm as [@specy/z80](https://www.npmjs.com/package/@specy/z80).
-* [trs80-logger](packages/trs80-logger): Logging functions for other TRS-80 libraries and tools.
+* [z80-logger](packages/z80-logger): Logging functions for the other Z80 and TRS-80 libraries and tools.
 * [trs80-asm](packages/trs80-asm): Small library to help z80-asm and trs80-base work together.
 * [trs80-base](packages/trs80-base): Classes for reading and writing a variety of TRS-80 file formats.
 * [trs80-emulator](packages/trs80-emulator): TRS-80 hardware emulator. Can emulate a Model I and Model III, read-only cassette, and floppy disk.
@@ -26,25 +26,31 @@ in TypeScript. The subprojects are:
 
 # Build
 
-This has been tested with `node` version 20 and `npm` version 10. You can
+This has been tested with `node` version 24 and `npm` version 11. You can
 get the latest version from [the node.js website](https://nodejs.org/).
 
 To install dependencies (do this once per clone or pull):
 
 ```sh
-npm install
+npm ci
 ```
 
-To do a sequential build:
-
-```sh
-npm run build --workspaces
-```
-
-Or to do a parallel build:
+To build everything (this also type-checks all packages):
 
 ```sh
 npm run build
+```
+
+To only type-check:
+
+```sh
+npm run typecheck
+```
+
+To run the tests:
+
+```sh
+npm test
 ```
 
 If you're getting build errors, try getting a fresh clone, or clean
@@ -52,11 +58,15 @@ up your local installations with:
 
 ```sh
 rm -rf node_modules packages/*/node_modules
-npm install
-npm run clean --workspaces
+npm ci
+npm run clean
 ```
 
 # License
 
 Copyright &copy; Lawrence Kesteloot, [MIT license](LICENSE).
+
+The photos of the computers in [my-trs-80](packages/my-trs-80/public/bezels) are from
+[GPC](https://github.com/FastDogJo/GPC), copyright &copy; Joe Costolnick,
+[MIT license](https://github.com/FastDogJo/GPC/blob/main/LICENSE).
 

@@ -1,18 +1,16 @@
 {
     "name": "trs80-tool",
-    "version": "2.8.12",
+    "version": "4.5.0",
     "description": "Command-line tool for manipulating TRS-80 files",
-    "main": "dist/index.js",
     "repository": "https://github.com/lkesteloot/trs80.git",
     "type": "module",
     "private": true,
     "scripts": {
         "updateBuildInfo": "../../printBuildInfo > src/build.ts",
-        "build": "npm run updateVersion && npm run updateBuildInfo && tsc",
+        "build": "npm run generateRoms -w trs80-emulator && npm run updateVersion && npm run updateBuildInfo && esbuild src/index.ts --bundle --platform=node --format=cjs --target=node24 --log-level=warning --outfile=dist/trs80-tool.cjs",
         "clean": "rm -rf dist",
-        "updateVersion": "python3 update_version.py > src/version.ts",
-        "prepublishOnly": "npm run build",
-        "buildBinaries": "npm run build && webpack && pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --out-path binaries binaries/main.js && make dist"
+        "updateVersion": "node -p '\"export const version = \" + JSON.stringify(require(\"./package.json\").version) + \";\"' > src/version.ts",
+        "buildBinaries": "npm run build && node build-binaries.mjs"
     },
     "bin": {
         "trs80-tool": "bin/trs80-tool.js"
@@ -20,24 +18,25 @@
     "author": "Lawrence Kesteloot <lk@teamten.com> (https://www.teamten.com/lawrence/)",
     "license": "MIT",
     "dependencies": {
-        "@types/node": "^22.13.0",
-        "@types/ws": "^8.2.0",
-        "chalk": "^5.4.1",
-        "commander": "^13.1.0",
+        "chalk": "^6.0.0",
+        "commander": "^15.0.0",
         "teamten-ts-utils": "^1.0.3",
-        "trs80-asm": "^2.3.1",
-        "trs80-base": "^2.3.1",
-        "trs80-cassette": "^2.3.1",
-        "trs80-cassette-player": "^2.4.1",
-        "trs80-emulator": "^2.3.1",
+        "trs80-asm": "*",
+        "trs80-base": "*",
+        "trs80-cassette": "*",
+        "trs80-cassette-player": "*",
+        "trs80-emulator": "*",
+        "z80-logger": "*",
         "ws": "^8.2.3",
-        "z80-asm": "^2.3.0",
-        "z80-base": "^2.0.1",
-        "z80-disasm": "^2.3.0"
+        "z80-asm": "*",
+        "z80-base": "*",
+        "z80-disasm": "*",
+        "z80-emulator": "*"
     },
     "devDependencies": {
-        "pkg": "^5.1.0",
-        "webpack": "^5.37.0",
-        "webpack-cli": "^6.0.1"
+        "@types/node": "^24.13.4",
+        "@types/ws": "^8.2.0",
+        "esbuild": "^0.28.2",
+        "postject": "^1.0.0-alpha.6"
     }
 }

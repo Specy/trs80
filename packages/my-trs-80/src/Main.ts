@@ -17,22 +17,22 @@ import {
 } from "trs80-emulator-web";
 import {initializeApp} from "firebase/app";
 import {getAnalytics} from "firebase/analytics";
-import {getAuth, GoogleAuthProvider} from "firebase/auth";
-import * as firebaseui from "firebaseui";
-import {makeIcon, makeIconButton, makeTextButton} from "./Utils";
+import {getAuth, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
+import {makeGoogleSignInButton, makeIcon, makeIconButton, makeTextButton, reportError} from "./Utils";
 import {PanelManager} from "./PanelManager";
 import {LibraryPanel} from "./LibraryPanel";
 import {Context} from "./Context";
 import {Library} from "./Library";
 import {File, FileBuilder} from "./File";
 import {DialogBox} from "./DialogBox";
+import {Bezel} from "./Bezel.js";
 import {AuthUser} from "./User";
 import {Database} from "./Database";
 import {isRegisterSetField, toHexWord} from "z80-base";
 import {AudioFileCassettePlayer} from "trs80-cassette-player";
 import {BUILD_DATE, BUILD_GIT_HASH} from "./build.js";
 import {disasmForTrs80} from "trs80-base";
-import {getFirestore} from "firebase/firestore";
+import {getFirestore} from "firebase/firestore/lite";
 
 const LOCAL_STORAGE_CONFIG_KEY = "my-trs-80-config";
 
@@ -104,42 +104,28 @@ export function main() {
     });
     const firebaseAnalytics = getAnalytics(firebaseApp);
 
-    // Configuration for Firebase sign-in screen.
-    const uiConfig = {
-        signInSuccessUrl: '/',
-        signInOptions: [
-            // Leave the lines as is for the providers you want to offer your users.
-            GoogleAuthProvider.PROVIDER_ID,
-            // FacebookAuthProvider.PROVIDER_ID,
-            // TwitterAuthProvider.PROVIDER_ID,
-            // GithubAuthProvider.PROVIDER_ID,
-            // EmailAuthProvider.PROVIDER_ID,
-            // PhoneAuthProvider.PROVIDER_ID,
-            // firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
-        ],
-        // Pop up a browser window for the actual sign-in page:
-        signInFlow: "popup",
-        callbacks: {
-            signInSuccessWithAuthResult: (authResult: any): boolean => {
-                // Don't use stuff here, the user will get passed to onAuthStateChanged().
-                // I don't see much else useful in authResult.
-                // console.log(authResult);
-
-                // Don't redirect, we've taken care of it.
-                return false;
-            },
-        },
-    };
-
     const firebaseAuth = getAuth();
-    const firebaseAuthUi = new firebaseui.auth.AuthUI(firebaseAuth);
 
     const signInDiv = document.createElement("div");
     const signInInstructions = document.createElement("div");
     signInInstructions.classList.add("sign-in-instructions");
     signInInstructions.innerText = "Sign in to My TRS-80 to have a persistent place to store your files.";
-    const signInFirebase = document.createElement("div");
-    signInDiv.append(signInInstructions, signInFirebase);
+    const signInError = document.createElement("div");
+    signInError.classList.add("sign-in-error");
+    const googleSignInButton = makeGoogleSignInButton(() => {
+        signInError.innerText = "";
+        // On success, the user gets passed to onAuthStateChanged() below.
+        signInWithPopup(firebaseAuth, new GoogleAuthProvider()).catch(error => {
+            // Closing the popup, or clicking again while it's open, isn't worth reporting.
+            if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
+                console.error(error);
+                signInError.innerText = error.code === "auth/popup-blocked"
+                    ? "Your browser blocked the sign-in window."
+                    : "Sign-in failed. Please try again.";
+            }
+        });
+    });
+    signInDiv.append(signInInstructions, googleSignInButton, signInError);
     let signInDialog: DialogBox | undefined = undefined;
 
     const db = new Database(getFirestore(firebaseApp));
@@ -150,11 +136,21 @@ export function main() {
 
             const authUser = AuthUser.fromFirebaseUser(firebaseUser);
 
+            // The user may sign out (or in as someone else) while we're loading the account.
+            const isStillSignedIn = () => firebaseAuth.currentUser?.uid === firebaseUser.uid;
+
             db.userFromAuthUser(authUser)
-                .then(user => context.user = user)
+                .then(user => {
+                    if (isStillSignedIn()) {
+                        context.user = user;
+                    }
+                })
                 .catch(error => {
-                    // TODO.
-                    console.error(error);
+                    reportError("Couldn't load your account. Try signing in again.", error);
+                    if (isStillSignedIn()) {
+                        // Mark the user as resolved (as signed out) so that a pending runFile still runs.
+                        context.user = undefined;
+                    }
                 });
 
             if (signInDialog !== undefined) {
@@ -162,9 +158,8 @@ export function main() {
                 signInDialog = undefined;
             }
         } else {
-            // No user signed in, render sign-in UI.
-            firebaseAuthUi.reset();
-            firebaseAuthUi.start(signInFirebase, uiConfig);
+            // No user signed in; clear any error from an earlier attempt.
+            signInError.innerText = "";
 
             context.user = undefined;
         }
@@ -185,7 +180,7 @@ export function main() {
     const screenDiv = document.createElement("div");
     screenDiv.classList.add("main-computer-screen");
 
-    const config = loadTrs80Config(LOCAL_STORAGE_CONFIG_KEY);
+    const config = loadTrs80Config(LOCAL_STORAGE_CONFIG_KEY, Config.makeDefault().edit().withBezel(true).build());
     const screen = new CanvasScreen(1.5);
     const keyboard = new WebKeyboard();
     const cassettePlayer = new AudioFileCassettePlayer();
@@ -205,7 +200,8 @@ export function main() {
 
     const flipCard = new FlipCard(screen);
     flipCard.setFront(screen);
-    screenDiv.append(flipCard.node);
+    const bezel = new Bezel(screenDiv, screen, flipCard, trs80);
+    screenDiv.append(bezel.node);
 
     const reboot = () => {
         trs80.reset();
@@ -213,7 +209,7 @@ export function main() {
     };
 
     const hardwareSettingsPanel = new SettingsPanel(screen.getNode(), trs80, PanelType.HARDWARE);
-    const viewPanel = new SettingsPanel(screen.getNode(), trs80, PanelType.VIEW);
+    const viewPanel = new SettingsPanel(screen.getNode(), trs80, PanelType.VIEW, {bezel: true});
     const controlPanel = new ControlPanel(screen.getNode());
     controlPanel.addResetButton(reboot);
     controlPanel.addTapeRewindButton(() => {
@@ -230,7 +226,18 @@ export function main() {
         !webPrinter.isSettingsPanelOpen());
 
     const driveIndicators = new DriveIndicators(screen.getNode(), trs80.getMaxDrives());
-    trs80.onMotorOn.subscribe(drive => driveIndicators.setActiveDrive(drive));
+    let activeDrive: number | undefined = undefined;
+    const updateDriveIndicators = () => {
+        // Prefer the LEDs on the drives in the bezel.
+        const shownByBezel = bezel.setActiveDrive(activeDrive);
+        driveIndicators.setActiveDrive(shownByBezel ? undefined : activeDrive);
+    };
+    trs80.onMotorOn.subscribe(drive => {
+        activeDrive = drive;
+        updateDriveIndicators();
+    });
+    // The bezel and model can change while a drive is on.
+    trs80.onConfig.subscribe(updateDriveIndicators);
 
     body.append(navbar);
     body.append(screenDiv);
@@ -267,8 +274,7 @@ export function main() {
             context.db.updateFile(context.runningFile, file)
                 .then(() => context.library.modifyFile(file))
                 .catch(error => {
-                    // TODO.
-                    console.error(error);
+                    reportError("Couldn't save the screenshot.", error);
                 });
         }
     });
@@ -359,14 +365,21 @@ export function main() {
 
         library.removeAll();
         if (user !== undefined) {
-            // Fetch all files.
-            context.db.getAllFiles(userId ?? user.uid)
+            // Fetch all files. Only admins can see another user's unshared files.
+            const libraryUid = userId ?? user.uid;
+            const sharedOnly = libraryUid !== user.uid && !user.admin;
+            context.db.getAllFiles(libraryUid, sharedOnly)
                 .then((querySnapshot) => {
                     // Sort files before adding them to the library so that they show up in the UI in order
                     // and the screenshots get loaded with the visible ones first.
                     const files: File[] = [];
                     for (const doc of querySnapshot.docs) {
-                        files.push(FileBuilder.fromDoc(doc).build());
+                        const file = FileBuilder.fromDoc(doc).build();
+                        // Deleted files are private, but the security rules can't filter them
+                        // out of the query, so do it here.
+                        if (!sharedOnly || !file.isDeleted) {
+                            files.push(file);
+                        }
                     }
                     files.sort(File.compare);
                     for (const file of files) {
@@ -380,6 +393,10 @@ export function main() {
                             context.db.updateFile(file, newFile)
                                 .then(() => {
                                     library.modifyFile(newFile);
+                                })
+                                .catch(error => {
+                                    // Not worth bothering the user; it'll be tried again next time.
+                                    console.error("Couldn't update the hash for " + file.name, error);
                                 });
                         }
                     }
@@ -387,12 +404,7 @@ export function main() {
                     library.setInSync(true);
                 })
                 .catch(error => {
-                    // TODO
-                    console.error(error);
-                    if (error.name === "FirebaseError") {
-                        // code can be "permission-denied".
-                        console.error(error.code, error.message);
-                    }
+                    reportError("Couldn't load your files.", error);
                 });
         }
     });
@@ -403,8 +415,8 @@ export function main() {
         if (runFileId !== undefined) {
             try {
                 context.runProgram(await db.getFile(runFileId));
-            } catch (e: any) {
-                // TODO Should probably display error message.
+            } catch (error) {
+                reportError("Couldn't load the program to run.", error);
             }
         }
     });

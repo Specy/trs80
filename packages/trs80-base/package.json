@@ -1,32 +1,23 @@
 {
   "name": "trs80-base",
-  "version": "2.3.1",
   "description": "Utility functions and classes for TRS-80 software and emulation",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": "./src/index.ts",
   "type": "module",
   "private": true,
   "repository": "https://github.com/lkesteloot/trs80.git",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "docs": "typedoc -p . --target es6 --excludeNotExported --excludePrivate --out docs src && touch docs/.nojekyll",
-    "clean": "rm -rf dist",
-    "watch": "tsc -p tsconfig.json --watch",
-    "prepublishOnly": "npm run build"
-  },
   "keywords": [
     "trs-80"
   ],
   "author": "Lawrence Kesteloot <lk@teamten.com> (https://www.teamten.com/lawrence/)",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.13.0",
-    "typedoc": "^0.27.6"
+    "@types/node": "^24.13.4"
   },
   "dependencies": {
     "strongly-typed-events": "^3.0.11",
     "teamten-ts-utils": "^1.0.3",
-    "z80-base": "^2.0.1",
-    "z80-disasm": "^2.0.1"
+    "z80-logger": "*",
+    "z80-base": "*",
+    "z80-disasm": "*"
   }
 }

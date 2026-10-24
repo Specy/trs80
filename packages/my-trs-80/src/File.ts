@@ -3,7 +3,7 @@ import * as base64js from "base64-js";
 import {sha1} from "./Sha1";
 import {TagSet} from "./TagSet";
 import {decodeTrs80File, setBasicName} from "trs80-base";
-import {Bytes, DocumentData, DocumentSnapshot, Timestamp } from "firebase/firestore";
+import {Bytes, DocumentData, DocumentSnapshot, Timestamp } from "firebase/firestore/lite";
 import {Writable} from "ts-essentials";
 import {BasicLevel, ModelType } from "trs80-emulator";
 
@@ -282,7 +282,7 @@ export class FileBuilder {
     public screenshots: string[] = [];
     public modelType: ModelType = ModelType.MODEL3;
     public basicLevel: BasicLevel = BasicLevel.LEVEL2;
-    public binary = new Uint8Array(0);
+    public binary: Uint8Array = new Uint8Array(0);
     public addedAt = new Date();
     public modifiedAt = new Date();
 

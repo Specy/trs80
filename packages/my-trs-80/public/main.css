@@ -86,10 +86,75 @@ input::placeholder {
 
 .main-computer-screen {
     flex-grow: 1;
+    /* Let the bezel size itself to us, rather than us growing to fit it. */
+    min-height: 0;
+    overflow: hidden;
 
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* Photo of the computer around the screen. See Bezel.ts. */
+.bezel {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.bezel-photo {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    transition: filter .25s ease-in-out;
+}
+
+.bezel-shown .bezel-photo {
+    display: block;
+}
+
+.dark-mode .bezel-photo {
+    filter: brightness(0.75);
+}
+
+.bezel-shown > .bezel-screen {
+    position: absolute;
+}
+
+/* Clip the screen to the photo's hole: everywhere the photo is transparent. The custom
+   properties line the photo up with the screen. */
+.bezel-screen canvas,
+.bezel-screen textarea {
+    mask-image: linear-gradient(black, black), var(--bezel-mask-image);
+    mask-size: 100% 100%, var(--bezel-mask-size);
+    mask-position: 0 0, var(--bezel-mask-position);
+    mask-repeat: no-repeat;
+    mask-composite: exclude;
+}
+
+.bezel-led {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Covers an LED that's lit in the photo. */
+.bezel-led-off {
+    background: radial-gradient(circle at 40% 35%, #7a2a2a 0%, #3a0505 50%, #1a0000 100%);
+}
+
+.bezel-led-on {
+    background: radial-gradient(circle at 40% 35%, #ffe8e8 0%, #ff3030 30%, #b00000 100%);
+    box-shadow: 0 0 0.5em 0.15em rgba(255, 30, 30, 0.7);
+    opacity: 0;
+    transition: opacity .20s ease-in-out;
+}
+
+.bezel-led-on.bezel-led-lit {
+    opacity: 1;
 }
 
 i.material-icons-round {
@@ -1173,109 +1238,167 @@ button i {
 
 /* ----------------------------------------------------------------------------------------------------- */
 
-.trsdos-tab {
+.dos-tab {
     display: grid;
     grid-template-rows: minmax(0, 1fr) auto; /* contents and action-bar */
 }
 
-.trsdos-tab .action-bar {
+.dos-tab .action-bar {
     justify-content: flex-end;
     gap: 20px;
 }
 
-.trsdos {
+.dos {
     background-color: var(--background);
     padding: var(--side-padding);
     overflow-y: auto;
 }
 
-.trsdos .info {
+.dos .info {
     display: grid;
     grid-template-columns: auto auto;
     column-gap: 15px;
     width: fit-content;
 }
 
-.trsdos .info .label {
+.dos .info .label {
     font-weight: bold;
     text-align: right;
     color: var(--cyan);
 }
 
-.trsdos .info .value {
+.dos .info .value {
     color: var(--blue);
 }
 
-.trsdos .info .empty-field {
+.dos .info .empty-field {
     opacity: 30%;
 }
 
-.trsdos .dir {
+.dos .dir {
     margin-top: 30px;
     display: grid;
     width: fit-content;
-    grid-template-columns: auto auto auto auto auto auto;
     column-gap: 25px;
     align-items: center;
 }
 
-/* Untested */
-body.signed-out .trsdos .dir {
-    /* Missing import button. Might be easier to disable it. */
+.trsdos .dir {
+    /* Filename, size, date, permission, run, import. */
+    grid-template-columns: auto auto auto auto auto auto;
+}
+
+.trsdos .dir.no-import {
+    /* Signed out, so no import button. */
     grid-template-columns: auto auto auto auto auto;
 }
 
-.trsdos .dir .filename {
+.cpm .dir {
+    /* Filename, size, user, attributes. */
+    grid-template-columns: auto auto auto auto;
+}
+
+.floppy-file-system .dir {
+    /* Filename, size, date, system. */
+    grid-template-columns: auto auto auto auto;
+}
+
+.microdos .dir {
+    /* Filename, size, type, remark, run, import. */
+    grid-template-columns: auto auto auto auto auto auto;
+}
+
+.microdos .dir.no-import {
+    /* Signed out, so no import button. */
+    grid-template-columns: auto auto auto auto auto;
+}
+
+.dos .dir .filename {
     color: var(--magenta);
 }
 
-.trsdos .dir .size {
+.dos .dir .size {
     text-align: right;
     color: var(--cyan);
 }
 
-.trsdos .dir .date {
+.dos .dir .date {
     color: var(--blue);
 }
 
-.trsdos .dir .protection-level {
+.dos .dir .protection-level {
     color: var(--violet);
 }
 
-.trsdos .dir .run,
-.trsdos .dir .import {
+.dos .dir .user {
+    color: var(--blue);
+}
+
+.dos .dir .attributes,
+.dos .dir .type {
+    color: var(--violet);
+}
+
+.dos .dir .remark {
+    color: var(--blue);
+}
+
+.dos .dir .system {
+    color: var(--violet);
+}
+
+.dos .dir .run,
+.dos .dir .import {
     cursor: pointer;
     text-align: center;
 }
 
-.trsdos .dir .header {
+.dos .dir .header {
     font-weight: bold;
     margin-bottom: 6px;
     padding-bottom: 2px;
 }
 
-.trsdos .dir .filename.header {
+.dos .dir .filename.header {
     border-bottom: 1px solid var(--magenta);
 }
 
-.trsdos .dir .size.header {
+.dos .dir .size.header {
     border-bottom: 1px solid var(--cyan);
 }
 
-.trsdos .dir .date.header {
+.dos .dir .date.header {
     border-bottom: 1px solid var(--blue);
 }
 
-.trsdos .dir .protection-level.header {
+.dos .dir .protection-level.header {
     border-bottom: 1px solid var(--violet);
 }
 
-.trsdos .dir .run.header,
-.trsdos .dir .import.header {
+.dos .dir .user.header {
+    border-bottom: 1px solid var(--blue);
+}
+
+.dos .dir .attributes.header,
+.dos .dir .type.header {
+    border-bottom: 1px solid var(--violet);
+}
+
+.dos .dir .remark.header {
+    border-bottom: 1px solid var(--blue);
+}
+
+.dos .dir .system.header {
+    border-bottom: 1px solid var(--violet);
+}
+
+.dos .dir .run.header,
+.dos .dir .import.header {
     border-bottom: 1px solid var(--icon-color);
 }
 
-.trsdos .dir .hidden-file {
+.dos .dir .hidden-file,
+.dos .dir .empty-field {
     opacity: 30%;
 }
 
@@ -1388,4 +1511,45 @@ body.signed-out .trsdos .dir {
             }
         }
     }
+}
+
+/* "Sign in with Google" button, following Google's branding guidelines. */
+.google-sign-in-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    width: 100%;
+    max-width: 220px;
+    min-height: 40px;
+    margin: 20px auto 0 auto;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 2px;
+    background-color: #fff;
+    color: #757575;
+    font-family: "Roboto", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Keep the branded colors, not the generic button hover colors. */
+.google-sign-in-button:hover:not(:disabled) {
+    background-color: #f5f5f5;
+    color: #757575;
+}
+
+.google-sign-in-button svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+}
+
+.sign-in-error {
+    margin-top: 12px;
+    color: var(--red);
+    text-align: center;
 }

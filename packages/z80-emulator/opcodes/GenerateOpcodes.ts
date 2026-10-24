@@ -325,7 +325,14 @@ function handleEx(output: string[], op1: string, op2: string): void {
     }
 }
 
+// Rotate and shift instructions, which can also be undocumented DDCB/FDCB instructions with a register.
+const ROTATE_SHIFT_MNEMONICS = new Set(["rlc", "rrc", "rl", "rr", "sla", "sra", "sll", "srl"]);
+
 function handleJpJrCall(output: string[], opcode: string, cond: string | undefined, dest: string): void {
+    // The official form JP (HL) jumps to HL itself, not to the address in memory at HL.
+    if (dest.startsWith("(") && dest.endsWith(")")) {
+        dest = dest.substring(1, dest.length - 1);
+    }
     if (dest === "nnnn") {
         addLine(output, "z80.regs.memptr = z80.readByte(z80.regs.pc);");
         addLine(output, "z80.regs.pc = inc16(z80.regs.pc);");
@@ -966,20 +973,18 @@ function generateDispatch(opcodeMap: OpcodeMap,
             // How to retrieve this variant's function later if we need it.
             variantMap.set(variant, mapName + ".get(0x" + hexOpcode + ") as OpcodeFunc");
 
-            // Special case handling for undocumented instructions that have a weird format in the data files.
-            if (params.length >= 2 && params[1].indexOf(" ") >= 0) {
-                // Two basic formats:
-                //     LD A,SRL (IY+dd)
-                //     LD A,RES 7,(IY+dd)
-
-                const reg = params[0];
-                const parts = params[1].split(" ");
-                // param[2] isn't used when present.
-                
-                const newOpcode = parts[0];
+            // Special case handling for undocumented DDCB and FDCB instructions that also copy
+            // the result to a register. Two basic formats:
+            //     SRL (IY+dd),A
+            //     RES 7,(IY+dd),A
+            const isRotateShiftToReg = ROTATE_SHIFT_MNEMONICS.has(mnemonic) && params.length === 2;
+            const isSetResToReg = (mnemonic === "set" || mnemonic === "res") && params.length === 3;
+            if (isRotateShiftToReg || isSetResToReg) {
+                const reg = params[params.length - 1];
+                const newOpcode = mnemonic;
 
                 if (newOpcode === "set" || newOpcode === "res") {
-                    const bit = parts[1].split(",")[0];
+                    const bit = params[0];
                     const [_, operator, hexBit] = getSetRes(newOpcode, bit);
                     addLine(output, "z80.regs." + reg + " = z80.readByte(z80.regs.memptr) " + operator + " " + hexBit + ";");
                     addLine(output, "z80.incTStateCount(1);");
@@ -1005,19 +1010,21 @@ function generateDispatch(opcodeMap: OpcodeMap,
                     case "adc":
                     case "sub":
                     case "sbc": {
-                        if (params.length !== 2) {
-                            throw new Error(mnemonic + " requires two params");
+                        // The official form of SUB has no destination (SUB B); the others have two (ADD A,B).
+                        if (params.length !== 1 && params.length !== 2) {
+                            throw new Error(mnemonic + " requires one or two params");
                         }
-                        const [dest, src] = params;
+                        const [dest, src] = params.length === 1 ? ["a", params[0]] : params;
                         handleArith(output, mnemonic, dest, src);
                         break;
                     }
 
                     case "cp": {
-                        if (params.length !== 2) {
-                            throw new Error("CP requires two params: " + params);
+                        // The official form is CP B, but also accept CP A,B.
+                        if (params.length !== 1 && params.length !== 2) {
+                            throw new Error("CP requires one or two params: " + params);
                         }
-                        handleCp(output, params[1]);
+                        handleCp(output, params[params.length - 1]);
                         break;
                     }
 
@@ -1172,7 +1179,8 @@ function generateDispatch(opcodeMap: OpcodeMap,
                     }
 
                     case "in": {
-                        const [dest, port] = params;
+                        // IN (C) sets the flags and discards the value, as if it were loaded into F.
+                        const [dest, port] = params.length === 1 ? ["f", params[0]] : params;
                         handleIn(output, dest, port);
                         break;
                     }
