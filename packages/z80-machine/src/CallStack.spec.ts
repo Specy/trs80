@@ -1,94 +1,9 @@
 import {describe, expect, it} from "vitest";
-import {CallStackFrame, disassembleInstructionAt, reconstructCallStack} from "./CallStack.js";
-import type {Z80Machine} from "./Z80Machine.js";
-
-/**
- * Stand-in for a {@link Z80Machine}, with just the fields that the call stack
- * code looks at. The real machine is tested elsewhere; here we want to be able
- * to hand-build stacks, including impossible ones.
- */
-class FakeMachine {
-    public readonly memory = new Uint8Array(64*1024);
-    public readonly z80 = {
-        regs: {
-            sp: 0,
-        },
-        pushInstructionAddress: new Uint16Array(64*1024),
-    };
-    public readonly stackTop: number;
-
-    constructor(stackTop: number = 0xFFFF) {
-        this.stackTop = stackTop;
-        this.z80.regs.sp = stackTop;
-    }
-
-    // Number of debug reads, so that a test can watch how much work the walk does.
-    public peekCount = 0;
-
-    /**
-     * Read a byte the way the real machine's debug reader does. This fake
-     * has no memory hooks, so it's just RAM.
-     */
-    public peek(address: number): number {
-        this.peekCount += 1;
-        return this.memory[address & 0xFFFF];
-    }
-
-    /**
-     * The object as the call stack code sees it.
-     */
-    public asMachine(): Z80Machine {
-        return this as unknown as Z80Machine;
-    }
-
-    /**
-     * Write bytes into memory.
-     */
-    public poke(address: number, ...bytes: number[]): void {
-        this.memory.set(bytes, address);
-    }
-
-    /**
-     * Do what the CPU's pushWord() does: push the word and record the address
-     * of the instruction that pushed it, at the address of the low byte.
-     */
-    public push(value: number, instructionAddress: number): void {
-        const sp = (this.z80.regs.sp - 2) & 0xFFFF;
-        this.z80.regs.sp = sp;
-        this.memory[sp] = value & 0xFF;
-        this.memory[(sp + 1) & 0xFFFF] = (value >> 8) & 0xFF;
-        this.z80.pushInstructionAddress[sp] = instructionAddress;
-    }
-
-    /**
-     * Simulate executing a CALL at the given address: write the instruction
-     * and push its return address. The opcode defaults to the unconditional
-     * CALL, but any of the conditional ones can be passed instead.
-     */
-    public call(address: number, targetAddress: number, opcode: number = 0xCD): void {
-        this.poke(address, opcode, targetAddress & 0xFF, (targetAddress >> 8) & 0xFF);
-        this.push(address + 3, address);
-    }
-
-    /**
-     * Simulate executing an RST at the given address.
-     */
-    public rst(address: number, targetAddress: number): void {
-        this.poke(address, 0xC7 | (targetAddress & 0x38));
-        this.push(address + 1, address);
-    }
-}
-
-// Convenient one-line summary of a frame, for comparing.
-function frameToText(frame: CallStackFrame): string {
-    return [frame.callSiteAddress, frame.targetAddress, frame.returnAddress, frame.stackAddress]
-        .map(n => n.toString(16))
-        .join(" ");
-}
-
-function framesToText(frames: CallStackFrame[]): string[] {
-    return frames.map(frameToText);
-}
+import {assemble} from "./Assemble.js";
+import {CallStackFrame, callInstructionLength, disassembleInstructionAt} from "./CallStack.js";
+import {CALL_STACK_LIMIT} from "./Constants.js";
+import {Z80Machine} from "./Z80Machine.js";
+import {StopReason, Z80MachineConfig} from "./Z80MachineTypes.js";
 
 // Disassemble bytes as if they were at the given address.
 function disassembleBytes(bytes: number[], address: number = 0x8000) {
@@ -187,199 +102,656 @@ describe("disassembleInstructionAt", () => {
     });
 });
 
-describe("reconstructCallStack", () => {
-    it("empty stack", () => {
-        const machine = new FakeMachine();
-        expect(reconstructCallStack(machine.asMachine())).to.deep.equal([]);
-    });
+describe("callInstructionLength", () => {
+    // The length of the instruction made of these bytes, at 0x8000.
+    function lengthOf(...bytes: number[]): number {
+        const memory = new Uint8Array(64*1024);
+        memory.set(bytes, 0x8000);
+        return callInstructionLength(a => memory[a], 0x8000);
+    }
 
-    it("single call frame", () => {
-        const machine = new FakeMachine();
-        machine.call(0x8000, 0x9000);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(frames.length).to.equal(1);
-        expect(frames[0].callSiteAddress).to.equal(0x8000);
-        expect(frames[0].targetAddress).to.equal(0x9000);
-        expect(frames[0].returnAddress).to.equal(0x8003);
-        expect(frames[0].stackAddress).to.equal(0xFFFD);
-    });
-
-    it("conditional call frame", () => {
-        const machine = new FakeMachine();
-        // call z,0x9000
-        machine.call(0x8000, 0x9000, 0xCC);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal(["8000 9000 8003 fffd"]);
-    });
-
-    it("nested calls, innermost first", () => {
-        const machine = new FakeMachine();
-        machine.call(0x8000, 0x9000);
-        machine.call(0x9020, 0xA000);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal([
-            "9020 a000 9023 fffb",
-            "8000 9000 8003 fffd",
-        ]);
-    });
-
-    it("rst frame", () => {
-        const machine = new FakeMachine();
-        machine.rst(0x8000, 0x28);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal(["8000 28 8001 fffd"]);
-    });
-
-    it("mixed call and rst frames", () => {
-        const machine = new FakeMachine();
-        machine.call(0x8000, 0x9000);
-        machine.rst(0x9010, 0x10);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal([
-            "9010 10 9011 fffb",
-            "8000 9000 8003 fffd",
-        ]);
-    });
-
-    it("skips push noise between frames", () => {
-        const machine = new FakeMachine();
-        machine.call(0x8000, 0x9000);
-        // "push hl" at 0x9005, pushing something that looks like an address.
-        machine.poke(0x9005, 0xE5);
-        machine.push(0x1234, 0x9005);
-        machine.call(0x9008, 0xA000);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal([
-            "9008 a000 900b fff9",
-            "8000 9000 8003 fffd",
-        ]);
-    });
-
-    it("skips several pushes in a row", () => {
-        const machine = new FakeMachine();
-        machine.call(0x8000, 0x9000);
-        machine.poke(0x9005, 0xE5); // push hl
-        machine.poke(0x9006, 0xD5); // push de
-        machine.push(0x8003, 0x9005); // Same value as a return address, but a push.
-        machine.push(0xFFFF, 0x9006);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal(["8000 9000 8003 fffd"]);
-    });
-
-    it("data with no provenance", () => {
-        const machine = new FakeMachine();
-        // Program lowered SP itself and wrote data there, so nothing recorded
-        // a pushing instruction.
-        machine.z80.regs.sp = 0xFFF0;
-        for (let address = 0xFFF0; address < 0xFFFF; address++) {
-            machine.memory[address] = address & 0xFF;
+    it("knows the calls and the restarts", () => {
+        expect(lengthOf(0xCD, 0x00, 0x90)).to.equal(3);
+        for (const opcode of [0xC4, 0xCC, 0xD4, 0xDC, 0xE4, 0xEC, 0xF4, 0xFC]) {
+            expect(lengthOf(opcode, 0x00, 0x90)).to.equal(3);
         }
-
-        expect(reconstructCallStack(machine.asMachine())).to.deep.equal([]);
-    });
-
-    it("interrupt push is not a frame", () => {
-        const machine = new FakeMachine();
-        // An interrupt right after the call at 0x8000 pushes the PC, which by
-        // then is the target of the call, and records the call as the pusher.
-        machine.call(0x8000, 0x9000);
-        machine.push(0x9000, 0x8000);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal(["8000 9000 8003 fffd"]);
-    });
-
-    it("stops at the stack top", () => {
-        const machine = new FakeMachine(0xF000);
-        machine.call(0x8000, 0x9000);
-        // A stale frame from an earlier program, above the stack top.
-        machine.poke(0x8100, 0xCD, 0x00, 0xA0);
-        machine.poke(0xF010, 0x03, 0x81);
-        machine.z80.pushInstructionAddress[0xF010] = 0x8100;
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal(["8000 9000 8003 effe"]);
-    });
-
-    it("frame at the very top of the stack", () => {
-        // Stack top is the end of memory, so the frame's high byte is the
-        // last byte of memory.
-        const machine = new FakeMachine(0x10000);
-        machine.call(0x8000, 0x9000);
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(framesToText(frames)).to.deep.equal(["8000 9000 8003 fffe"]);
-    });
-
-    it("mangled stack produces no frames and doesn't throw", () => {
-        const machine = new FakeMachine();
-        machine.z80.regs.sp = 0xFF00;
-
-        // Deterministic garbage everywhere.
-        let seed = 12345;
-        const random = (): number => {
-            seed = (seed*1103515245 + 12345) & 0x7FFFFFFF;
-            return seed >> 8;
-        };
-        for (let address = 0; address < 64*1024; address++) {
-            machine.memory[address] = random() & 0xFF;
-            machine.z80.pushInstructionAddress[address] = random() & 0xFFFF;
+        for (const opcode of [0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF]) {
+            expect(lengthOf(opcode)).to.equal(1);
         }
-
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(frames).to.deep.equal([]);
     });
 
-    it("SP above the stack top", () => {
-        // Program popped too much. Nothing to report, and no infinite loop.
-        const machine = new FakeMachine(0x8000);
-        machine.z80.regs.sp = 0x9000;
-
-        expect(reconstructCallStack(machine.asMachine())).to.deep.equal([]);
+    it("counts the prefixes in front of a call", () => {
+        expect(lengthOf(0xDD, 0xCD, 0x00, 0x90)).to.equal(4);
+        expect(lengthOf(0xFD, 0xDD, 0xFF)).to.equal(3);
     });
 
-    it("disassembles each call site once, however deep the stack", () => {
-        // Slots that were never pushed report provenance 0. An erased-ROM or
-        // unmapped-bus fill puts a call opcode there, which defeats the
-        // one-byte rejection for every one of the 32 kB of slots below the
-        // stack top, so the walk must not disassemble that address each time.
-        const machine = new FakeMachine();
-        machine.poke(0x0000, 0xCD, 0x00, 0xA0);     // call 0xA000, at address 0
-        machine.call(0x8100, 0x9000);
-        // The program moved its own stack down, far from the stack top.
-        machine.z80.regs.sp = 0x8000;
-
-        machine.peekCount = 0;
-        const frames = reconstructCallStack(machine.asMachine());
-
-        // The bogus provenance never satisfies the return-address test, so the
-        // one real frame is all we report.
-        expect(framesToText(frames)).to.deep.equal(["8100 9000 8103 fffd"]);
-
-        // Three reads per slot (the opcode plus the two stack bytes) is the
-        // floor; disassembling address 0 each time would add three more.
-        const slots = 0xFFFF - 0x8000;
-        expect(machine.peekCount).to.be.lessThan(slots*4);
+    it("is 0 for everything else that can lower the stack pointer by two", () => {
+        expect(lengthOf(0xE5)).to.equal(0);                       // push hl
+        expect(lengthOf(0xDD, 0xE5)).to.equal(0);                 // push ix
+        expect(lengthOf(0xF9)).to.equal(0);                       // ld sp,hl
+        expect(lengthOf(0x31, 0xFE, 0xFF)).to.equal(0);           // ld sp,0xfffe
+        expect(lengthOf(0xED, 0x7B, 0x00, 0x90)).to.equal(0);     // ld sp,(0x9000)
+        expect(lengthOf(0xC9)).to.equal(0);                       // ret
+        expect(lengthOf(0xC3, 0x00, 0x90)).to.equal(0);           // jp 0x9000
     });
+});
 
-    it("deep stack", () => {
-        const machine = new FakeMachine();
-        const depth = 100;
-        for (let i = 0; i < depth; i++) {
-            machine.call(0x8000 + i*4, 0x9000 + i*4);
+/**
+ * Assemble a program and load it into a new machine, failing the test if
+ * it doesn't assemble.
+ */
+function load(source: string, config?: Z80MachineConfig): {machine: Z80Machine, at: (label: string) => number} {
+    const result = assemble(source);
+    expect(result.diagnostics).to.deep.equal([]);
+    const machine = new Z80Machine(config);
+    machine.loadAssembly(result);
+
+    const at = (label: string): number => {
+        const symbol = result.asm.symbols.find(symbol => symbol.name === label.toLowerCase());
+        if (symbol === undefined) {
+            throw new Error("no label " + label);
         }
+        return symbol.value;
+    };
 
-        const frames = reconstructCallStack(machine.asMachine());
-        expect(frames.length).to.equal(depth);
-        // Innermost first.
-        expect(frames[0].callSiteAddress).to.equal(0x8000 + (depth - 1)*4);
-        expect(frames[depth - 1].callSiteAddress).to.equal(0x8000);
+    return {machine, at};
+}
+
+/**
+ * What the tests compare between two moments of a run: where the program
+ * is, and its Call stack.
+ */
+interface Moment {
+    pc: number;
+    sp: number;
+    depth: number;
+    frames: CallStackFrame[];
+}
+
+/**
+ * The machine's position and Call stack now.
+ */
+function momentOf(machine: Z80Machine): Moment {
+    return {
+        pc: machine.z80.regs.pc,
+        sp: machine.z80.regs.sp,
+        depth: machine.getCallDepth(),
+        frames: machine.getCallStack(),
+    };
+}
+
+/**
+ * Step the machine count times, and return the moment before the first step
+ * and after each one.
+ */
+function stepThrough(machine: Z80Machine, count: number): Moment[] {
+    const moments = [momentOf(machine)];
+    for (let i = 0; i < count; i++) {
+        const reason = machine.step();
+        expect(reason === undefined || reason === StopReason.HALTED, "step " + i).to.be.true;
+        moments.push(momentOf(machine));
+    }
+    return moments;
+}
+
+/**
+ * Undo the steps that made these moments, one at a time, and check that
+ * each undo brings back exactly the moment before it.
+ */
+function expectUndoRetraces(machine: Z80Machine, moments: Moment[]): void {
+    expect(momentOf(machine)).to.deep.equal(moments[moments.length - 1]);
+    for (let i = moments.length - 2; i >= 0; i--) {
+        expect(machine.undo()).to.be.true;
+        expect(momentOf(machine), "undone back to moment " + i).to.deep.equal(moments[i]);
+    }
+}
+
+describe("tracked call stack", () => {
+    it("pushes a frame on a call and takes it off on the return", () => {
+        const {machine, at} = load(`
+        .org 0x100
+main:   call sub
+        halt
+sub:    nop
+        ret
+`, {historySize: 100});
+
+        expect(machine.getCallDepth()).to.equal(0);
+        expect(machine.getCallStack()).to.deep.equal([]);
+
+        const moments = stepThrough(machine, 4);
+        expect(moments[1].depth).to.equal(1);
+        expect(moments[1].frames).to.deep.equal([{
+            callSiteAddress: at("main"),
+            targetAddress: at("sub"),
+            returnAddress: at("main") + 3,
+            stackAddress: 0xFFFD,
+            kind: "call",
+        }]);
+        expect(moments[2].depth).to.equal(1);
+        expect(moments[3].depth).to.equal(0);
+        expect(moments[3].frames).to.deep.equal([]);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("tracks nested calls, innermost first", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        call one
+        halt
+one:    call two
+        ret
+two:    call three
+        ret
+three:  ret
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 7);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 2, 3, 2, 1, 0, 0]);
+        expect(moments[3].frames.map(frame => frame.targetAddress))
+            .to.deep.equal([at("three"), at("two"), at("one")]);
+        expect(moments[3].frames.map(frame => frame.stackAddress))
+            .to.deep.equal([0xFFF9, 0xFFFB, 0xFFFD]);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("gives every level of a recursion a frame of its own", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        ld b, 3
+        call count
+        halt
+count:  dec b
+        ret z
+inner:  call count
+        ret
+`, {historySize: 100});
+
+        // ld, then three passes of call / dec / ret z (taken the third
+        // time), then the two rets back out, and the halt.
+        const moments = stepThrough(machine, 13);
+        expect(moments.map(moment => moment.depth))
+            .to.deep.equal([0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 2, 1, 0, 0]);
+        const deepest = moments[9].frames;
+        expect(deepest.map(frame => frame.targetAddress)).to.deep.equal([at("count"), at("count"), at("count")]);
+        expect(deepest.map(frame => frame.callSiteAddress)).to.deep.equal([at("inner"), at("inner"), 0x0102]);
+        expect(machine.z80.regs.pc).to.equal(0x0105);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("pushes a frame for a conditional call only when it is taken", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        xor a           ; sets Z
+notTaken:
+        call nz, sub
+taken:  call z, sub
+        halt
+sub:    ret
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 4);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 0, 0, 1, 0]);
+        expect(moments[2].pc).to.equal(at("taken"));
+        expect(moments[3].frames[0].callSiteAddress).to.equal(at("taken"));
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("pushes a frame for an rst and for a prefixed call", () => {
+        const machine = new Z80Machine({historySize: 100});
+        machine.loadBinary([
+            0xEF,                   // 0x0100  rst 0x28
+            0xDD, 0xCD, 0x10, 0x02, // 0x0101  call 0x0210, with a DD prefix
+            0x76,                   // 0x0105  halt
+        ], 0x0100);
+        machine.loadBinary([0xC9], 0x0028);         // ret
+        machine.loadBinary([0xC9], 0x0210, 0x0100); // ret
+
+        const moments = stepThrough(machine, 4);
+        expect(moments[1].frames).to.deep.equal([{
+            callSiteAddress: 0x0100,
+            targetAddress: 0x0028,
+            returnAddress: 0x0101,
+            stackAddress: 0xFFFD,
+            kind: "call",
+        }]);
+        expect(moments[2].depth).to.equal(0);
+        expect(moments[3].frames).to.deep.equal([{
+            callSiteAddress: 0x0101,
+            targetAddress: 0x0210,
+            returnAddress: 0x0105,
+            stackAddress: 0xFFFD,
+            kind: "call",
+        }]);
+        expect(moments[4].depth).to.equal(0);
+        expect(moments[4].pc).to.equal(0x0105);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("pushes no frame for a push", () => {
+        const {machine} = load(`
+        .org 0x100
+        ld hl, 0x0104   ; looks like a return address
+        push hl
+        pop hl
+        halt
+`);
+
+        machine.step();
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(0);
+    });
+
+    it("pushes a frame for an interrupt, gone at its handler's return", () => {
+        const machine = new Z80Machine({historySize: 100});
+        machine.loadBinary([
+            0xED, 0x56,             // 0x0100  im 1
+            0xFB,                   // 0x0102  ei
+            0xCD, 0x00, 0x02,       // 0x0103  call 0x0200
+            0x76,                   // 0x0106  halt
+        ], 0x0100);
+        machine.loadBinary([
+            0xFB,                   // 0x0038  ei
+            0xED, 0x4D,             // 0x0039  reti
+        ], 0x0038);
+        machine.loadBinary([
+            0x00,                   // 0x0200  nop
+            0xC9,                   // 0x0201  ret
+        ], 0x0200, 0x0100);
+
+        const moments = stepThrough(machine, 3);
+        expect(machine.z80.regs.pc).to.equal(0x0200);
+        const before = machine.getInstructionsExecuted();
+
+        machine.raiseInterrupt();
+        moments.push(momentOf(machine));
+        expect(machine.getInstructionsExecuted()).to.equal(before + 1);
+        expect(machine.getCallDepth()).to.equal(2);
+        expect(machine.getCallStack()[0]).to.deep.equal({
+            callSiteAddress: 0x0200,
+            targetAddress: 0x0038,
+            returnAddress: 0x0200,
+            stackAddress: 0xFFFB,
+            kind: "interrupt",
+        });
+        expect(machine.getCallStack()[1].kind).to.equal("call");
+
+        // ei, reti back into the routine, then its nop and ret.
+        moments.push(...stepThrough(machine, 4).slice(1));
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 0, 0, 1, 2, 2, 1, 1, 0]);
+        expect(machine.z80.regs.pc).to.equal(0x0106);
+
+        // The interrupt is a record of its own, and undoing it takes its
+        // frame away.
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("gives an interrupt that wakes a halt the address after it", () => {
+        const machine = new Z80Machine();
+        machine.loadBinary([
+            0xED, 0x56,             // 0x0100  im 1
+            0xFB,                   // 0x0102  ei
+            0x76,                   // 0x0103  halt
+        ], 0x0100);
+        machine.loadBinary([0xC9], 0x0038, 0x0100);
+
+        expect(machine.run().reason).to.equal(StopReason.WAITING_FOR_INTERRUPT);
+        machine.raiseNmi();
+        expect(machine.getCallStack()).to.deep.equal([{
+            callSiteAddress: 0x0103,
+            targetAddress: 0x0066,
+            returnAddress: 0x0104,
+            stackAddress: 0xFFFD,
+            kind: "interrupt",
+        }]);
+    });
+
+    it("pushes nothing for an interrupt the CPU ignores", () => {
+        const machine = new Z80Machine();
+        machine.loadBinary([0x00, 0x76], 0x0100);
+        machine.step();
+        const before = machine.getInstructionsExecuted();
+
+        machine.raiseInterrupt();
+        expect(machine.getCallDepth()).to.equal(0);
+        expect(machine.getInstructionsExecuted()).to.equal(before);
+    });
+
+    it("ends a call whose routine changes its return address", () => {
+        // The routine reads the bytes after the call and returns past them.
+        const {machine, at} = load(`
+        .org 0x100
+        call print
+        .byte 'A', 0
+after:  halt
+print:  ex (sp), hl     ; hl = the return address
+        ld a, (hl)
+        inc hl
+        inc hl
+        ex (sp), hl     ; return past the data
+        ret
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 7);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 1, 1, 1, 1, 1, 0]);
+        // The frame keeps the return address the call pushed.
+        expect(moments[6].frames[0].returnAddress).to.equal(0x0103);
+        expect(machine.z80.regs.pc).to.equal(at("after"));
+        expect(machine.z80.regs.a).to.equal(0x41);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("ends a call at the pop of its return address", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        call sub
+        halt
+sub:    pop hl
+jump:   jp (hl)
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 3);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 0, 0]);
+        expect(moments[2].pc).to.equal(at("jump"));
+        expect(moments[3].pc).to.equal(0x0103);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("ends a tail call when the second routine returns", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        call first
+        halt
+first:  jp second
+second: ret
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 3);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 1, 0]);
+        expect(moments[2].frames[0].targetAddress).to.equal(at("first"));
+        expect(moments[3].pc).to.equal(0x0103);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("works with the stack at the very top of memory", () => {
+        const {machine} = load(`
+        .org 0x100
+        ld sp, 0
+        call outer
+        halt
+outer:  call leaf
+        ret
+leaf:   ret
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 6);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 0, 1, 2, 1, 0, 0]);
+        expect(moments[3].frames.map(frame => frame.stackAddress)).to.deep.equal([0xFFFC, 0xFFFE]);
+        // The outermost return lands at 0x0000, two above 0xFFFE.
+        expect(moments[5].sp).to.equal(0x0000);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("works with an initial stack pointer of 0", () => {
+        const {machine} = load(`
+        .org 0x100
+        call outer
+        halt
+outer:  ret
+`, {initialSp: 0});
+
+        machine.step();
+        expect(machine.getCallStack().map(frame => frame.stackAddress)).to.deep.equal([0xFFFE]);
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(0);
+    });
+
+    it("keeps the frames while a routine borrows SP to fill memory", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        call fill
+        halt
+fill:   ld (save), sp
+        ld sp, 0x4008
+        ld hl, 0xAAAA
+        push hl
+        push hl
+        push hl
+        push hl
+        ld sp, (save)
+        ret
+save:   .word 0
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 10);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]);
+        expect(moments[9].frames[0].targetAddress).to.equal(at("fill"));
+        expect(Array.from(machine.memory.subarray(0x4000, 0x4008))).to.deep.equal(new Array(8).fill(0xAA));
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("takes several frames off in one instruction, and undo puts them all back", () => {
+        // A longjmp: the innermost routine puts SP back where the outermost
+        // caller saved it, and jumps there.
+        const {machine, at} = load(`
+        .org 0x100
+        ld (saved), sp
+        call one
+back:   halt
+one:    call two
+two:    call three
+three:  ld sp, (saved)
+        jp back
+saved:  .word 0
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 6);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 0, 1, 2, 3, 0, 0]);
+        expect(machine.z80.regs.pc).to.equal(at("back"));
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("undoes exactly after a later call reuses a slot", () => {
+        const {machine} = load(`
+        .org 0x100
+        call one
+        call two
+        halt
+one:    ret
+two:    call one
+        ret
+`, {historySize: 100});
+
+        const moments = stepThrough(machine, 7);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 0, 1, 2, 1, 0, 0]);
+        // The second call's frame sits where the first one's did.
+        expect(moments[1].frames[0].stackAddress).to.equal(moments[3].frames[0].stackAddress);
+        expect(moments[1].frames[0].callSiteAddress).to.not.equal(moments[3].frames[0].callSiteAddress);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("checks the frames after a poke moves SP, and again after an undo", () => {
+        const {machine} = load(`
+        .org 0x100
+        call sub
+        halt
+sub:    nop
+        nop
+        ret
+`, {historySize: 100});
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(1);
+
+        // The poke itself takes nothing off: frames are checked after an
+        // instruction. The next instruction, which leaves SP alone, does.
+        machine.beginPoke();
+        machine.setRegisterValue("sp", 0xFFFF);
+        machine.endPoke();
+        expect(machine.getCallDepth()).to.equal(1);
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(0);
+
+        // Undone, the frame is back, and the same instruction takes it off
+        // again.
+        machine.undo();
+        expect(machine.getCallDepth()).to.equal(1);
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(0);
+
+        // Undoing the poke as well leaves the frame where it was.
+        machine.undo();
+        machine.undo();
+        expect(machine.getCallDepth()).to.equal(1);
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(1);
+    });
+
+    it("tracks frames without a history", () => {
+        const {machine} = load(`
+        .org 0x100
+        call one
+        halt
+one:    call two
+        ret
+two:    ret
+`);
+
+        expect(stepThrough(machine, 5).map(moment => moment.depth)).to.deep.equal([0, 1, 2, 1, 0, 0]);
+        expect(machine.canUndo()).to.be.false;
+    });
+
+    it("hands back only the newest frames when asked for some", () => {
+        const {machine, at} = load(`
+        .org 0x100
+        call one
+        halt
+one:    call two
+        ret
+two:    call three
+        ret
+three:  ret
+`);
+
+        machine.step();
+        machine.step();
+        machine.step();
+        expect(machine.getCallStack(2).map(frame => frame.targetAddress)).to.deep.equal([at("three"), at("two")]);
+        expect(machine.getCallStack(10).length).to.equal(3);
+        expect(machine.getCallStack(0)).to.deep.equal([]);
+
+        // The frames are copies.
+        machine.getCallStack()[0].targetAddress = 0;
+        expect(machine.getCallStack()[0].targetAddress).to.equal(at("three"));
+    });
+
+    it("forgets the frames on a reset or a load", () => {
+        const {machine} = load(`
+        .org 0x100
+        call one
+one:    halt
+`);
+
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(1);
+        machine.reset();
+        expect(machine.getCallDepth()).to.equal(0);
+
+        machine.loadBinary([0xCD, 0x03, 0x01, 0x76], 0x0100);
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(1);
+        machine.loadBinary([0x76], 0x0100);
+        expect(machine.getCallDepth()).to.equal(0);
+    });
+});
+
+describe("call stack limit", () => {
+    // A call used as a jump, which adds a frame on every pass.
+    const LOOP = [0xCD, 0x00, 0x01];            // 0x0100  call 0x0100
+
+    it("keeps the newest frames and goes on counting the depth", () => {
+        // The stack wraps round all of memory, so the code is kept in ROM.
+        const machine = new Z80Machine({onMemoryWrite: address => address >= 0x0100 && address < 0x0103});
+        machine.loadBinary(LOOP, 0x0100);
+
+        const calls = CALL_STACK_LIMIT + 5;
+        const result = machine.run({maxInstructions: calls});
+        expect(result.reason).to.equal(StopReason.INSTRUCTIONS_EXHAUSTED);
+
+        expect(machine.getCallDepth()).to.equal(calls);
+        expect(machine.getCallStack().length).to.equal(CALL_STACK_LIMIT);
+        // The stack pointer has wrapped round memory, and the newest frame is
+        // where it points.
+        expect(machine.getCallStack(1)[0].stackAddress).to.equal(machine.z80.regs.sp);
+    });
+
+    it("undoes exactly across the limit", () => {
+        const machine = new Z80Machine({historySize: 100, callStackLimit: 3});
+        machine.loadBinary(LOOP, 0x0100);
+
+        const moments = stepThrough(machine, 6);
+        expect(moments.map(moment => moment.depth)).to.deep.equal([0, 1, 2, 3, 4, 5, 6]);
+        expect(moments[6].frames.map(frame => frame.stackAddress)).to.deep.equal([0xFFF3, 0xFFF5, 0xFFF7]);
+
+        expectUndoRetraces(machine, moments);
+    });
+
+    it("leaves the dropped frames counted once the kept ones have returned", () => {
+        // Four calls deep with room for two, then four returns: the two kept
+        // frames go, and the two dropped ones stay counted, since nothing
+        // more is known of them.
+        const {machine} = load(`
+        .org 0x100
+        call one
+        halt
+one:    call two
+        ret
+two:    call three
+        ret
+three:  call four
+        ret
+four:   ret
+`, {callStackLimit: 2});
+
+        for (let i = 0; i < 4; i++) {
+            machine.step();
+        }
+        expect(machine.getCallDepth()).to.equal(4);
+        expect(machine.getCallStack().length).to.equal(2);
+
+        machine.step();
+        machine.step();
+        expect(machine.getCallDepth()).to.equal(2);
+        expect(machine.getCallStack()).to.deep.equal([]);
+    });
+
+    it("must be at least 1", () => {
+        expect(() => new Z80Machine({callStackLimit: 0})).to.throw(RangeError);
+        expect(() => new Z80Machine({callStackLimit: 1.5})).to.throw(RangeError);
+    });
+
+    it("drops the oldest frames of a snapshot from a machine with a higher limit", () => {
+        const machine = new Z80Machine();
+        machine.loadBinary(LOOP, 0x0100);
+        machine.run({maxInstructions: 5});
+        const state = machine.save();
+        expect(state.callStack.length).to.equal(5);
+        expect(state.callDepth).to.equal(5);
+
+        const small = new Z80Machine({callStackLimit: 2});
+        small.restore(state);
+        expect(small.getCallDepth()).to.equal(5);
+        expect(small.getCallStack()).to.deep.equal(state.callStack.slice(0, 2));
     });
 });

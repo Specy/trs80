@@ -1,13 +1,14 @@
 import {Z80State} from "z80-emulator";
 import {Register} from "z80-base";
+import type {CallStackFrame} from "./CallStack.js";
 import type {Z80Machine} from "./Z80Machine.js";
 
 /**
  * Why execution stopped. Most of these leave the machine resumable: only
  * HALTED and RETURNED mean the program is over, which is what
  * {@link Z80Machine.isTerminated} reports. Stopping at a breakpoint, at the
- * end of a budget, for input, or at the end of a step is an interruption,
- * not an ending.
+ * end of a budget, for input, or at a call depth is an interruption, not an
+ * ending.
  */
 export enum StopReason {
     /**
@@ -55,9 +56,13 @@ export enum StopReason {
     RETURNED,
 
     /**
-     * A stepOver or stepOut reached its destination.
+     * The Call stack was at the depth the run's
+     * {@link RunOptions.untilCallDepth} asked for, or less, so the run
+     * stopped before executing the next instruction. This is how a debugger
+     * finishes a Step over (the depth it started at) or a Step out (one
+     * less).
      */
-    STEP_COMPLETE,
+    CALL_DEPTH,
 
     /**
      * A handler called {@link Z80Machine.pause} during the instruction that
@@ -306,8 +311,9 @@ export interface Z80MachineConfig {
 
     /**
      * Read a byte on behalf of the debugger rather than the CPU:
-     * disassembly, call-stack reconstruction, and the instruction
-     * classification behind stepOver and the exitOnReturn option. Return
+     * disassembly, and the instruction classification behind the Call stack
+     * (which instruction pushed a return address), the repeating block
+     * instructions and the exitOnReturn option. Return
      * the byte read, or undefined to fall through to RAM. Defaults to
      * {@link Z80MachineConfig.onMemoryRead}. Supply a side-effect-free
      * variant here, or `() => undefined` to read RAM only, if reads through
@@ -324,8 +330,7 @@ export interface Z80MachineConfig {
 
     /**
      * Initial stack pointer, applied on construction and reset, and used
-     * as the stack top for call-stack reconstruction and the exitOnReturn
-     * option. Defaults to 0xFFFF.
+     * as the stack top for the exitOnReturn option. Defaults to 0xFFFF.
      */
     initialSp?: number;
 
@@ -343,11 +348,19 @@ export interface Z80MachineConfig {
      * which disables history entirely and costs nothing at run time.
      */
     historySize?: number;
+
+    /**
+     * How many frames the Call stack keeps: the newest ones. The depth
+     * ({@link Z80Machine.getCallDepth}) goes on counting the frames beyond
+     * it, and {@link Z80Machine.undo} puts a frame dropped for it back.
+     * Must be at least 1. Defaults to {@link CALL_STACK_LIMIT}.
+     */
+    callStackLimit?: number;
 }
 
 /**
- * Budgets and breakpoints for a call to {@link Z80Machine.run} (also
- * honored by stepOver and stepOut).
+ * Budgets, breakpoints and the call depth to stop at, for a call to
+ * {@link Z80Machine.run}.
  */
 export interface RunOptions {
     /**
@@ -363,16 +376,39 @@ export interface RunOptions {
 
     /**
      * Addresses to stop at. Execution stops just before executing the
-     * instruction at a breakpoint address. If the PC is already at a
-     * breakpoint when the run starts, at least one instruction executes
-     * first, so that resuming from a breakpoint makes progress.
+     * instruction at a breakpoint address. A breakpoint at the PC the run
+     * starts on is passed over unless
+     * {@link RunOptions.skipBreakpointAtPc} is false.
      */
     breakpoints?: Iterable<number>;
+
+    /**
+     * Stop with {@link StopReason.CALL_DEPTH}, before executing anything
+     * more, as soon as the Call stack's depth
+     * ({@link Z80Machine.getCallDepth}) is this number or less. It is tested
+     * when the run begins, so a run entered at that depth already executes
+     * nothing, and after every instruction, ahead of the breakpoints, the
+     * pause and the budgets: a depth reached by the last instruction a
+     * budget allows is reported as CALL_DEPTH. A stop the instruction itself
+     * caused (HALTED, RETURNED, WAITING_FOR_INTERRUPT) is reported instead.
+     *
+     * The option holds no state, so a step stopped early, by a budget, a
+     * breakpoint or an input wait, is finished by running again with the
+     * same number.
+     */
+    untilCallDepth?: number | undefined;
+
+    /**
+     * Whether a breakpoint at the PC the run starts on is passed over, so
+     * that resuming from a breakpoint makes progress. Defaults to true. When
+     * false, such a breakpoint stops the run with
+     * {@link StopReason.BREAKPOINT} before anything executes.
+     */
+    skipBreakpointAtPc?: boolean | undefined;
 }
 
 /**
- * What happened during a call to {@link Z80Machine.run}, stepOver, or
- * stepOut.
+ * What happened during a call to {@link Z80Machine.run}.
  */
 export interface RunResult {
     reason: StopReason;
@@ -390,8 +426,8 @@ export interface RunResult {
 
 /**
  * Complete snapshot of a machine: CPU state, RAM, clock, stop state, and
- * the stack-slot provenance that the call stack is reconstructed from. The
- * core's Z80State covers registers only; this covers the whole machine.
+ * the Call stack. The core's Z80State covers registers only; this covers
+ * the whole machine.
  */
 export class Z80MachineState {
     public stackRegionTop?: number;
@@ -402,23 +438,29 @@ export class Z80MachineState {
     public readonly pendingInputPort: number | undefined;
 
     /**
-     * Which instruction pushed each byte of the live stack, from the stack
-     * pointer up to the machine's stack top. The CPU keeps this alongside
-     * its registers and the core's Z80State doesn't cover it, so without it
-     * a restored machine would reconstruct its call stack from whatever it
-     * happened to push most recently.
+     * The frames of the Call stack, innermost first, as
+     * {@link Z80Machine.getCallStack} returns them. The machine tracks them
+     * as the program runs, and they can't be told from stack memory, so a
+     * restored machine needs them.
      */
-    public readonly stackProvenance: Uint16Array;
+    public readonly callStack: readonly CallStackFrame[];
+
+    /**
+     * The Call stack's depth, which is more than the number of frames when
+     * frames beyond the machine's limit were dropped.
+     */
+    public readonly callDepth: number;
 
     constructor(z80State: Z80State, memory: Uint8Array, tStateCount: number,
                 stopReason: StopReason | undefined, pendingInputPort: number | undefined,
-                stackProvenance: Uint16Array) {
+                callStack: readonly CallStackFrame[], callDepth: number = callStack.length) {
 
         this.z80State = z80State;
         this.memory = memory;
         this.tStateCount = tStateCount;
         this.stopReason = stopReason;
         this.pendingInputPort = pendingInputPort;
-        this.stackProvenance = stackProvenance;
+        this.callStack = callStack;
+        this.callDepth = callDepth;
     }
 }

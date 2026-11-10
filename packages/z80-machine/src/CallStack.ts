@@ -1,31 +1,50 @@
 import {Disasm, Instruction} from "z80-disasm";
-import {MEMORY_SIZE} from "./Constants.js";
+// For the documentation's links.
 import type {Z80Machine} from "./Z80Machine.js";
 
 /**
- * One reconstructed call-stack frame: a return address on the stack that
- * was pushed by a CALL or RST instruction.
+ * What entered a call-stack frame: a `call` that was taken or an `rst`
+ * ("call"), or the CPU taking a maskable or non-maskable interrupt
+ * ("interrupt").
+ */
+export type CallStackFrameKind = "call" | "interrupt";
+
+/**
+ * One frame of the machine's Call stack: a return address that a call, an
+ * `rst` or an interrupt entry pushed, and the routine it entered. The machine
+ * tracks frames as the program runs; see {@link Z80Machine.getCallStack} for
+ * when a frame is pushed and when it is gone.
  */
 export interface CallStackFrame {
     /**
-     * Address of the CALL or RST instruction that created this frame.
+     * Address of the CALL or RST instruction that created this frame. For an
+     * interrupt, the address of the instruction it interrupted: the one that
+     * runs when the handler returns, or the `halt` it woke the CPU from.
      */
     callSiteAddress: number;
 
     /**
-     * Address the call jumped to (the routine being executed).
+     * Address the call jumped to (the routine being executed). For an
+     * interrupt, the start of its handler.
      */
     targetAddress: number;
 
     /**
-     * The return address that the call pushed.
+     * The return address that was pushed. The routine may change it on the
+     * stack afterwards; this is what it was when it was pushed.
      */
     returnAddress: number;
 
     /**
-     * Where on the stack the return address sits.
+     * Where on the stack the return address sits: the stack pointer right
+     * after the push, two below the stack pointer the call was made with.
      */
     stackAddress: number;
+
+    /**
+     * Whether a call or an interrupt entered the routine.
+     */
+    kind: CallStackFrameKind;
 }
 
 // Disassembler used for one-off instruction disassembly. It reads memory
@@ -47,130 +66,38 @@ export function disassembleInstructionAt(readMemory: (address: number) => number
     return traceDisasm.disassembleTrace(address & 0xFFFF, a => readMemory(a & 0xFFFF));
 }
 
-// Whether this opcode is a CALL, with or without a condition. The condition
-// is in bits 3 to 5.
-function isCallOpcode(opcode: number): boolean {
-    return opcode === 0xCD || (opcode & 0b11000111) === 0b11000100;
-}
-
-// Whether this opcode is an RST.
-function isRstOpcode(opcode: number): boolean {
-    return (opcode & 0b11000111) === 0b11000111;
-}
-
-// Whether this opcode could begin a call frame at all. One byte test, used
-// to reject the great majority of stack slots without disassembling.
-function isCallOrRstOpcode(opcode: number): boolean {
-    return isCallOpcode(opcode) || isRstOpcode(opcode);
-}
-
-// Where the CALL or RST at this address transfers control to, and how many
-// bytes the instruction takes, or undefined if there's no such instruction
-// there.
-function getCall(readMemory: (address: number) => number,
-                 address: number): { targetAddress: number, length: number } | undefined {
-
-    const opcode = readMemory(address) & 0xFF;
-    if (!isCallOrRstOpcode(opcode)) {
-        // Quick rejection, so that scanning a deep stack doesn't have to
-        // disassemble an instruction for every byte.
-        return undefined;
-    }
-
-    const instruction = disassembleInstructionAt(readMemory, address);
-
-    switch (instruction.mnemonic) {
-        case "call":
-            return instruction.jumpTarget === undefined
-                ? undefined
-                : {
-                    targetAddress: instruction.jumpTarget,
-                    length: instruction.bin.length,
-                };
-
-        case "rst":
-            // The disassembler doesn't set a jump target for RST. The target
-            // is in bits 3 to 5 of the opcode.
-            return {
-                targetAddress: opcode & 0x38,
-                length: instruction.bin.length,
-            };
-
-        default:
-            return undefined;
-    }
-}
+/**
+ * Most DD and FD prefix bytes {@link callInstructionLength} looks past. The
+ * CPU takes any number, each one starting the decode over, but a program
+ * has no reason to put more than one in front of a call.
+ */
+const MAX_PREFIX_BYTES = 16;
 
 /**
- * Reconstruct the call stack of a machine by walking its stack memory
- * from the current SP up to the machine's stack top. The core records,
- * for every stack slot, the address of the instruction that pushed it;
- * slots whose pushing instruction disassembles as a CALL or RST are call
- * frames, and everything else (PUSH, interrupts' pushes with unknown
- * provenance, data) is skipped. Frames are returned innermost first.
- *
- * Instructions are read with {@link Z80Machine.peek}, so a program whose
- * code is served by a memory hook is walked correctly.
- *
- * Programs that manipulate the stack by hand degrade this gracefully:
- * frames may be missed, but nothing here throws on a mangled stack.
+ * The length in bytes of the CALL (taken or not, unconditional or not) or
+ * RST instruction at this address, or 0 if the instruction there is neither.
+ * DD and FD prefixes in front of it count: `DD CD nn nn` executes as a call
+ * four bytes long.
  */
-export function reconstructCallStack(machine: Z80Machine): CallStackFrame[] {
-    const frames: CallStackFrame[] = [];
+export function callInstructionLength(readMemory: (address: number) => number,
+                                      address: number): number {
 
-    // Read the way the debugger does, which by default is the way the CPU
-    // fetched these bytes.
-    const readMemory = (address: number): number => machine.peek(address);
-    const pushInstructionAddress = machine.z80.pushInstructionAddress;
-
-    // Disassembling is expensive, and a deep stack asks about the same few
-    // call sites over and over. Memory doesn't change while we walk, so one
-    // cache per walk is both correct and never stale.
-    const callCache = new Map<number, { targetAddress: number, length: number } | undefined>();
-
-    // The stack grows down, so the innermost frame is nearest SP and walking
-    // up toward the stack top gives us the frames innermost first. A frame
-    // needs both of its bytes to be below the stack top.
-    const stackTop = Math.min(machine.stackTop, MEMORY_SIZE);
-    let stackAddress = machine.z80.regs.sp & 0xFFFF;
-
-    while (stackAddress + 2 <= stackTop) {
-        // The core records the pushing instruction at the address of the low
-        // byte of the pushed word, which is where SP ends up.
-        const callSiteAddress = pushInstructionAddress[stackAddress];
-
-        // Reject on the opcode byte first, so that slots that can't be frames
-        // stay off the cache entirely, then disassemble at most once per
-        // distinct call site.
-        let call: { targetAddress: number, length: number } | undefined = undefined;
-        if (isCallOrRstOpcode(readMemory(callSiteAddress))) {
-            call = callCache.get(callSiteAddress);
-            if (call === undefined && !callCache.has(callSiteAddress)) {
-                call = getCall(readMemory, callSiteAddress);
-                callCache.set(callSiteAddress, call);
-            }
-        }
-
-        const returnAddress = readMemory(stackAddress) | (readMemory(stackAddress + 1) << 8);
-
-        // Require that the call pushed its own return address. Otherwise
-        // we've landed in the middle of a word, or on a slot whose recorded
-        // instruction is stale, or on an interrupt's push (whose recorded
-        // instruction is the one it interrupted, not a call).
-        if (call !== undefined && returnAddress === ((callSiteAddress + call.length) & 0xFFFF)) {
-            frames.push({
-                callSiteAddress,
-                targetAddress: call.targetAddress,
-                returnAddress,
-                stackAddress,
-            });
-            stackAddress += 2;
-        } else {
-            // Data, a PUSH, or garbage. Advance a byte at a time so that we
-            // resynchronize with frames even if the stack isn't word-aligned.
-            stackAddress += 1;
-        }
+    let prefixes = 0;
+    let opcode = readMemory(address & 0xFFFF);
+    while ((opcode === 0xDD || opcode === 0xFD) && prefixes < MAX_PREFIX_BYTES) {
+        prefixes += 1;
+        opcode = readMemory((address + prefixes) & 0xFFFF);
     }
 
-    return frames;
+    // CALL nn, and CALL cc,nn with the condition in bits 3 to 5.
+    if (opcode === 0xCD || (opcode & 0b11000111) === 0b11000100) {
+        return prefixes + 3;
+    }
+
+    // RST n, with the target in bits 3 to 5.
+    if ((opcode & 0b11000111) === 0b11000111) {
+        return prefixes + 1;
+    }
+
+    return 0;
 }

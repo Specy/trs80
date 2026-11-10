@@ -245,10 +245,10 @@ describe("interrupts", () => {
         expect(machine.z80.regs.sp).to.equal(0xFFFF);
     });
 
-    it("an interrupt after an untaken conditional call is not a frame", () => {
-        // The core records the interrupted instruction as having pushed the
-        // return address. After a conditional call that wasn't taken, the
-        // pushed PC is exactly what a taken call would have pushed.
+    it("an interrupt after an untaken conditional call is a frame of its own", () => {
+        // After a conditional call that wasn't taken, the PC the interrupt
+        // pushes is exactly what a taken call would have pushed, and the
+        // frame must still be the interrupt's, not the call's.
         const machine = makeMachine([
             0xED, 0x56,             // 0x0000  im 1
             0xFB,                   // 0x0002  ei
@@ -263,10 +263,16 @@ describe("interrupts", () => {
 
         machine.raiseInterrupt();
         expect(machine.z80.regs.pc).to.equal(0x0038);
-        expect(machine.getCallStack()).to.deep.equal([]);
+        expect(machine.getCallStack()).to.deep.equal([{
+            callSiteAddress: 0x0007,
+            targetAddress: 0x0038,
+            returnAddress: 0x0007,
+            stackAddress: 0xFFFD,
+            kind: "interrupt",
+        }]);
     });
 
-    it("an interrupt inside a routine keeps the routine's frame", () => {
+    it("an interrupt inside a routine goes on top of the routine's frame", () => {
         const machine = makeMachine([
             0xED, 0x56,             // 0x0000  im 1
             0xFB,                   // 0x0002  ei
@@ -285,9 +291,12 @@ describe("interrupts", () => {
         expect(machine.z80.regs.pc).to.equal(0x0038);
 
         const frames = machine.getCallStack();
-        expect(frames.length).to.equal(1);
-        expect(frames[0].callSiteAddress).to.equal(0x0003);
-        expect(frames[0].targetAddress).to.equal(0x0020);
+        expect(frames.length).to.equal(2);
+        expect(frames[0].kind).to.equal("interrupt");
+        expect(frames[0].callSiteAddress).to.equal(0x0020);
+        expect(frames[1].kind).to.equal("call");
+        expect(frames[1].callSiteAddress).to.equal(0x0003);
+        expect(frames[1].targetAddress).to.equal(0x0020);
     });
 
     it("wakes a halted machine with a non-maskable interrupt", () => {
@@ -471,13 +480,8 @@ describe("memory hooks", () => {
         // The disassembler sees the instruction the CPU will fetch.
         expect(new Z80Machine(config).disassembleAt(0x0000).mnemonic).to.equal("call");
 
-        // Stepping over the call runs the whole callee.
-        const stepper = new Z80Machine(config);
-        expect(stepper.stepOver().reason).to.equal(StopReason.STEP_COMPLETE);
-        expect(stepper.z80.regs.pc).to.equal(0x0003);
-        expect(stepper.z80.regs.a).to.equal(0x99);
-
-        // The call stack finds the frame, and stepping out returns from it.
+        // The call is classified as one, so it has a frame, and running back
+        // to the depth before it returns from it.
         const walker = new Z80Machine(config);
         expect(walker.step()).to.be.undefined;
         expect(walker.z80.regs.pc).to.equal(0x0010);
@@ -486,8 +490,9 @@ describe("memory hooks", () => {
         expect(frames[0].callSiteAddress).to.equal(0x0000);
         expect(frames[0].targetAddress).to.equal(0x0010);
         expect(frames[0].returnAddress).to.equal(0x0003);
-        expect(walker.stepOut().reason).to.equal(StopReason.STEP_COMPLETE);
+        expect(walker.run({untilCallDepth: 0}).reason).to.equal(StopReason.CALL_DEPTH);
         expect(walker.z80.regs.pc).to.equal(0x0003);
+        expect(walker.z80.regs.a).to.equal(0x99);
     });
 
     it("exits on a return served by the read hook", () => {
@@ -664,83 +669,6 @@ describe("exit on return", () => {
     });
 });
 
-describe("step over", () => {
-    it("steps over a call", () => {
-        const machine = makeMachine([
-            0xCD, 0x05, 0x00, // 0x0000  call 0x0005
-            0x76,             // 0x0003  halt
-            0x00,             // 0x0004  nop
-            0x3E, 0x07,       // 0x0005  ld a,7
-            0xC9,             // 0x0007  ret
-        ]);
-
-        const result = machine.stepOver();
-        expect(result.reason).to.equal(StopReason.STEP_COMPLETE);
-        expect(result.instructions).to.equal(3);
-        expect(machine.z80.regs.pc).to.equal(0x0003);
-        expect(machine.z80.regs.a).to.equal(0x07);
-        expect(machine.z80.regs.sp).to.equal(0xFFFF);
-
-        expect(machine.stepOver().reason).to.equal(StopReason.HALTED);
-    });
-
-    it("steps over an rst", () => {
-        const machine = makeMachine([
-            0xFF,             // 0x0000  rst 0x38
-            0x76,             // 0x0001  halt
-        ]);
-        machine.loadBinary([
-            0x3C,             // 0x0038  inc a
-            0xC9,             // 0x0039  ret
-        ], 0x0038, 0x0000);
-
-        const result = machine.stepOver();
-        expect(result.reason).to.equal(StopReason.STEP_COMPLETE);
-        expect(machine.z80.regs.pc).to.equal(0x0001);
-        expect(machine.z80.regs.a).to.equal(0x01);
-    });
-
-    it("steps a single non-call instruction", () => {
-        const machine = makeMachine([
-            0x3C,             // 0x0000  inc a
-            0x76,             // 0x0001  halt
-        ]);
-
-        const result = machine.stepOver();
-        expect(result.reason).to.equal(StopReason.STEP_COMPLETE);
-        expect(result.instructions).to.equal(1);
-        expect(result.tStates).to.equal(4);
-        expect(machine.z80.regs.pc).to.equal(0x0001);
-    });
-
-    it("honors the budget while stepping over", () => {
-        const machine = makeMachine([
-            0xCD, 0x04, 0x00, // 0x0000  call 0x0004
-            0x76,             // 0x0003  halt
-            0x18, 0xFE,       // 0x0004  jr 0x0004  (forever)
-        ]);
-
-        const result = machine.stepOver({maxInstructions: 10});
-        expect(result.reason).to.equal(StopReason.INSTRUCTIONS_EXHAUSTED);
-        expect(result.instructions).to.equal(10);
-        expect(machine.z80.regs.pc).to.equal(0x0004);
-    });
-
-    it("honors breakpoints while stepping over", () => {
-        const machine = makeMachine([
-            0xCD, 0x05, 0x00, // 0x0000  call 0x0005
-            0x76,             // 0x0003  halt
-            0x00,             // 0x0004  nop
-            0x3E, 0x07,       // 0x0005  ld a,7
-            0xC9,             // 0x0007  ret
-        ]);
-
-        const result = machine.stepOver({breakpoints: [0x0007]});
-        expect(result.reason).to.equal(StopReason.BREAKPOINT);
-        expect(machine.z80.regs.pc).to.equal(0x0007);
-    });
-});
-
 describe("history and undo", () => {
     it("grows storage on demand and preserves history through growth, wrap, and undo", () => {
         // INC A; JP 0. The non-power-of-two limit exercises the last partial growth.
@@ -804,6 +732,13 @@ describe("history and undo", () => {
 
         // Just the most recent records.
         expect(machine.getHistory(2).map(record => record.address)).to.deep.equal([0x0005, 0x0007]);
+
+        // And the ones below them, the newest left out first.
+        expect(machine.getHistory(2, 1).map(record => record.address)).to.deep.equal([0x0002, 0x0005]);
+        expect(machine.getHistory(1, 3).map(record => record.address)).to.deep.equal([0x0000]);
+        expect(machine.getHistory(undefined, 2).map(record => record.address)).to.deep.equal([0x0000, 0x0002]);
+        expect(machine.getHistory(5, 4)).to.deep.equal([]);
+        expect(machine.getHistory(5, 10)).to.deep.equal([]);
 
         // Undo the halt.
         expect(machine.canUndo()).to.be.true;
@@ -1497,8 +1432,9 @@ describe("save and restore", () => {
         const state = machine.save();
 
         // Run on: the second call reuses the same stack slot with a different
-        // call site, so the CPU's record of who pushed it is overwritten.
+        // call site, and both frames are gone by the end.
         expect(machine.run().reason).to.equal(StopReason.HALTED);
+        expect(machine.getCallStack()).to.deep.equal([]);
 
         machine.restore(state);
         expect(machine.z80.regs.pc).to.equal(0x0009);
@@ -1523,18 +1459,24 @@ describe("machine state", () => {
         // Everything the snapshot holds is reachable through its public
         // fields, so a state rebuilt from them is as good as the original.
         const rebuilt = new Z80MachineState(state.z80State, state.memory, state.tStateCount,
-            state.stopReason, state.pendingInputPort, state.stackProvenance);
+            state.stopReason, state.pendingInputPort, state.callStack, state.callDepth);
 
         expect(machine.run().reason).to.equal(StopReason.HALTED);
 
         machine.restore(rebuilt);
         expect(machine.z80.regs.pc).to.equal(0x0005);
         expect(machine.getCallStack()).to.deep.equal(frames);
+        expect(machine.getCallDepth()).to.equal(1);
+
+        // And the frames are copies: restoring twice gives the same stack.
+        machine.run();
+        machine.restore(rebuilt);
+        expect(machine.getCallStack()).to.deep.equal(frames);
     });
 });
 
 describe("call stack", () => {
-    it("reconstructs the call stack", () => {
+    it("tracks the call stack", () => {
         const machine = makeMachine([
             0xCD, 0x05, 0x00, // 0x0000  call 0x0005
             0x76,             // 0x0003  halt
@@ -1554,35 +1496,15 @@ describe("call stack", () => {
         expect(frames[0].targetAddress).to.equal(0x0005);
         expect(frames[0].returnAddress).to.equal(0x0003);
         expect(frames[0].stackAddress).to.equal(0xFFFD);
-    });
+        expect(frames[0].kind).to.equal("call");
+        expect(machine.getCallDepth()).to.equal(1);
 
-    it("steps out of a routine", () => {
-        const machine = makeMachine([
-            0xCD, 0x05, 0x00, // 0x0000  call 0x0005
-            0x76,             // 0x0003  halt
-            0x00,             // 0x0004  nop
-            0x3E, 0x07,       // 0x0005  ld a,7
-            0xC9,             // 0x0007  ret
-        ]);
-
-        expect(machine.step()).to.be.undefined;
-
-        const result = machine.stepOut();
-        expect(result.reason).to.equal(StopReason.STEP_COMPLETE);
-        expect(result.instructions).to.equal(2);
+        // ld a,7 and ret.
+        machine.step();
+        machine.step();
         expect(machine.z80.regs.pc).to.equal(0x0003);
-        expect(machine.z80.regs.sp).to.equal(0xFFFF);
-    });
-
-    it("runs when there is no frame to step out of", () => {
-        const machine = makeMachine([
-            0x3C,             // 0x0000  inc a
-            0x76,             // 0x0001  halt
-        ]);
-
-        const result = machine.stepOut();
-        expect(result.reason).to.equal(StopReason.HALTED);
-        expect(result.instructions).to.equal(2);
+        expect(machine.getCallStack()).to.deep.equal([]);
+        expect(machine.getCallDepth()).to.equal(0);
     });
 
     it("disassembles an instruction", () => {

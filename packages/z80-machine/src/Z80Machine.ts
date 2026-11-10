@@ -2,8 +2,14 @@ import {Hal, Z80, Z80State} from "z80-emulator";
 import {Instruction} from "z80-disasm";
 import {isRegisterSetField, Register, toHexWord} from "z80-base";
 import {AssemblyResult} from "./Assemble.js";
-import {CallStackFrame, disassembleInstructionAt, reconstructCallStack} from "./CallStack.js";
-import {DEFAULT_INITIAL_SP, DEFAULT_PORT_READ_VALUE, MEMORY_SIZE} from "./Constants.js";
+import {CallStackFrame, callInstructionLength, disassembleInstructionAt} from "./CallStack.js";
+import {
+    CALL_STACK_LIMIT,
+    DEFAULT_INITIAL_SP,
+    DEFAULT_PORT_READ_VALUE,
+    MEMORY_SIZE,
+    STACK_SWITCH_DISTANCE,
+} from "./Constants.js";
 import {
     ExecutionRecord,
     isTerminalStopReason,
@@ -32,20 +38,61 @@ const RET_OPCODES = new Set<number>([
 const ED_RET_OPCODES = new Set<number>([0x45, 0x4D, 0x55, 0x5D, 0x65, 0x6D, 0x75, 0x7D]);
 
 /**
- * Opcodes of the CALL instructions, unconditional and conditional. All are
- * three bytes long.
- */
-const CALL_OPCODES = new Set<number>([0xCD, 0xC4, 0xCC, 0xD4, 0xDC, 0xE4, 0xEC, 0xF4, 0xFC]);
-
-/**
- * Opcodes of the RST instructions. All are one byte long.
- */
-const RST_OPCODES = new Set<number>([0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF]);
-
-/**
- * Prefix of the extended instructions, which include reti and retn.
+ * Prefix of the extended instructions, which include reti and retn and the
+ * block instructions.
  */
 const ED_PREFIX = 0xED;
+
+/**
+ * Second byte of the repeating block instructions that count BC down:
+ * LDIR, CPIR, LDDR and CPDR.
+ */
+const ED_BC_REPEAT_OPCODES = new Set<number>([0xB0, 0xB1, 0xB8, 0xB9]);
+
+/**
+ * Second byte of the repeating block instructions that count B down: INIR,
+ * OTIR, INDR and OTDR.
+ */
+const ED_B_REPEAT_OPCODES = new Set<number>([0xB2, 0xB3, 0xBA, 0xBB]);
+
+/**
+ * Second byte of the repeating block compares, CPIR and CPDR, which also
+ * stop when they find the byte they look for.
+ */
+const ED_COMPARE_REPEAT_OPCODES = new Set<number>([0xB1, 0xB9]);
+
+/**
+ * How one execution record changed the Call stack, kept with the record so
+ * that {@link Z80Machine.undo} can put the Call stack back exactly as it
+ * was. An instruction first loses the frames the stack pointer has left,
+ * then pushes at most one, which may drop the oldest frame to stay within
+ * the limit; undoing goes through that backwards.
+ */
+interface CallStackJournal {
+    /**
+     * The frames the record took off, innermost first.
+     */
+    popped: CallStackFrame[];
+
+    /**
+     * Whether the record pushed a frame.
+     */
+    pushed: boolean;
+
+    /**
+     * The oldest frame, dropped to make room for the pushed one when the
+     * Call stack was at its limit.
+     */
+    dropped: CallStackFrame | undefined;
+}
+
+/**
+ * An execution record as the machine keeps it, with what it did to the Call
+ * stack. Only records that changed the Call stack carry a journal.
+ */
+interface MachineRecord extends ExecutionRecord {
+    callStackJournal?: CallStackJournal | undefined;
+}
 
 /**
  * Thrown out of the CPU (through the Hal's readPort) when the configured
@@ -193,13 +240,14 @@ export class Z80Machine implements Hal {
     public tStateCount = 0;
 
     /**
-     * Why the most recent run, step, stepOver or stepOut call ended.
-     * Undefined before the first call, while a call is in progress, and
-     * after a reset, a load, an undo, or an interrupt that woke the CPU.
+     * Why the most recent run or step call ended. Undefined before the
+     * first call, while a call is in progress, after a step that simply
+     * advanced, and after a reset, a load, an undo, or an interrupt that
+     * woke the CPU.
      *
      * A stop reason does not mean the machine can't continue: BREAKPOINT,
      * WAITING_FOR_INPUT, WAITING_FOR_INTERRUPT, T_STATES_EXHAUSTED,
-     * INSTRUCTIONS_EXHAUSTED and STEP_COMPLETE all leave it resumable. Use
+     * INSTRUCTIONS_EXHAUSTED, CALL_DEPTH and PAUSED all leave it resumable. Use
      * {@link Z80Machine.isTerminated} to ask whether the program is over;
      * running one budgeted slice per frame, for instance, leaves a stop
      * reason set after every slice.
@@ -213,8 +261,8 @@ export class Z80Machine implements Hal {
     public pendingInputPort: number | undefined = undefined;
 
     /**
-     * The initial stack pointer, treated as the top of the stack for
-     * call-stack reconstruction and the exitOnReturn option.
+     * The initial stack pointer, treated as the top of the stack for the
+     * exitOnReturn option.
      */
     public readonly stackTop: number;
     private stackRegionTop: number;
@@ -234,13 +282,35 @@ export class Z80Machine implements Hal {
     // slots, up to historyCapacity. The oldest record is at historyStart,
     // and there are historyCount records.
     private readonly historyCapacity: number;
-    private historyBuffer: (ExecutionRecord | undefined)[] = [];
+    private historyBuffer: (MachineRecord | undefined)[] = [];
     private historyStart = 0;
     private historyCount = 0;
 
     // Record being filled in by the instruction currently executing, or
     // undefined if history is disabled or no instruction is executing.
-    private pendingRecord: ExecutionRecord | undefined = undefined;
+    private pendingRecord: MachineRecord | undefined = undefined;
+
+    // The Call stack's frames, a ring buffer allocated as calls reach its
+    // slots, up to callStackLimit. The oldest frame is at frameStart, and
+    // there are frameCount frames. droppedFrames counts the frames below
+    // the oldest one, dropped to stay within the limit: they are part of
+    // the depth, but nothing more is known of them.
+    private readonly callStackLimit: number;
+    private frameRing: (CallStackFrame | undefined)[] = [];
+    private frameStart = 0;
+    private frameCount = 0;
+    private droppedFrames = 0;
+
+    // The stack pointer the Call stack was last brought up to date with, or
+    // -1 to have the next instruction check it whatever SP is. A frame is
+    // only ever gone because SP moved, so an instruction that leaves SP
+    // where the last check saw it has nothing to take off.
+    private callStackSp = -1;
+
+    // Instructions executed and interrupts taken, for the life of the
+    // machine: never reset and never taken back, so a caller can measure
+    // how many ran across any stretch of calls.
+    private instructionsExecuted = 0;
     /** Set by {@link pause} while an instruction runs, read once it has. */
     private pauseRequested = false;
 
@@ -277,6 +347,12 @@ export class Z80Machine implements Hal {
         this.historyCapacity = Math.max(0, config?.historySize ?? 0);
         if (!Number.isInteger(this.historyCapacity) || this.historyCapacity > 0xFFFFFFFF) {
             throw new RangeError("Invalid history size");
+        }
+        this.callStackLimit = config?.callStackLimit ?? CALL_STACK_LIMIT;
+        if (!Number.isInteger(this.callStackLimit) || this.callStackLimit < 1 ||
+            this.callStackLimit > 0xFFFFFFFF) {
+
+            throw new RangeError("Invalid call stack limit: it must be a whole number, at least 1");
         }
         this.z80.regs.sp = this.stackTop;
         this.stackRegionTop = this.stackTop;
@@ -360,7 +436,8 @@ export class Z80Machine implements Hal {
 
     /**
      * Reset the CPU and clock, apply the initial stack pointer, clear the
-     * stop state and the execution history. Memory is left untouched.
+     * stop state, the Call stack and the execution history. Memory is left
+     * untouched.
      */
     public reset(): void {
         this.z80.reset();
@@ -369,25 +446,27 @@ export class Z80Machine implements Hal {
         this.tStateCount = 0;
         this.clearStopState();
         this.clearHistory();
+        this.clearCallStack();
     }
 
     /**
      * Copy raw bytes into RAM at org and set the PC to entry (org if
-     * omitted). Clears the stop state and the execution history, which no
-     * longer describes the program in memory.
+     * omitted). Clears the stop state, the Call stack and the execution
+     * history, which no longer describe the program in memory.
      */
     public loadBinary(bytes: ArrayLike<number>, org: number, entry?: number): void {
         this.writeBytes(bytes, org);
         this.z80.regs.pc = (entry ?? org) & 0xFFFF;
         this.clearStopState();
         this.clearHistory();
+        this.clearCallStack();
     }
 
     /**
      * Load an assembled program: write each assembled line's bytes at its
      * address and set the PC to the assembly's entry point. Clears the stop
-     * state and the execution history, which no longer describes the
-     * program in memory. Throws if the assembly has errors.
+     * state, the Call stack and the execution history, which no longer
+     * describe the program in memory. Throws if the assembly has errors.
      */
     public loadAssembly(result: AssemblyResult): void {
         if (result.hasErrors()) {
@@ -403,6 +482,7 @@ export class Z80Machine implements Hal {
         this.z80.regs.pc = result.entryPoint & 0xFFFF;
         this.clearStopState();
         this.clearHistory();
+        this.clearCallStack();
     }
 
     /**
@@ -436,71 +516,134 @@ export class Z80Machine implements Hal {
     }
 
     /**
-     * Run until a breakpoint, halt, input wait, pause, or budget exhaustion.
+     * Run instructions until something stops them: a stop reason from an
+     * instruction itself (a halt, a top-level return with exitOnReturn, an
+     * input wait), the call depth asked for, a breakpoint, a pause, or a
+     * budget. See {@link RunOptions} for the order these are tested in.
+     *
+     * Stepping over a routine is a run with
+     * {@link RunOptions.untilCallDepth} set to the depth the step starts at,
+     * and stepping out of one is a run with it set to one less. A run that
+     * stops early, on a budget, a breakpoint or an input wait, is finished
+     * by running again with the same number.
      */
     public run(options?: RunOptions): RunResult {
-        return this.runUntil(options, undefined);
+        const terminalStopReason = this.terminalStopReason();
+        if (terminalStopReason !== undefined) {
+            return {reason: terminalStopReason, tStates: 0, instructions: 0};
+        }
+
+        const maxTStates = options?.maxTStates;
+        const maxInstructions = options?.maxInstructions;
+        const untilCallDepth = options?.untilCallDepth;
+        const breakpoints = makeBreakpointMap(options?.breakpoints);
+        const startTStateCount = this.tStateCount;
+        let instructions = 0;
+        this.pauseRequested = false;
+
+        // The tests made after every instruction, made once before the first
+        // one too: the depth always, and a breakpoint at the PC only when the
+        // caller doesn't want it passed over.
+        if (untilCallDepth !== undefined && this.getCallDepth() <= untilCallDepth) {
+            return this.stopRun(StopReason.CALL_DEPTH, 0, 0);
+        }
+        const skipBreakpointAtPc = options?.skipBreakpointAtPc ?? true;
+        if (!skipBreakpointAtPc && breakpoints !== undefined && breakpoints[this.z80.regs.pc] !== 0) {
+            return this.stopRun(StopReason.BREAKPOINT, 0, 0);
+        }
+
+        while (true) {
+            // Check the budgets before executing, so that a budget of zero
+            // executes nothing.
+            let tStates = this.tStateCount - startTStateCount;
+            if (maxInstructions !== undefined && instructions >= maxInstructions) {
+                return this.stopRun(StopReason.INSTRUCTIONS_EXHAUSTED, tStates, instructions);
+            }
+            if (maxTStates !== undefined && tStates >= maxTStates) {
+                return this.stopRun(StopReason.T_STATES_EXHAUSTED, tStates, instructions);
+            }
+
+            this.executeInstruction();
+            tStates = this.tStateCount - startTStateCount;
+
+            const stopReason = this.stopReason;
+            if (stopReason === StopReason.WAITING_FOR_INPUT) {
+                // The instruction was rolled back, so it didn't execute.
+                return {reason: stopReason, tStates, instructions};
+            }
+            instructions += 1;
+            if (stopReason !== undefined) {
+                return {reason: stopReason, tStates, instructions};
+            }
+            // Ahead of the breakpoint and the pause, so that a breakpoint on
+            // the instruction a step returns to reports the step, and ahead
+            // of the budgets, which the next pass checks first.
+            if (untilCallDepth !== undefined && this.getCallDepth() <= untilCallDepth) {
+                return this.stopRun(StopReason.CALL_DEPTH, tStates, instructions);
+            }
+            // Stop before executing the instruction at the breakpoint. Since
+            // we check after having executed an instruction, resuming from a
+            // breakpoint always makes progress.
+            if (breakpoints !== undefined && breakpoints[this.z80.regs.pc] !== 0) {
+                return this.stopRun(StopReason.BREAKPOINT, tStates, instructions);
+            }
+            if (this.pauseRequested) {
+                this.pauseRequested = false;
+                return this.stopRun(StopReason.PAUSED, tStates, instructions);
+            }
+        }
     }
 
     /**
-     * Like step, but a CALL/RST (and its entire callee) counts as one
-     * step: execution continues until control returns to the instruction
-     * after the call. Breakpoints and budgets in the options still apply.
+     * Whether the instruction at the PC is one of the eight repeating block
+     * instructions (LDIR, LDDR, CPIR, CPDR, INIR, INDR, OTIR, OTDR) and
+     * executing it would not end it: the CPU would move the PC back onto it
+     * to repeat it once more. A step runs one repetition, so a debugger that
+     * wants to run the whole block with one command steps while this is
+     * true, and once more.
      *
-     * Unlike step, this reports a {@link RunResult}, so a step that simply
-     * completes leaves {@link Z80Machine.stopReason} set to
-     * {@link StopReason.STEP_COMPLETE} rather than undefined.
+     * Nothing is executed. The instruction and the byte a CPIR or CPDR
+     * compares are read with {@link Z80Machine.peek}; no port is read, so
+     * an INIR or INDR that has to wait for its input still answers true
+     * when it has more than one repetition to go.
      */
-    public stepOver(options?: RunOptions): RunResult {
-        const terminalStopReason = this.terminalStopReason();
-        if (terminalStopReason !== undefined) {
-            return {reason: terminalStopReason, tStates: 0, instructions: 0};
+    public blockInstructionWillRepeat(): boolean {
+        const regs = this.z80.regs;
+        const pc = regs.pc;
+
+        // A DD or FD prefix does nothing to a block instruction, which the
+        // CPU then decodes as if unprefixed.
+        let offset = 0;
+        let opcode = this.peek(pc);
+        while ((opcode === 0xDD || opcode === 0xFD) && offset < 16) {
+            offset += 1;
+            opcode = this.peek(pc + offset);
+        }
+        if (opcode !== ED_PREFIX) {
+            return false;
+        }
+        const second = this.peek(pc + offset + 1);
+
+        if (ED_B_REPEAT_OPCODES.has(second)) {
+            // B is decremented first, and the instruction repeats while it
+            // isn't zero.
+            return regs.b !== 1;
+        }
+        if (!ED_BC_REPEAT_OPCODES.has(second)) {
+            return false;
         }
 
-        const address = this.z80.regs.pc;
-        // Read the way the CPU will fetch it, so that code served by a memory
-        // hook is classified as a call.
-        const opcode = this.peek(address);
-        let length: number;
-        if (CALL_OPCODES.has(opcode)) {
-            length = 3;
-        } else if (RST_OPCODES.has(opcode)) {
-            length = 1;
-        } else {
-            // Not a call, just step.
-            return this.stepAsRunResult();
+        // BC is decremented first, and the instruction repeats while it isn't
+        // zero.
+        if (regs.bc === 1) {
+            return false;
+        }
+        if (ED_COMPARE_REPEAT_OPCODES.has(second)) {
+            // A compare also stops when it finds the byte.
+            return this.peek(regs.hl) !== regs.a;
         }
 
-        // Where we'll be when the call returns. Also check the stack pointer,
-        // so that a recursive routine doesn't fool us into stopping early.
-        const returnAddress = (address + length) & 0xFFFF;
-        const stackPointer = this.z80.regs.sp;
-
-        return this.runUntil(options,
-            () => this.z80.regs.pc === returnAddress && this.z80.regs.sp >= stackPointer);
-    }
-
-    /**
-     * Run until the current routine returns to its caller (the innermost
-     * call-stack frame is popped). Breakpoints and budgets in the options
-     * still apply. If there is no frame to return from, behaves like run.
-     */
-    public stepOut(options?: RunOptions): RunResult {
-        const terminalStopReason = this.terminalStopReason();
-        if (terminalStopReason !== undefined) {
-            return {reason: terminalStopReason, tStates: 0, instructions: 0};
-        }
-
-        const frames = reconstructCallStack(this);
-        if (frames.length === 0) {
-            // Nothing to return from.
-            return this.run(options);
-        }
-
-        // We're out when the return address has been popped off the stack.
-        const stackAddress = frames[0].stackAddress;
-
-        return this.runUntil(options, () => this.z80.regs.sp > stackAddress);
+        return true;
     }
 
     /**
@@ -531,7 +674,8 @@ export class Z80Machine implements Hal {
     /**
      * Deliver an interrupt to the CPU. Entering an interrupt pushes a return
      * address, which is a change to RAM like any other, so it goes into the
-     * execution history and can be undone.
+     * execution history and can be undone. It also pushes a frame of kind
+     * "interrupt" onto the Call stack.
      */
     private deliverInterrupt(maskable: boolean): void {
         this.requireNoOpenPoke("deliver an interrupt");
@@ -541,6 +685,9 @@ export class Z80Machine implements Hal {
         const taken = !maskable || this.z80.regs.iff1 !== 0;
         const stateBefore = taken && this.historyCapacity > 0 ? this.z80.save() : undefined;
         const spBefore = this.z80.regs.sp;
+        const pcBefore = this.z80.regs.pc;
+        // A halted CPU sits on its halt, and the interrupt returns past it.
+        const returnAddress = (pcBefore + (this.z80.regs.halted !== 0 ? 1 : 0)) & 0xFFFF;
 
         if (stateBefore !== undefined) {
             this.pendingRecord = {
@@ -569,43 +716,34 @@ export class Z80Machine implements Hal {
 
         const record = this.pendingRecord;
         this.pendingRecord = undefined;
+
+        const sp = this.z80.regs.sp;
+        if (sp !== spBefore) {
+            this.instructionsExecuted += 1;
+            this.updateCallStack(sp, {
+                callSiteAddress: pcBefore,
+                targetAddress: this.z80.regs.pc,
+                returnAddress: returnAddress,
+                stackAddress: sp,
+                kind: "interrupt",
+            }, record);
+        }
+
         if (record !== undefined) {
             this.addRecord(record);
         }
 
-        this.markInterruptPush(spBefore);
         this.wakeUp();
     }
 
     /**
-     * Stamp the stack slot that an interrupt just pushed, if it pushed one.
-     *
-     * The core records the interrupted instruction as the pusher, and when
-     * that instruction is a conditional CALL that was not taken, the PC it
-     * pushes is exactly the return address a taken call would have pushed,
-     * so the call-stack walk would report a frame for a routine that was
-     * never entered. Recording the pushed word itself instead makes the
-     * walk's test (returnAddress === callSite + length) unsatisfiable, since
-     * no instruction is zero bytes long.
-     */
-    private markInterruptPush(spBefore: number): void {
-        const sp = this.z80.regs.sp;
-
-        if (sp !== spBefore) {
-            this.z80.pushInstructionAddress[sp] = this.peek(sp) | (this.peek(sp + 1) << 8);
-        }
-    }
-
-    /**
-     * Snapshot the whole machine (CPU registers, RAM, clock, stop state,
-     * and the stack-slot provenance behind the call stack).
+     * Snapshot the whole machine: CPU registers, RAM, clock, stop state,
+     * and the Call stack.
      */
     public save(): Z80MachineState {
-        // Only the live part of the stack can ever be walked, so that's all
-        // the provenance we keep.
         const state = new Z80MachineState(this.z80.save(), this.memory.slice(),
             this.tStateCount, this.stopReason, this.pendingInputPort,
-            this.z80.pushInstructionAddress.slice(this.stackBottom(), this.stackTopOffset()));
+            this.getCallStack(), this.getCallDepth());
         state.stackRegionTop = this.stackRegionTop;
         return state;
     }
@@ -623,16 +761,16 @@ export class Z80Machine implements Hal {
         this.stopReason = state.stopReason;
         this.pendingInputPort = state.pendingInputPort;
 
-        // The stack pointer is back to what it was when we saved, so this
-        // lands the provenance on exactly the slots it came from. Clamp it,
-        // since a hand-built state can carry any length.
-        const stackProvenance = state.stackProvenance;
-        const stackBottom = this.stackBottom();
-        const count = Math.min(stackProvenance?.length ?? 0,
-            this.z80.pushInstructionAddress.length - stackBottom);
-        if (count > 0) {
-            this.z80.pushInstructionAddress.set(stackProvenance.subarray(0, count), stackBottom);
+        // Outermost first, so that each frame goes on top of the one it was
+        // called from. A state from a machine with a higher limit can hold
+        // more frames than this one keeps; the oldest are dropped, and
+        // stay counted in the depth.
+        this.clearCallStack();
+        const frames = state.callStack;
+        for (let i = frames.length - 1; i >= 0; i--) {
+            this.pushFrame({...frames[i]});
         }
+        this.droppedFrames += Math.max(0, state.callDepth - frames.length);
 
         this.clearHistory();
     }
@@ -879,10 +1017,32 @@ export class Z80Machine implements Hal {
     }
 
     /**
+     * How many records {@link Z80Machine.undo} can still take back:
+     * instructions, interrupts and pokes alike. Constant time. Always 0
+     * unless the historySize option enabled history.
+     */
+    public getUndoDepth(): number {
+        return this.historyCount;
+    }
+
+    /**
+     * How many instructions the machine has executed, interrupts it took
+     * included, for its whole life: a count that only goes up. A reset, a
+     * load and an undo leave it alone, so the difference between two
+     * readings is how many ran in between, which is also how many records
+     * they added to the history while it records. An instruction rolled
+     * back to wait for input is not counted, and neither is a poke.
+     */
+    public getInstructionsExecuted(): number {
+        return this.instructionsExecuted;
+    }
+
+    /**
      * Undo the most recent record, whether it is an instruction, an
      * interrupt being delivered, or a poke: restore the CPU state and clock,
-     * and reverse its RAM writes. Port writes are not undone. Returns false
-     * if there was nothing to undo.
+     * reverse its RAM writes, and put the Call stack back the way it was.
+     * Port writes are not undone. Returns false if there was nothing to
+     * undo.
      *
      * Undoing an instruction clears the stop state, since the machine is
      * back before whatever stopped it. Undoing a poke does not: a poke set
@@ -909,6 +1069,15 @@ export class Z80Machine implements Hal {
             this.memory[memoryWrite.address] = memoryWrite.before;
         }
 
+        const journal = record.callStackJournal;
+        if (journal !== undefined) {
+            this.undoCallStackChange(journal);
+        }
+        // The frames are back as they were before the record, which may be
+        // more than the SP it started with keeps (a poke can move SP between
+        // two instructions), so the next instruction checks them.
+        this.callStackSp = -1;
+
         if (record.kind !== "poke") {
             this.clearStopState();
         }
@@ -918,19 +1087,23 @@ export class Z80Machine implements Hal {
 
     /**
      * The most recent execution records, oldest first, up to max (or all
-     * retained records if max is omitted). Instructions, interrupts and
-     * pokes all appear, each telling which it is through its
+     * retained records if max is omitted). With skip, the newest skip
+     * records are left out first, so a debugger can page back through a
+     * long history without copying all of it: getHistory(1, n) is the record
+     * n places below the newest. Instructions, interrupts and pokes all
+     * appear, each telling which it is through its
      * {@link ExecutionRecord.kind} and identified by its
      * {@link ExecutionRecord.stepId}. Only an instruction or an interrupt
      * carries an instruction address; a poke's address is
      * {@link POKE_RECORD_ADDRESS}.
      */
-    public getHistory(max?: number): ExecutionRecord[] {
+    public getHistory(max?: number, skip: number = 0): ExecutionRecord[] {
         const capacity = this.historyBuffer.length;
-        const count = max === undefined ? this.historyCount : Math.min(Math.max(0, max), this.historyCount);
+        const end = this.historyCount - Math.min(Math.max(0, skip), this.historyCount);
+        const count = max === undefined ? end : Math.min(Math.max(0, max), end);
         const records: ExecutionRecord[] = [];
 
-        for (let i = this.historyCount - count; i < this.historyCount; i++) {
+        for (let i = end - count; i < end; i++) {
             const record = this.historyBuffer[(this.historyStart + i) % capacity];
             if (record !== undefined) {
                 records.push(record);
@@ -961,11 +1134,46 @@ export class Z80Machine implements Hal {
     }
 
     /**
-     * Reconstruct the call stack from the machine's stack memory,
-     * innermost frame first. See {@link CallStackFrame}.
+     * The Call stack, innermost frame first: the newest max frames, or all
+     * the frames it keeps if max is omitted. Each frame is a copy.
+     *
+     * The machine tracks the frames as the program runs, whether or not it
+     * keeps a history, and {@link Z80Machine.undo} puts them back exactly.
+     * A frame is pushed by a CALL that is taken, an RST, and the CPU taking
+     * an interrupt ({@link Z80Machine.raiseInterrupt},
+     * {@link Z80Machine.raiseNmi}). After every instruction, starting with
+     * the innermost frame, a frame is gone when the stack pointer is above
+     * its slot ({@link CallStackFrame.stackAddress}) by no more than
+     * {@link STACK_SWITCH_DISTANCE} bytes, counted with 16-bit wraparound so
+     * that a stack at the very top of memory works. So a return by any
+     * means ends a frame: a `ret` to a changed return address, or a jump
+     * after the return address was popped, which ends it at the pop. A
+     * larger move is taken for a switch to another stack and removes
+     * nothing, so a program that borrows SP to fill memory keeps its
+     * frames.
+     *
+     * The machine keeps the newest frames up to its limit (the
+     * callStackLimit option); {@link Z80Machine.getCallDepth} also counts
+     * the frames dropped for it, which are not returned here.
      */
-    public getCallStack(): CallStackFrame[] {
-        return reconstructCallStack(this);
+    public getCallStack(max?: number): CallStackFrame[] {
+        const count = max === undefined ? this.frameCount : Math.min(Math.max(0, max), this.frameCount);
+        const frames: CallStackFrame[] = [];
+
+        for (let i = 0; i < count; i++) {
+            frames.push({...this.frameAt(i)});
+        }
+
+        return frames;
+    }
+
+    /**
+     * The depth of the Call stack: how many frames it has, the frames
+     * dropped for its limit included. Constant time. This is the number
+     * {@link RunOptions.untilCallDepth} is compared with.
+     */
+    public getCallDepth(): number {
+        return this.frameCount + this.droppedFrames;
     }
 
     /**
@@ -977,80 +1185,6 @@ export class Z80Machine implements Hal {
     }
 
     /**
-     * Run instructions until something stops us: a stop reason from the
-     * instruction itself, the optional isDone predicate (which reports
-     * {@link StopReason.STEP_COMPLETE}), a breakpoint, or a budget.
-     */
-    private runUntil(options: RunOptions | undefined, isDone: (() => boolean) | undefined): RunResult {
-        const terminalStopReason = this.terminalStopReason();
-        if (terminalStopReason !== undefined) {
-            return {reason: terminalStopReason, tStates: 0, instructions: 0};
-        }
-
-        const maxTStates = options?.maxTStates;
-        const maxInstructions = options?.maxInstructions;
-        const breakpoints = makeBreakpointMap(options?.breakpoints);
-        const startTStateCount = this.tStateCount;
-        let instructions = 0;
-        this.pauseRequested = false;
-
-        while (true) {
-            // Check the budgets before executing, so that a budget of zero
-            // executes nothing.
-            let tStates = this.tStateCount - startTStateCount;
-            if (maxInstructions !== undefined && instructions >= maxInstructions) {
-                return this.stopRun(StopReason.INSTRUCTIONS_EXHAUSTED, tStates, instructions);
-            }
-            if (maxTStates !== undefined && tStates >= maxTStates) {
-                return this.stopRun(StopReason.T_STATES_EXHAUSTED, tStates, instructions);
-            }
-
-            this.executeInstruction();
-            tStates = this.tStateCount - startTStateCount;
-
-            const stopReason = this.stopReason;
-            if (stopReason === StopReason.WAITING_FOR_INPUT) {
-                // The instruction was rolled back, so it didn't execute.
-                return {reason: stopReason, tStates, instructions};
-            }
-            instructions += 1;
-            if (stopReason !== undefined) {
-                return {reason: stopReason, tStates, instructions};
-            }
-            if (isDone !== undefined && isDone()) {
-                return this.stopRun(StopReason.STEP_COMPLETE, tStates, instructions);
-            }
-            // Stop before executing the instruction at the breakpoint. Since
-            // we check after having executed an instruction, resuming from a
-            // breakpoint always makes progress.
-            if (breakpoints !== undefined && breakpoints[this.z80.regs.pc] !== 0) {
-                return this.stopRun(StopReason.BREAKPOINT, tStates, instructions);
-            }
-            if (this.pauseRequested) {
-                this.pauseRequested = false;
-                return this.stopRun(StopReason.PAUSED, tStates, instructions);
-            }
-        }
-    }
-
-    /**
-     * Execute a single instruction and package the result the way
-     * {@link run} does.
-     */
-    private stepAsRunResult(): RunResult {
-        const startTStateCount = this.tStateCount;
-
-        this.executeInstruction();
-
-        const stopReason = this.stopReason;
-        // A rolled-back instruction didn't execute.
-        const instructions = stopReason === StopReason.WAITING_FOR_INPUT ? 0 : 1;
-
-        return this.stopRun(stopReason ?? StopReason.STEP_COMPLETE,
-            this.tStateCount - startTStateCount, instructions);
-    }
-
-    /**
      * Record why a run stopped and make its result.
      */
     private stopRun(reason: StopReason, tStates: number, instructions: number): RunResult {
@@ -1059,9 +1193,9 @@ export class Z80Machine implements Hal {
     }
 
     /**
-     * Execute one instruction, updating the clock, the stop reason, and the
-     * execution history. An instruction that can't get its input is rolled
-     * back and leaves the machine waiting for input.
+     * Execute one instruction, updating the clock, the stop reason, the
+     * Call stack and the execution history. An instruction that can't get
+     * its input is rolled back and leaves the machine waiting for input.
      */
     private executeInstruction(): void {
         this.requireNoOpenPoke("execute an instruction");
@@ -1120,10 +1254,22 @@ export class Z80Machine implements Hal {
             this.executing = false;
         }
 
+        this.instructionsExecuted += 1;
         const record = this.pendingRecord;
+        this.pendingRecord = undefined;
+
+        // A call pushes its return address, so it leaves the stack pointer
+        // exactly two lower; only then is the instruction worth decoding.
+        // Most instructions push nothing and leave SP alone, so they cost two
+        // comparisons here.
+        const sp = this.z80.regs.sp;
+        const pushedFrame = sp === ((spBefore - 2) & 0xFFFF) ? this.callFrameFor(sp) : undefined;
+        if (pushedFrame !== undefined || (sp !== this.callStackSp && this.frameCount > 0)) {
+            this.updateCallStack(sp, pushedFrame, record);
+        }
+
         if (record !== undefined) {
             record.address = this.z80.instructionAddress;
-            this.pendingRecord = undefined;
             this.addRecord(record);
         }
 
@@ -1137,19 +1283,158 @@ export class Z80Machine implements Hal {
     }
 
     /**
-     * Lowest address of the live stack: where the stack pointer is, clamped
-     * to the address space.
+     * The frame that the instruction just executed pushed, if it was a CALL
+     * or an RST, given the stack pointer it left. The caller has seen it
+     * lower the stack pointer by two, which a taken call does and an
+     * untaken one doesn't. The instruction is read with
+     * {@link Z80Machine.peek}, so that code served by a memory hook is
+     * classified the way the CPU fetched it.
      */
-    private stackBottom(): number {
-        return Math.min(Math.max(this.z80.regs.sp, 0), MEMORY_SIZE);
+    private callFrameFor(sp: number): CallStackFrame | undefined {
+        const address = this.z80.instructionAddress;
+        const length = callInstructionLength(a => this.peek(a), address);
+        if (length === 0) {
+            // A push, or a load of SP that happened to lower it by two.
+            return undefined;
+        }
+
+        return {
+            callSiteAddress: address,
+            targetAddress: this.z80.regs.pc,
+            returnAddress: (address + length) & 0xFFFF,
+            stackAddress: sp,
+            kind: "call",
+        };
     }
 
     /**
-     * One past the highest address of the live stack, clamped to the address
-     * space and never below {@link Z80Machine.stackBottom}.
+     * Bring the Call stack up to date after an instruction or an interrupt
+     * entry: take off the frames the stack pointer is now above, innermost
+     * first and stopping at the first one it isn't, then push the frame the
+     * instruction made, if any. What changed is journaled in the record, if
+     * there is one, for {@link Z80Machine.undo}.
      */
-    private stackTopOffset(): number {
-        return Math.max(Math.min(this.stackTop, MEMORY_SIZE), this.stackBottom());
+    private updateCallStack(sp: number, pushedFrame: CallStackFrame | undefined,
+                            record: MachineRecord | undefined): void {
+
+        let popped: CallStackFrame[] | undefined = undefined;
+        while (this.frameCount > 0) {
+            const top = this.frameAt(0);
+            const above = (sp - top.stackAddress) & 0xFFFF;
+            if (above === 0 || above > STACK_SWITCH_DISTANCE) {
+                break;
+            }
+            this.popFrame();
+            if (popped === undefined) {
+                popped = [];
+            }
+            popped.push(top);
+        }
+
+        let dropped: CallStackFrame | undefined = undefined;
+        if (pushedFrame !== undefined) {
+            dropped = this.pushFrame(pushedFrame);
+        }
+        this.callStackSp = sp;
+
+        if (record !== undefined && (popped !== undefined || pushedFrame !== undefined)) {
+            record.callStackJournal = {
+                popped: popped ?? [],
+                pushed: pushedFrame !== undefined,
+                dropped: dropped,
+            };
+        }
+    }
+
+    /**
+     * Take back what one record did to the Call stack, in the opposite
+     * order to {@link Z80Machine.updateCallStack}.
+     */
+    private undoCallStackChange(journal: CallStackJournal): void {
+        if (journal.pushed) {
+            this.popFrame();
+        }
+        if (journal.dropped !== undefined) {
+            this.unshiftFrame(journal.dropped);
+        }
+        // The innermost was taken off first, so it goes back last.
+        const popped = journal.popped;
+        for (let i = popped.length - 1; i >= 0; i--) {
+            this.pushFrame(popped[i]);
+        }
+    }
+
+    /**
+     * The frame index frames from the innermost one (0 is the innermost).
+     * The index must be below frameCount.
+     */
+    private frameAt(index: number): CallStackFrame {
+        const capacity = this.frameRing.length;
+        return this.frameRing[(this.frameStart + this.frameCount - 1 - index) % capacity] as CallStackFrame;
+    }
+
+    /**
+     * Push a frame on top of the Call stack. At the limit, the oldest frame
+     * is dropped to make room, counted in the depth, and returned.
+     */
+    private pushFrame(frame: CallStackFrame): CallStackFrame | undefined {
+        let capacity = this.frameRing.length;
+        if (this.frameCount === capacity && capacity < this.callStackLimit) {
+            const grown = new Array<CallStackFrame | undefined>(
+                Math.min(this.callStackLimit, capacity === 0 ? 16 : capacity * 2));
+            for (let i = 0; i < this.frameCount; i++) {
+                grown[i] = this.frameRing[(this.frameStart + i) % capacity];
+            }
+            this.frameRing = grown;
+            this.frameStart = 0;
+            capacity = grown.length;
+        }
+
+        if (this.frameCount < capacity) {
+            this.frameRing[(this.frameStart + this.frameCount) % capacity] = frame;
+            this.frameCount += 1;
+            return undefined;
+        }
+
+        // Full at the limit: the new frame takes the oldest one's slot.
+        const dropped = this.frameRing[this.frameStart];
+        this.frameRing[this.frameStart] = frame;
+        this.frameStart = (this.frameStart + 1) % capacity;
+        this.droppedFrames += 1;
+        return dropped;
+    }
+
+    /**
+     * Take the innermost frame off the Call stack. There must be one.
+     */
+    private popFrame(): void {
+        const capacity = this.frameRing.length;
+        this.frameRing[(this.frameStart + this.frameCount - 1) % capacity] = undefined;
+        this.frameCount -= 1;
+    }
+
+    /**
+     * Put back a frame that was dropped for the limit, as the oldest one,
+     * and count it out of the dropped frames. There must be room for it,
+     * which there is once the frame that dropped it has been taken off.
+     */
+    private unshiftFrame(frame: CallStackFrame): void {
+        const capacity = this.frameRing.length;
+        this.frameStart = (this.frameStart - 1 + capacity) % capacity;
+        this.frameRing[this.frameStart] = frame;
+        this.frameCount += 1;
+        this.droppedFrames -= 1;
+    }
+
+    /**
+     * Forget the Call stack.
+     */
+    private clearCallStack(): void {
+        this.frameRing = [];
+        this.frameStart = 0;
+        this.frameCount = 0;
+        this.droppedFrames = 0;
+        this.callStackSp = -1;
     }
 
     /**
@@ -1222,13 +1507,13 @@ export class Z80Machine implements Hal {
      * Add a record to the history ring buffer, dropping the oldest one if
      * the buffer is full. Does nothing if history is disabled.
      */
-    private addRecord(record: ExecutionRecord): void {
+    private addRecord(record: MachineRecord): void {
         if (this.historyCapacity === 0) {
             return;
         }
         let capacity = this.historyBuffer.length;
         if (this.historyCount === capacity && capacity < this.historyCapacity) {
-            const grown = new Array<ExecutionRecord | undefined>(
+            const grown = new Array<MachineRecord | undefined>(
                 Math.min(this.historyCapacity, capacity === 0 ? 64 : capacity * 2));
             for (let i = 0; i < this.historyCount; i++) {
                 grown[i] = this.historyBuffer[(this.historyStart + i) % capacity];
@@ -1250,7 +1535,7 @@ export class Z80Machine implements Hal {
     /**
      * Remove and return the most recent record, or undefined if there is none.
      */
-    private removeNewestRecord(): ExecutionRecord | undefined {
+    private removeNewestRecord(): MachineRecord | undefined {
         const capacity = this.historyBuffer.length;
         if (this.historyCount === 0 || capacity === 0) {
             return undefined;

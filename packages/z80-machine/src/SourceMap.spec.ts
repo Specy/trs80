@@ -3,7 +3,7 @@ import {SymbolType} from "z80-asm";
 import {assemble} from "./Assemble.js";
 import {CallStackFrame} from "./CallStack.js";
 import {SourceMap} from "./SourceMap.js";
-import type {Z80Machine} from "./Z80Machine.js";
+import {Z80Machine} from "./Z80Machine.js";
 
 // Program used by most of the tests. Line numbers are zero-based.
 //
@@ -77,6 +77,84 @@ describe("addressToLocation", () => {
         expect(sourceMap.addressToLocation(0x100)).to.deep.equal({ pathname: "sub.asm", lineNumber: 0 });
         expect(sourceMap.addressToLocation(0x101)).to.deep.equal({ pathname: "sub.asm", lineNumber: 1 });
         expect(sourceMap.addressToLocation(0x102)).to.deep.equal({ pathname: "main.asm", lineNumber: 2 });
+    });
+
+    it("maps a macro's instructions to the line that used it", () => {
+        const sourceMap = makeSourceMap([
+            "twice   macro",                // 0
+            "        inc a",                // 1
+            "        inc a",                // 2
+            "        endm",                 // 3
+            "        .org 0x100",           // 4
+            "        twice",                // 5  0x0100, 0x0101
+            "        nop",                  // 6  0x0102
+            "        twice",                // 7  0x0103, 0x0104
+        ].join("\n"));
+
+        expect(sourceMap.addressToLocation(0x100)).to.deep.equal({ pathname: "main.asm", lineNumber: 5 });
+        expect(sourceMap.addressToLocation(0x101)).to.deep.equal({ pathname: "main.asm", lineNumber: 5 });
+        expect(sourceMap.addressToLocation(0x102)).to.deep.equal({ pathname: "main.asm", lineNumber: 6 });
+        expect(sourceMap.addressToLocation(0x104)).to.deep.equal({ pathname: "main.asm", lineNumber: 7 });
+
+        // A use of a macro starts at its first instruction.
+        expect(sourceMap.locationToAddress(5)).to.equal(0x100);
+        expect(sourceMap.locationToAddress(7)).to.equal(0x103);
+        // The body of the definition generated nothing itself.
+        expect(sourceMap.locationToAddress(1)).to.be.undefined;
+    });
+
+    it("maps a nested macro's instructions to the outermost use", () => {
+        const sourceMap = makeSourceMap([
+            "one     macro",                // 0
+            "        inc a",                // 1
+            "        endm",                 // 2
+            "two     macro",                // 3
+            "        one",                  // 4
+            "        inc b",                // 5
+            "        one",                  // 6
+            "        endm",                 // 7
+            "        .org 0x100",           // 8
+            "        two",                  // 9  0x0100 to 0x0102
+            "        halt",                 // 10 0x0103
+        ].join("\n"));
+
+        for (const address of [0x100, 0x101, 0x102]) {
+            expect(sourceMap.addressToLocation(address)).to.deep.equal({ pathname: "main.asm", lineNumber: 9 });
+        }
+        expect(sourceMap.addressToLocation(0x103)).to.deep.equal({ pathname: "main.asm", lineNumber: 10 });
+    });
+
+    it("maps a macro used in an included file to that file's line", () => {
+        const sourceMap = makeSourceMap({
+            "main.asm": "twice macro\n inc a\n inc a\n endm\n .org 0x100\n #include \"sub.asm\"\n halt\n",
+            "sub.asm": " nop\n twice\n",
+        });
+
+        expect(sourceMap.addressToLocation(0x101)).to.deep.equal({ pathname: "sub.asm", lineNumber: 1 });
+        expect(sourceMap.addressToLocation(0x102)).to.deep.equal({ pathname: "sub.asm", lineNumber: 1 });
+        expect(sourceMap.addressToLocation(0x103)).to.deep.equal({ pathname: "main.asm", lineNumber: 6 });
+    });
+
+    it("has a location for a routine that returns into a macro's instructions", () => {
+        const result = assemble([
+            "callit  macro",                // 0
+            "        call sub",             // 1
+            "        inc a",                // 2
+            "        endm",                 // 3
+            "        .org 0x100",           // 4
+            "        callit",               // 5  0x0100 call, 0x0103 inc a
+            "        halt",                 // 6
+            "sub:    ret",                  // 7
+        ].join("\n"));
+        expect(result.diagnostics).to.deep.equal([]);
+        const sourceMap = new SourceMap(result);
+        const machine = new Z80Machine();
+        machine.loadAssembly(result);
+
+        machine.step();
+        machine.step();
+        expect(machine.z80.regs.pc).to.equal(0x103);
+        expect(sourceMap.addressToLocation(machine.z80.regs.pc)).to.deep.equal({ pathname: "main.asm", lineNumber: 5 });
     });
 });
 
@@ -187,8 +265,8 @@ describe("namedCallStack", () => {
     // method we use.
     function fakeMachine(frames: CallStackFrame[]): Z80Machine {
         return {
-            getCallStack(): CallStackFrame[] {
-                return frames;
+            getCallStack(max?: number): CallStackFrame[] {
+                return frames.slice(0, max ?? frames.length);
             },
         } as unknown as Z80Machine;
     }
@@ -202,12 +280,14 @@ describe("namedCallStack", () => {
                 targetAddress: 0x8007,
                 returnAddress: 0x8003,
                 stackAddress: 0xFFFD,
+                kind: "call",
             },
             {
                 callSiteAddress: 0x1000,
                 targetAddress: 0x8000,
                 returnAddress: 0x1003,
                 stackAddress: 0xFFFF,
+                kind: "interrupt",
             },
         ];
 
@@ -231,6 +311,7 @@ describe("namedCallStack", () => {
             targetAddress: 0x8000,
             returnAddress: 0x1003,
             stackAddress: 0xFFFD,
+            kind: "call",
         };
 
         expect(sourceMap.symbolAt(0x8000)?.name).to.equal("drawsprite");
@@ -245,12 +326,40 @@ describe("namedCallStack", () => {
             targetAddress: 0x0100,
             returnAddress: 0x8003,
             stackAddress: 0xFFFD,
+            kind: "call",
         };
 
         const named = sourceMap.namedCallStack(fakeMachine([frame]));
         expect(named.length).to.equal(1);
         expect(named[0].name).to.be.undefined;
         expect(named[0].targetAddress).to.equal(0x0100);
+    });
+
+    it("names only the newest frames when asked for some", () => {
+        const sourceMap = makeSourceMap(PROGRAM);
+        const frames: CallStackFrame[] = [
+            {callSiteAddress: 0x8000, targetAddress: 0x8007, returnAddress: 0x8003, stackAddress: 0xFFFB, kind: "call"},
+            {callSiteAddress: 0x1000, targetAddress: 0x8000, returnAddress: 0x1003, stackAddress: 0xFFFD, kind: "call"},
+        ];
+
+        expect(sourceMap.namedCallStack(fakeMachine(frames), 1).map(frame => frame.name)).to.deep.equal(["sub"]);
+    });
+
+    it("names the frames of a running machine", () => {
+        const result = assemble(PROGRAM);
+        const sourceMap = new SourceMap(result);
+        const machine = new Z80Machine();
+        machine.loadAssembly(result);
+
+        machine.step();
+        expect(sourceMap.namedCallStack(machine)).to.deep.equal([{
+            callSiteAddress: 0x8000,
+            targetAddress: 0x8007,
+            returnAddress: 0x8003,
+            stackAddress: 0xFFFD,
+            kind: "call",
+            name: "sub",
+        }]);
     });
 
     it("is empty for an empty call stack", () => {

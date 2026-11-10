@@ -1,4 +1,4 @@
-import {SymbolInfo, SymbolType} from "z80-asm";
+import {AssembledLine, SymbolInfo, SymbolType} from "z80-asm";
 import {AssemblyResult} from "./Assemble.js";
 import {CallStackFrame} from "./CallStack.js";
 import {DEFAULT_ENTRY_PATHNAME, MEMORY_SIZE} from "./Constants.js";
@@ -75,15 +75,22 @@ export class SourceMap {
         this.locationByAddress = new Array<SourceLocation | undefined>(MEMORY_SIZE);
 
         for (const line of result.asm.assembledLines) {
-            // Lines that generated no bytes have no address of their own, and
-            // lines expanded from macros or includes don't exist in any file.
-            if (line.binary.length === 0 || line.lineNumber === undefined) {
+            // Lines that generated no bytes have no address of their own.
+            if (line.binary.length === 0) {
+                continue;
+            }
+
+            // A line expanded from a macro exists in no file, so its bytes
+            // belong to the line that used the macro: the outermost use, for
+            // a macro used inside another one's body.
+            const sourceLine = lineInSource(line);
+            if (sourceLine === undefined || sourceLine.lineNumber === undefined) {
                 continue;
             }
 
             const location: SourceLocation = {
-                pathname: normalizePathname(line.fileInfo.pathname),
-                lineNumber: line.lineNumber,
+                pathname: normalizePathname(sourceLine.fileInfo.pathname),
+                lineNumber: sourceLine.lineNumber,
             };
 
             for (let i = 0; i < line.binary.length; i++) {
@@ -91,6 +98,7 @@ export class SourceMap {
             }
 
             // First line at a location wins, in case a file is included twice.
+            // For a macro's use, that is the first of its instructions.
             const key = locationKey(location.pathname, location.lineNumber);
             if (!this.addressByLocation.has(key)) {
                 this.addressByLocation.set(key, line.address);
@@ -154,14 +162,31 @@ export class SourceMap {
     }
 
     /**
-     * The machine's call stack with each frame named after the symbol at
-     * its call target, as the label is spelled in the source. See
-     * {@link Z80Machine.getCallStack}.
+     * The machine's Call stack, innermost frame first, with each frame named
+     * after the symbol at its call target, as the label is spelled in the
+     * source: the newest max frames, or all the frames the machine keeps if
+     * max is omitted. See {@link Z80Machine.getCallStack}.
      */
-    public namedCallStack(machine: Z80Machine): NamedCallStackFrame[] {
-        return machine.getCallStack().map(frame => ({
+    public namedCallStack(machine: Z80Machine, max?: number): NamedCallStackFrame[] {
+        return machine.getCallStack(max).map(frame => ({
             ...frame,
             name: this.symbolAt(frame.targetAddress)?.originalSpelling,
         }));
     }
+}
+
+/**
+ * The line in a source file that an assembled line comes from: the line
+ * itself, or for a line expanded from a macro, the line that used the
+ * macro, followed out through every macro it is nested in. Undefined for a
+ * line that comes from no file at all.
+ */
+function lineInSource(line: AssembledLine): AssembledLine | undefined {
+    let source: AssembledLine | undefined = line;
+
+    while (source !== undefined && source.lineNumber === undefined) {
+        source = source.expandedFrom;
+    }
+
+    return source;
 }

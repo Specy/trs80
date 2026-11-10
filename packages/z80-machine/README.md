@@ -1,9 +1,9 @@
 # @specy/z80
 
 A ready-to-use Z80 computer: 64 kB of RAM, IO through plain callbacks, a run
-loop with breakpoints and budgets, execution history with undo, whole-machine
-snapshots, call-stack reconstruction, and the assembler and disassembler
-wired up to it.
+loop with breakpoints, budgets and stepping by call depth, execution history
+with undo, whole-machine snapshots, a tracked call stack, and the assembler
+and disassembler wired up to it.
 
 ## Assemble, load, run
 
@@ -45,7 +45,8 @@ The reasons are:
 * `BREAKPOINT`: execution reached an address in the breakpoint set, and
   stopped before executing it.
 * `T_STATES_EXHAUSTED`, `INSTRUCTIONS_EXHAUSTED`: the run's budget ran out.
-* `STEP_COMPLETE`: a `stepOver()` or `stepOut()` reached its destination.
+* `CALL_DEPTH`: the call stack was at the depth that `untilCallDepth` asked
+  for, or less. See [Stepping](#stepping).
 * `PAUSED`: a handler called `pause()`. See below.
 
 Only the first two mean the program is over, which is what `isTerminated()`
@@ -176,9 +177,9 @@ overlays. A read returns the byte, or `undefined` to fall through to RAM. A
 write returns `true` if the device handled it (RAM is left untouched), or
 nothing to fall through to RAM.
 
-The debugger reads memory too: disassembly, call-stack reconstruction, and
-the instruction classification behind `stepOver()` all go through
-`onMemoryRead` by default, so that code served by a hook is decoded the way
+The debugger reads memory too: disassembly, and the instruction
+classification behind the call stack, the repeating block instructions and
+`exitOnReturn`, all go through `onMemoryRead` by default, so that code served by a hook is decoded the way
 the CPU will execute it. When a read has side effects, give `onDebugRead` a
 side-effect-free variant, or `() => undefined` to read RAM only:
 
@@ -257,16 +258,61 @@ console.log(sourceMap.symbolAt(machine.z80.regs.pc).originalSpelling);
 ```
 
 Line numbers are zero-based, and `locationToAddress()` takes an optional
-pathname for programs of several files. `symbolAt()` returns the nearest
-symbol at or below an address: the label the address belongs to.
-`getCallStack()` reconstructs the call stack from stack memory and the CPU's
-record of which instruction pushed each slot; `namedCallStack()` is the same
-stack with each frame named after the symbol at its call target.
+pathname for programs of several files. The bytes a macro generates belong to
+the line that used the macro (the outermost use, for a macro used inside
+another). `symbolAt()` returns the nearest symbol at or below an address: the
+label the address belongs to. `namedCallStack()` is the call stack, below,
+with each frame named after the symbol at its call target.
 
-`step()` runs one instruction. `stepOver()` runs a `call` or `rst` and its
-whole callee. `stepOut()` runs until the current routine returns. `save()`
-and `restore()` snapshot and restore the whole machine: registers, RAM,
-clock, stop state, and the stack provenance the call stack is rebuilt from.
+### The call stack
+
+The machine keeps track of its call stack as the program runs, whether or not
+history is on. `getCallStack()` returns the frames innermost first, or the
+newest few with `getCallStack(max)`, and `getCallDepth()` says how many there
+are. A frame holds the address of the call (`callSiteAddress`), the routine it
+entered (`targetAddress`), the return address it pushed, the stack address it
+pushed it at (`stackAddress`), and its `kind`, `"call"` or `"interrupt"`.
+
+* A `call` that is taken, an `rst`, and an interrupt or NMI the CPU takes
+  push a frame.
+* After every instruction, starting with the innermost frame, a frame is gone
+  when SP is above its stack address by no more than 4,096 bytes, counted with
+  16-bit wraparound, so a stack at the very top of memory (`ld sp, 0`) works.
+  Whatever moved SP ends the frame: a `ret` to a return address the routine
+  changed, a `longjmp` that puts back an older SP, or a `pop` of the return
+  address followed by a jump, which ends the frame at the `pop`.
+* A larger move of SP is a switch to another stack and removes nothing, so a
+  routine that borrows SP to fill memory with pushes keeps its frames.
+* The newest 131,072 frames are kept (the `callStackLimit` option). The depth
+  goes on counting the frames dropped beyond that.
+* `undo()` puts the call stack back exactly as it was, and `save()` and
+  `restore()` carry it.
+
+### Stepping
+
+`step()` runs one instruction. `run()` takes `untilCallDepth`: it stops with
+`CALL_DEPTH`, before executing anything more, as soon as `getCallDepth()` is
+that number or less. To step over a call, step once, and if the depth went up,
+run back to the depth from before. To step out of a routine, run to one less
+than the depth.
+
+The depth is tested when the run begins, so a run that starts at that depth
+executes nothing, and after every instruction, ahead of the breakpoints, the
+pause and the budgets. A run that ends on its budget therefore never ends on
+the instruction that finished the step, and a breakpoint on the instruction a
+step returns to reports `CALL_DEPTH`. `HALTED` and `RETURNED` win over it. The
+option holds no state, so a step cut short by a budget, a breakpoint or an
+input wait is finished by running again with the same number.
+
+A breakpoint at the PC a run starts on is passed over, so that resuming from a
+breakpoint makes progress. With `skipBreakpointAtPc: false` it stops the run
+instead, before anything executes.
+
+The repeating block instructions (`ldir`, `lddr`, `cpir`, `cpdr`, `inir`,
+`indr`, `otir` and `otdr`) run one repetition per `step()`.
+`blockInstructionWillRepeat()` says, without executing anything, whether the
+instruction at the PC is one of them and will go round again, so a debugger
+can run the whole block as one command.
 
 ```ts
 import {assemble, StopReason, Z80Machine} from "@specy/z80";
@@ -285,23 +331,40 @@ machine.loadAssembly(result);
 machine.step();                                  // ld b, 3
 const snapshot = machine.save();
 
-console.log(StopReason[machine.stepOver().reason], machine.z80.regs.b);
-// STEP_COMPLETE 6
+// Step over the call.
+const depth = machine.getCallDepth();
+machine.step();                                  // call double
+if (machine.getCallDepth() > depth) {
+    machine.run({untilCallDepth: depth});
+}
+console.log(StopReason[machine.stopReason], machine.z80.regs.b);
+// CALL_DEPTH 6
+
 machine.restore(snapshot);
 console.log(machine.z80.regs.b);
 // 3
 
 machine.step();                                  // into double
-console.log(machine.getCallStack().length);
-// 1
-console.log(StopReason[machine.stepOut().reason], machine.z80.regs.b);
-// STEP_COMPLETE 6
+console.log(machine.getCallStack()[0].targetAddress.toString(16), machine.getCallDepth());
+// 8006 1
+
+// Step out of it.
+const stepOut = machine.run({untilCallDepth: machine.getCallDepth() - 1});
+console.log(StopReason[stepOut.reason], stepOut.instructions, machine.z80.regs.b);
+// CALL_DEPTH 2 6
 ```
 
+`save()` and `restore()` snapshot and restore the whole machine: registers,
+RAM, clock, stop state, and the call stack.
+
+### History and undo
+
 The `historySize` option turns on the execution journal, a ring buffer of
-that many instructions. `getHistory()` reads it back, and `undo()` walks it
-backwards, restoring the CPU state and reversing each instruction's RAM
-writes. History is off by default, and costs nothing while off.
+that many instructions. `getHistory()` reads it back, oldest first, and
+`getHistory(max, skip)` reads the `max` records below the newest `skip`.
+`undo()` walks it backwards, restoring the CPU state and reversing each
+instruction's RAM writes. History is off by default, and costs nothing while
+off.
 
 ```ts
 import {assemble, toHexWord, Z80Machine} from "@specy/z80";
@@ -337,6 +400,12 @@ console.log(toHexWord(machine.z80.regs.pc), machine.memory[0x9000]);
 
 Port writes are recorded in the journal for display. `undo()` leaves them
 alone, since they have already reached the outside world.
+
+`getUndoDepth()` is how many records `undo()` can still take back.
+`getInstructionsExecuted()` counts every instruction the machine has executed
+and every interrupt it has taken, for its whole life: it only goes up, so the
+difference between two readings is how many ran in between. Both answer in
+constant time.
 
 ## Poking registers and memory
 
