@@ -259,7 +259,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 2,
             with_jump_clock_count: 8,
             without_jump_clock_count: 8,
-            description: "The contents of BC are loaded into HL.",
+            description: "Loads BC into HL.",
             instruction: "ld hl,bc",
         },
     });
@@ -278,7 +278,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 2,
             with_jump_clock_count: 8,
             without_jump_clock_count: 8,
-            description: "The contents of HL are loaded into BC.",
+            description: "Loads HL into BC.",
             instruction: "ld bc,hl",
         },
     });
@@ -297,7 +297,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 2,
             with_jump_clock_count: 8,
             without_jump_clock_count: 8,
-            description: "The contents of HL are loaded into DE.",
+            description: "Loads HL into DE.",
             instruction: "ld de,hl",
         },
     });
@@ -316,7 +316,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 2,
             with_jump_clock_count: 8,
             without_jump_clock_count: 8,
-            description: "The contents of DE are loaded into HL.",
+            description: "Loads DE into HL.",
             instruction: "ld hl,de",
         },
     });
@@ -335,7 +335,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 4,
             with_jump_clock_count: 26,
             without_jump_clock_count: 26,
-            description: "The contents of (HL) are loaded into BC.",
+            description: "Loads the value pointed to by HL into BC.",
             instruction: "ld bc,(hl)",
         },
     })
@@ -354,7 +354,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 4,
             with_jump_clock_count: 26,
             without_jump_clock_count: 26,
-            description: "The contents of BC are loaded into (HL).",
+            description: "Stores BC into the memory location pointed to by HL.",
             instruction: "ld (hl),bc",
         },
     })
@@ -373,7 +373,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 4,
             with_jump_clock_count: 26,
             without_jump_clock_count: 26,
-            description: "The contents of DE are loaded into (HL).",
+            description: "Stores DE into the memory location pointed to by HL.",
             instruction: "ld (hl),de",
         },
     })
@@ -392,7 +392,7 @@ function addPseudoInstructions(mnemonics: Mnemonics) {
             byte_count: 2,
             with_jump_clock_count: 8,
             without_jump_clock_count: 8,
-            description: "The contents of BC are loaded into DE.",
+            description: "Loads BC into DE.",
             instruction: "ld de,bc",
         },
     })

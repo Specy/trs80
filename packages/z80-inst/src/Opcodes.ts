@@ -19,7 +19,7 @@ const variant_00 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "No operation is performed.",
+    "description": "Performs no operation.",
     "instruction": "nop"
   }
 } as const satisfies OpcodeVariant;
@@ -210,7 +210,7 @@ const variant_07 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates A left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlca"
   }
 } as const satisfies OpcodeVariant;
@@ -297,7 +297,7 @@ const variant_09 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The value of BC is added to HL.",
+    "description": "Adds BC to HL.",
     "instruction": "add hl,bc"
   }
 } as const satisfies OpcodeVariant;
@@ -458,7 +458,7 @@ const variant_0F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates A right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrca"
   }
 } as const satisfies OpcodeVariant;
@@ -485,7 +485,7 @@ const variant_10_offset = {
     "byte_count": 2,
     "with_jump_clock_count": 13,
     "without_jump_clock_count": 8,
-    "description": "The B register is decremented, and if not zero, the signed value <var>offset</var> is added to PC. The jump is measured from the start of the instruction opcode.",
+    "description": "Decrements the B register and jumps to <var>offset</var> if it is not zero. The jump is measured from the start of the next instruction.",
     "instruction": "djnz offset"
   }
 } as const satisfies OpcodeVariant;
@@ -676,7 +676,7 @@ const variant_17 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates A left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rla"
   }
 } as const satisfies OpcodeVariant;
@@ -703,7 +703,7 @@ const variant_18_offset = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The signed value <var>offset</var> is added to PC. The jump is measured from the start of the instruction opcode.",
+    "description": "Jumps to <var>offset</var>. The jump is measured from the start of the next instruction.",
     "instruction": "jr offset"
   }
 } as const satisfies OpcodeVariant;
@@ -732,7 +732,7 @@ const variant_19 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The value of DE is added to HL.",
+    "description": "Adds DE to HL.",
     "instruction": "add hl,de"
   }
 } as const satisfies OpcodeVariant;
@@ -893,7 +893,7 @@ const variant_1F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates A right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rra"
   }
 } as const satisfies OpcodeVariant;
@@ -923,7 +923,7 @@ const variant_20_offset = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 7,
-    "description": "If the zero flag is unset, the signed value <var>offset</var> is added to PC. The jump is measured from the start of the instruction opcode.",
+    "description": "If the zero flag is unset, jumps to <var>offset</var>. The jump is measured from the start of the next instruction.",
     "instruction": "jr nz,offset"
   }
 } as const satisfies OpcodeVariant;
@@ -1115,7 +1115,7 @@ const variant_27 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Adjusts A for BCD addition and subtraction operations.",
+    "description": "Adjusts A for BCD addition and subtraction operations. Sets the carry flag if A was greater than 99h, and otherwise leaves it unchanged. Sets the half-carry flag if the adjustment carries or borrows between the low and high digits, and resets it otherwise.",
     "instruction": "daa"
   }
 } as const satisfies OpcodeVariant;
@@ -1145,7 +1145,7 @@ const variant_28_offset = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 7,
-    "description": "If the zero flag is set, the signed value <var>offset</var> is added to PC. The jump is measured from the start of the instruction opcode.",
+    "description": "If the zero flag is set, jumps to <var>offset</var>. The jump is measured from the start of the next instruction.",
     "instruction": "jr z,offset"
   }
 } as const satisfies OpcodeVariant;
@@ -1174,7 +1174,7 @@ const variant_29 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The value of HL is added to HL.",
+    "description": "Adds HL to HL.",
     "instruction": "add hl,hl"
   }
 } as const satisfies OpcodeVariant;
@@ -1336,7 +1336,7 @@ const variant_2F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are inverted (one's complement).",
+    "description": "Inverts every bit of A (one's complement).",
     "instruction": "cpl"
   }
 } as const satisfies OpcodeVariant;
@@ -1366,7 +1366,7 @@ const variant_30_offset = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 7,
-    "description": "If the carry flag is unset, the signed value <var>offset</var> is added to PC. The jump is measured from the start of the instruction opcode.",
+    "description": "If the carry flag is unset, jumps to <var>offset</var>. The jump is measured from the start of the next instruction.",
     "instruction": "jr nc,offset"
   }
 } as const satisfies OpcodeVariant;
@@ -1542,7 +1542,7 @@ const variant_36_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "Loads <var>nn</var> into (HL).",
+    "description": "Stores <var>nn</var> into (HL).",
     "instruction": "ld (hl),nn"
   }
 } as const satisfies OpcodeVariant;
@@ -1594,7 +1594,7 @@ const variant_38_offset = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 7,
-    "description": "If the carry flag is set, the signed value <var>offset</var> is added to PC. The jump is measured from the start of the instruction opcode.",
+    "description": "If the carry flag is set, jumps to <var>offset</var>. The jump is measured from the start of the next instruction.",
     "instruction": "jr c,offset"
   }
 } as const satisfies OpcodeVariant;
@@ -1623,7 +1623,7 @@ const variant_39 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The value of SP is added to HL.",
+    "description": "Adds SP to HL.",
     "instruction": "add hl,sp"
   }
 } as const satisfies OpcodeVariant;
@@ -1785,7 +1785,7 @@ const variant_3F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Inverts the carry flag.",
+    "description": "Inverts the carry flag. The half-carry flag receives the previous value of the carry flag.",
     "instruction": "ccf"
   }
 } as const satisfies OpcodeVariant;
@@ -1814,7 +1814,7 @@ const variant_40 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into B.",
+    "description": "Loads B into B.",
     "instruction": "ld b,b"
   }
 } as const satisfies OpcodeVariant;
@@ -1843,7 +1843,7 @@ const variant_41 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into B.",
+    "description": "Loads C into B.",
     "instruction": "ld b,c"
   }
 } as const satisfies OpcodeVariant;
@@ -1872,7 +1872,7 @@ const variant_42 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into B.",
+    "description": "Loads D into B.",
     "instruction": "ld b,d"
   }
 } as const satisfies OpcodeVariant;
@@ -1901,7 +1901,7 @@ const variant_43 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into B.",
+    "description": "Loads E into B.",
     "instruction": "ld b,e"
   }
 } as const satisfies OpcodeVariant;
@@ -1930,7 +1930,7 @@ const variant_44 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into B.",
+    "description": "Loads H into B.",
     "instruction": "ld b,h"
   }
 } as const satisfies OpcodeVariant;
@@ -1960,7 +1960,7 @@ const variant_44_4D_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of HL are loaded into BC.",
+    "description": "Loads HL into BC.",
     "instruction": "ld bc,hl"
   }
 } as const satisfies OpcodeVariant;
@@ -1989,7 +1989,7 @@ const variant_45 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into B.",
+    "description": "Loads L into B.",
     "instruction": "ld b,l"
   }
 } as const satisfies OpcodeVariant;
@@ -2020,7 +2020,7 @@ const variant_46 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into B.",
+    "description": "Loads (HL) into B.",
     "instruction": "ld b,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -2049,7 +2049,7 @@ const variant_47 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into B.",
+    "description": "Loads A into B.",
     "instruction": "ld b,a"
   }
 } as const satisfies OpcodeVariant;
@@ -2078,7 +2078,7 @@ const variant_48 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into C.",
+    "description": "Loads B into C.",
     "instruction": "ld c,b"
   }
 } as const satisfies OpcodeVariant;
@@ -2107,7 +2107,7 @@ const variant_49 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into C.",
+    "description": "Loads C into C.",
     "instruction": "ld c,c"
   }
 } as const satisfies OpcodeVariant;
@@ -2136,7 +2136,7 @@ const variant_4A = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into C.",
+    "description": "Loads D into C.",
     "instruction": "ld c,d"
   }
 } as const satisfies OpcodeVariant;
@@ -2165,7 +2165,7 @@ const variant_4B = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into C.",
+    "description": "Loads E into C.",
     "instruction": "ld c,e"
   }
 } as const satisfies OpcodeVariant;
@@ -2194,7 +2194,7 @@ const variant_4C = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into C.",
+    "description": "Loads H into C.",
     "instruction": "ld c,h"
   }
 } as const satisfies OpcodeVariant;
@@ -2223,7 +2223,7 @@ const variant_4D = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into C.",
+    "description": "Loads L into C.",
     "instruction": "ld c,l"
   }
 } as const satisfies OpcodeVariant;
@@ -2254,7 +2254,7 @@ const variant_4E = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into C.",
+    "description": "Loads (HL) into C.",
     "instruction": "ld c,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -2288,7 +2288,7 @@ const variant_4E_23_46_2B_pseudo = {
     "byte_count": 4,
     "with_jump_clock_count": 26,
     "without_jump_clock_count": 26,
-    "description": "The contents of (HL) are loaded into BC.",
+    "description": "Loads the value pointed to by HL into BC.",
     "instruction": "ld bc,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -2317,7 +2317,7 @@ const variant_4F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into C.",
+    "description": "Loads A into C.",
     "instruction": "ld c,a"
   }
 } as const satisfies OpcodeVariant;
@@ -2346,7 +2346,7 @@ const variant_50 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into D.",
+    "description": "Loads B into D.",
     "instruction": "ld d,b"
   }
 } as const satisfies OpcodeVariant;
@@ -2376,7 +2376,7 @@ const variant_50_59_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of BC are loaded into DE.",
+    "description": "Loads BC into DE.",
     "instruction": "ld de,bc"
   }
 } as const satisfies OpcodeVariant;
@@ -2405,7 +2405,7 @@ const variant_51 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into D.",
+    "description": "Loads C into D.",
     "instruction": "ld d,c"
   }
 } as const satisfies OpcodeVariant;
@@ -2434,7 +2434,7 @@ const variant_52 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into D.",
+    "description": "Loads D into D.",
     "instruction": "ld d,d"
   }
 } as const satisfies OpcodeVariant;
@@ -2463,7 +2463,7 @@ const variant_53 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into D.",
+    "description": "Loads E into D.",
     "instruction": "ld d,e"
   }
 } as const satisfies OpcodeVariant;
@@ -2492,7 +2492,7 @@ const variant_54 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into D.",
+    "description": "Loads H into D.",
     "instruction": "ld d,h"
   }
 } as const satisfies OpcodeVariant;
@@ -2522,7 +2522,7 @@ const variant_54_5D_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of HL are loaded into DE.",
+    "description": "Loads HL into DE.",
     "instruction": "ld de,hl"
   }
 } as const satisfies OpcodeVariant;
@@ -2551,7 +2551,7 @@ const variant_55 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into D.",
+    "description": "Loads L into D.",
     "instruction": "ld d,l"
   }
 } as const satisfies OpcodeVariant;
@@ -2582,7 +2582,7 @@ const variant_56 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into D.",
+    "description": "Loads (HL) into D.",
     "instruction": "ld d,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -2611,7 +2611,7 @@ const variant_57 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into D.",
+    "description": "Loads A into D.",
     "instruction": "ld d,a"
   }
 } as const satisfies OpcodeVariant;
@@ -2640,7 +2640,7 @@ const variant_58 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into E.",
+    "description": "Loads B into E.",
     "instruction": "ld e,b"
   }
 } as const satisfies OpcodeVariant;
@@ -2669,7 +2669,7 @@ const variant_59 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into E.",
+    "description": "Loads C into E.",
     "instruction": "ld e,c"
   }
 } as const satisfies OpcodeVariant;
@@ -2698,7 +2698,7 @@ const variant_5A = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into E.",
+    "description": "Loads D into E.",
     "instruction": "ld e,d"
   }
 } as const satisfies OpcodeVariant;
@@ -2727,7 +2727,7 @@ const variant_5B = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into E.",
+    "description": "Loads E into E.",
     "instruction": "ld e,e"
   }
 } as const satisfies OpcodeVariant;
@@ -2756,7 +2756,7 @@ const variant_5C = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into E.",
+    "description": "Loads H into E.",
     "instruction": "ld e,h"
   }
 } as const satisfies OpcodeVariant;
@@ -2785,7 +2785,7 @@ const variant_5D = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into E.",
+    "description": "Loads L into E.",
     "instruction": "ld e,l"
   }
 } as const satisfies OpcodeVariant;
@@ -2816,7 +2816,7 @@ const variant_5E = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into E.",
+    "description": "Loads (HL) into E.",
     "instruction": "ld e,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -2845,7 +2845,7 @@ const variant_5F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into E.",
+    "description": "Loads A into E.",
     "instruction": "ld e,a"
   }
 } as const satisfies OpcodeVariant;
@@ -2874,7 +2874,7 @@ const variant_60 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into H.",
+    "description": "Loads B into H.",
     "instruction": "ld h,b"
   }
 } as const satisfies OpcodeVariant;
@@ -2904,7 +2904,7 @@ const variant_60_69_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of BC are loaded into HL.",
+    "description": "Loads BC into HL.",
     "instruction": "ld hl,bc"
   }
 } as const satisfies OpcodeVariant;
@@ -2933,7 +2933,7 @@ const variant_61 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into H.",
+    "description": "Loads C into H.",
     "instruction": "ld h,c"
   }
 } as const satisfies OpcodeVariant;
@@ -2962,7 +2962,7 @@ const variant_62 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into H.",
+    "description": "Loads D into H.",
     "instruction": "ld h,d"
   }
 } as const satisfies OpcodeVariant;
@@ -2992,7 +2992,7 @@ const variant_62_6B_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of DE are loaded into HL.",
+    "description": "Loads DE into HL.",
     "instruction": "ld hl,de"
   }
 } as const satisfies OpcodeVariant;
@@ -3021,7 +3021,7 @@ const variant_63 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into H.",
+    "description": "Loads E into H.",
     "instruction": "ld h,e"
   }
 } as const satisfies OpcodeVariant;
@@ -3050,7 +3050,7 @@ const variant_64 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into H.",
+    "description": "Loads H into H.",
     "instruction": "ld h,h"
   }
 } as const satisfies OpcodeVariant;
@@ -3079,7 +3079,7 @@ const variant_65 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into H.",
+    "description": "Loads L into H.",
     "instruction": "ld h,l"
   }
 } as const satisfies OpcodeVariant;
@@ -3110,7 +3110,7 @@ const variant_66 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into H.",
+    "description": "Loads (HL) into H.",
     "instruction": "ld h,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -3139,7 +3139,7 @@ const variant_67 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into H.",
+    "description": "Loads A into H.",
     "instruction": "ld h,a"
   }
 } as const satisfies OpcodeVariant;
@@ -3168,7 +3168,7 @@ const variant_68 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into L.",
+    "description": "Loads B into L.",
     "instruction": "ld l,b"
   }
 } as const satisfies OpcodeVariant;
@@ -3197,7 +3197,7 @@ const variant_69 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into L.",
+    "description": "Loads C into L.",
     "instruction": "ld l,c"
   }
 } as const satisfies OpcodeVariant;
@@ -3226,7 +3226,7 @@ const variant_6A = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into L.",
+    "description": "Loads D into L.",
     "instruction": "ld l,d"
   }
 } as const satisfies OpcodeVariant;
@@ -3255,7 +3255,7 @@ const variant_6B = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into L.",
+    "description": "Loads E into L.",
     "instruction": "ld l,e"
   }
 } as const satisfies OpcodeVariant;
@@ -3284,7 +3284,7 @@ const variant_6C = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into L.",
+    "description": "Loads H into L.",
     "instruction": "ld l,h"
   }
 } as const satisfies OpcodeVariant;
@@ -3313,7 +3313,7 @@ const variant_6D = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into L.",
+    "description": "Loads L into L.",
     "instruction": "ld l,l"
   }
 } as const satisfies OpcodeVariant;
@@ -3344,7 +3344,7 @@ const variant_6E = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into L.",
+    "description": "Loads (HL) into L.",
     "instruction": "ld l,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -3373,7 +3373,7 @@ const variant_6F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into L.",
+    "description": "Loads A into L.",
     "instruction": "ld l,a"
   }
 } as const satisfies OpcodeVariant;
@@ -3404,7 +3404,7 @@ const variant_70 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of B are loaded into (HL).",
+    "description": "Stores B into (HL).",
     "instruction": "ld (hl),b"
   }
 } as const satisfies OpcodeVariant;
@@ -3435,7 +3435,7 @@ const variant_71 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of C are loaded into (HL).",
+    "description": "Stores C into (HL).",
     "instruction": "ld (hl),c"
   }
 } as const satisfies OpcodeVariant;
@@ -3469,7 +3469,7 @@ const variant_71_23_70_2B_pseudo = {
     "byte_count": 4,
     "with_jump_clock_count": 26,
     "without_jump_clock_count": 26,
-    "description": "The contents of BC are loaded into (HL).",
+    "description": "Stores BC into the memory location pointed to by HL.",
     "instruction": "ld (hl),bc"
   }
 } as const satisfies OpcodeVariant;
@@ -3500,7 +3500,7 @@ const variant_72 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of D are loaded into (HL).",
+    "description": "Stores D into (HL).",
     "instruction": "ld (hl),d"
   }
 } as const satisfies OpcodeVariant;
@@ -3531,7 +3531,7 @@ const variant_73 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of E are loaded into (HL).",
+    "description": "Stores E into (HL).",
     "instruction": "ld (hl),e"
   }
 } as const satisfies OpcodeVariant;
@@ -3565,7 +3565,7 @@ const variant_73_23_72_2B_pseudo = {
     "byte_count": 4,
     "with_jump_clock_count": 26,
     "without_jump_clock_count": 26,
-    "description": "The contents of DE are loaded into (HL).",
+    "description": "Stores DE into the memory location pointed to by HL.",
     "instruction": "ld (hl),de"
   }
 } as const satisfies OpcodeVariant;
@@ -3596,7 +3596,7 @@ const variant_74 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of H are loaded into (HL).",
+    "description": "Stores H into (HL).",
     "instruction": "ld (hl),h"
   }
 } as const satisfies OpcodeVariant;
@@ -3627,7 +3627,7 @@ const variant_75 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of L are loaded into (HL).",
+    "description": "Stores L into (HL).",
     "instruction": "ld (hl),l"
   }
 } as const satisfies OpcodeVariant;
@@ -3680,7 +3680,7 @@ const variant_77 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of A are loaded into (HL).",
+    "description": "Stores A into (HL).",
     "instruction": "ld (hl),a"
   }
 } as const satisfies OpcodeVariant;
@@ -3709,7 +3709,7 @@ const variant_78 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of B are loaded into A.",
+    "description": "Loads B into A.",
     "instruction": "ld a,b"
   }
 } as const satisfies OpcodeVariant;
@@ -3738,7 +3738,7 @@ const variant_79 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of C are loaded into A.",
+    "description": "Loads C into A.",
     "instruction": "ld a,c"
   }
 } as const satisfies OpcodeVariant;
@@ -3767,7 +3767,7 @@ const variant_7A = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of D are loaded into A.",
+    "description": "Loads D into A.",
     "instruction": "ld a,d"
   }
 } as const satisfies OpcodeVariant;
@@ -3796,7 +3796,7 @@ const variant_7B = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of E are loaded into A.",
+    "description": "Loads E into A.",
     "instruction": "ld a,e"
   }
 } as const satisfies OpcodeVariant;
@@ -3825,7 +3825,7 @@ const variant_7C = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of H are loaded into A.",
+    "description": "Loads H into A.",
     "instruction": "ld a,h"
   }
 } as const satisfies OpcodeVariant;
@@ -3854,7 +3854,7 @@ const variant_7D = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of L are loaded into A.",
+    "description": "Loads L into A.",
     "instruction": "ld a,l"
   }
 } as const satisfies OpcodeVariant;
@@ -3885,7 +3885,7 @@ const variant_7E = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "The contents of (HL) are loaded into A.",
+    "description": "Loads (HL) into A.",
     "instruction": "ld a,(hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -3914,7 +3914,7 @@ const variant_7F = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "The contents of A are loaded into A.",
+    "description": "Loads A into A.",
     "instruction": "ld a,a"
   }
 } as const satisfies OpcodeVariant;
@@ -5716,7 +5716,7 @@ const variant_A0 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with B.",
+    "description": "Sets A to the bitwise AND of A and B.",
     "instruction": "and b"
   }
 } as const satisfies OpcodeVariant;
@@ -5745,7 +5745,7 @@ const variant_A0_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with B.",
+    "description": "Sets A to the bitwise AND of A and B.",
     "instruction": "and b"
   }
 } as const satisfies OpcodeVariant;
@@ -5771,7 +5771,7 @@ const variant_A1 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with C.",
+    "description": "Sets A to the bitwise AND of A and C.",
     "instruction": "and c"
   }
 } as const satisfies OpcodeVariant;
@@ -5800,7 +5800,7 @@ const variant_A1_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with C.",
+    "description": "Sets A to the bitwise AND of A and C.",
     "instruction": "and c"
   }
 } as const satisfies OpcodeVariant;
@@ -5826,7 +5826,7 @@ const variant_A2 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with D.",
+    "description": "Sets A to the bitwise AND of A and D.",
     "instruction": "and d"
   }
 } as const satisfies OpcodeVariant;
@@ -5855,7 +5855,7 @@ const variant_A2_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with D.",
+    "description": "Sets A to the bitwise AND of A and D.",
     "instruction": "and d"
   }
 } as const satisfies OpcodeVariant;
@@ -5881,7 +5881,7 @@ const variant_A3 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with E.",
+    "description": "Sets A to the bitwise AND of A and E.",
     "instruction": "and e"
   }
 } as const satisfies OpcodeVariant;
@@ -5910,7 +5910,7 @@ const variant_A3_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with E.",
+    "description": "Sets A to the bitwise AND of A and E.",
     "instruction": "and e"
   }
 } as const satisfies OpcodeVariant;
@@ -5936,7 +5936,7 @@ const variant_A4 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with H.",
+    "description": "Sets A to the bitwise AND of A and H.",
     "instruction": "and h"
   }
 } as const satisfies OpcodeVariant;
@@ -5965,7 +5965,7 @@ const variant_A4_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with H.",
+    "description": "Sets A to the bitwise AND of A and H.",
     "instruction": "and h"
   }
 } as const satisfies OpcodeVariant;
@@ -5991,7 +5991,7 @@ const variant_A5 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with L.",
+    "description": "Sets A to the bitwise AND of A and L.",
     "instruction": "and l"
   }
 } as const satisfies OpcodeVariant;
@@ -6020,7 +6020,7 @@ const variant_A5_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with L.",
+    "description": "Sets A to the bitwise AND of A and L.",
     "instruction": "and l"
   }
 } as const satisfies OpcodeVariant;
@@ -6048,7 +6048,7 @@ const variant_A6 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise AND on A with (HL).",
+    "description": "Sets A to the bitwise AND of A and (HL).",
     "instruction": "and (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -6079,7 +6079,7 @@ const variant_A6_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise AND on A with (HL).",
+    "description": "Sets A to the bitwise AND of A and (HL).",
     "instruction": "and (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -6105,7 +6105,7 @@ const variant_A7 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with A.",
+    "description": "Sets A to the bitwise AND of A and A.",
     "instruction": "and a"
   }
 } as const satisfies OpcodeVariant;
@@ -6134,7 +6134,7 @@ const variant_A7_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise AND on A with A.",
+    "description": "Sets A to the bitwise AND of A and A.",
     "instruction": "and a"
   }
 } as const satisfies OpcodeVariant;
@@ -6160,7 +6160,7 @@ const variant_A8 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with B.",
+    "description": "Sets A to the bitwise XOR of A and B.",
     "instruction": "xor b"
   }
 } as const satisfies OpcodeVariant;
@@ -6189,7 +6189,7 @@ const variant_A8_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with B.",
+    "description": "Sets A to the bitwise XOR of A and B.",
     "instruction": "xor b"
   }
 } as const satisfies OpcodeVariant;
@@ -6215,7 +6215,7 @@ const variant_A9 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with C.",
+    "description": "Sets A to the bitwise XOR of A and C.",
     "instruction": "xor c"
   }
 } as const satisfies OpcodeVariant;
@@ -6244,7 +6244,7 @@ const variant_A9_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with C.",
+    "description": "Sets A to the bitwise XOR of A and C.",
     "instruction": "xor c"
   }
 } as const satisfies OpcodeVariant;
@@ -6270,7 +6270,7 @@ const variant_AA = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with D.",
+    "description": "Sets A to the bitwise XOR of A and D.",
     "instruction": "xor d"
   }
 } as const satisfies OpcodeVariant;
@@ -6299,7 +6299,7 @@ const variant_AA_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with D.",
+    "description": "Sets A to the bitwise XOR of A and D.",
     "instruction": "xor d"
   }
 } as const satisfies OpcodeVariant;
@@ -6325,7 +6325,7 @@ const variant_AB = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with E.",
+    "description": "Sets A to the bitwise XOR of A and E.",
     "instruction": "xor e"
   }
 } as const satisfies OpcodeVariant;
@@ -6354,7 +6354,7 @@ const variant_AB_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with E.",
+    "description": "Sets A to the bitwise XOR of A and E.",
     "instruction": "xor e"
   }
 } as const satisfies OpcodeVariant;
@@ -6380,7 +6380,7 @@ const variant_AC = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with H.",
+    "description": "Sets A to the bitwise XOR of A and H.",
     "instruction": "xor h"
   }
 } as const satisfies OpcodeVariant;
@@ -6409,7 +6409,7 @@ const variant_AC_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with H.",
+    "description": "Sets A to the bitwise XOR of A and H.",
     "instruction": "xor h"
   }
 } as const satisfies OpcodeVariant;
@@ -6435,7 +6435,7 @@ const variant_AD = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with L.",
+    "description": "Sets A to the bitwise XOR of A and L.",
     "instruction": "xor l"
   }
 } as const satisfies OpcodeVariant;
@@ -6464,7 +6464,7 @@ const variant_AD_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with L.",
+    "description": "Sets A to the bitwise XOR of A and L.",
     "instruction": "xor l"
   }
 } as const satisfies OpcodeVariant;
@@ -6492,7 +6492,7 @@ const variant_AE = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise XOR on A with (HL).",
+    "description": "Sets A to the bitwise XOR of A and (HL).",
     "instruction": "xor (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -6523,7 +6523,7 @@ const variant_AE_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise XOR on A with (HL).",
+    "description": "Sets A to the bitwise XOR of A and (HL).",
     "instruction": "xor (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -6549,7 +6549,7 @@ const variant_AF = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with A.",
+    "description": "Sets A to the bitwise XOR of A and A.",
     "instruction": "xor a"
   }
 } as const satisfies OpcodeVariant;
@@ -6578,7 +6578,7 @@ const variant_AF_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise XOR on A with A.",
+    "description": "Sets A to the bitwise XOR of A and A.",
     "instruction": "xor a"
   }
 } as const satisfies OpcodeVariant;
@@ -6604,7 +6604,7 @@ const variant_B0 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with B.",
+    "description": "Sets A to the bitwise OR of A and B.",
     "instruction": "or b"
   }
 } as const satisfies OpcodeVariant;
@@ -6633,7 +6633,7 @@ const variant_B0_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with B.",
+    "description": "Sets A to the bitwise OR of A and B.",
     "instruction": "or b"
   }
 } as const satisfies OpcodeVariant;
@@ -6659,7 +6659,7 @@ const variant_B1 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with C.",
+    "description": "Sets A to the bitwise OR of A and C.",
     "instruction": "or c"
   }
 } as const satisfies OpcodeVariant;
@@ -6688,7 +6688,7 @@ const variant_B1_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with C.",
+    "description": "Sets A to the bitwise OR of A and C.",
     "instruction": "or c"
   }
 } as const satisfies OpcodeVariant;
@@ -6714,7 +6714,7 @@ const variant_B2 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with D.",
+    "description": "Sets A to the bitwise OR of A and D.",
     "instruction": "or d"
   }
 } as const satisfies OpcodeVariant;
@@ -6743,7 +6743,7 @@ const variant_B2_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with D.",
+    "description": "Sets A to the bitwise OR of A and D.",
     "instruction": "or d"
   }
 } as const satisfies OpcodeVariant;
@@ -6769,7 +6769,7 @@ const variant_B3 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with E.",
+    "description": "Sets A to the bitwise OR of A and E.",
     "instruction": "or e"
   }
 } as const satisfies OpcodeVariant;
@@ -6798,7 +6798,7 @@ const variant_B3_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with E.",
+    "description": "Sets A to the bitwise OR of A and E.",
     "instruction": "or e"
   }
 } as const satisfies OpcodeVariant;
@@ -6824,7 +6824,7 @@ const variant_B4 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with H.",
+    "description": "Sets A to the bitwise OR of A and H.",
     "instruction": "or h"
   }
 } as const satisfies OpcodeVariant;
@@ -6853,7 +6853,7 @@ const variant_B4_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with H.",
+    "description": "Sets A to the bitwise OR of A and H.",
     "instruction": "or h"
   }
 } as const satisfies OpcodeVariant;
@@ -6879,7 +6879,7 @@ const variant_B5 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with L.",
+    "description": "Sets A to the bitwise OR of A and L.",
     "instruction": "or l"
   }
 } as const satisfies OpcodeVariant;
@@ -6908,7 +6908,7 @@ const variant_B5_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with L.",
+    "description": "Sets A to the bitwise OR of A and L.",
     "instruction": "or l"
   }
 } as const satisfies OpcodeVariant;
@@ -6936,7 +6936,7 @@ const variant_B6 = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise OR on A with (HL).",
+    "description": "Sets A to the bitwise OR of A and (HL).",
     "instruction": "or (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -6967,7 +6967,7 @@ const variant_B6_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise OR on A with (HL).",
+    "description": "Sets A to the bitwise OR of A and (HL).",
     "instruction": "or (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -6993,7 +6993,7 @@ const variant_B7 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with A.",
+    "description": "Sets A to the bitwise OR of A and A.",
     "instruction": "or a"
   }
 } as const satisfies OpcodeVariant;
@@ -7022,7 +7022,7 @@ const variant_B7_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Bitwise OR on A with A.",
+    "description": "Sets A to the bitwise OR of A and A.",
     "instruction": "or a"
   }
 } as const satisfies OpcodeVariant;
@@ -7048,7 +7048,7 @@ const variant_B8 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts B from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts B from A to set the flags, but leaves A unchanged.",
     "instruction": "cp b"
   }
 } as const satisfies OpcodeVariant;
@@ -7077,7 +7077,7 @@ const variant_B8_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts B from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts B from A to set the flags, but leaves A unchanged.",
     "instruction": "cp b"
   }
 } as const satisfies OpcodeVariant;
@@ -7103,7 +7103,7 @@ const variant_B9 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts C from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts C from A to set the flags, but leaves A unchanged.",
     "instruction": "cp c"
   }
 } as const satisfies OpcodeVariant;
@@ -7132,7 +7132,7 @@ const variant_B9_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts C from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts C from A to set the flags, but leaves A unchanged.",
     "instruction": "cp c"
   }
 } as const satisfies OpcodeVariant;
@@ -7158,7 +7158,7 @@ const variant_BA = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts D from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts D from A to set the flags, but leaves A unchanged.",
     "instruction": "cp d"
   }
 } as const satisfies OpcodeVariant;
@@ -7187,7 +7187,7 @@ const variant_BA_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts D from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts D from A to set the flags, but leaves A unchanged.",
     "instruction": "cp d"
   }
 } as const satisfies OpcodeVariant;
@@ -7213,7 +7213,7 @@ const variant_BB = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts E from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts E from A to set the flags, but leaves A unchanged.",
     "instruction": "cp e"
   }
 } as const satisfies OpcodeVariant;
@@ -7242,7 +7242,7 @@ const variant_BB_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts E from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts E from A to set the flags, but leaves A unchanged.",
     "instruction": "cp e"
   }
 } as const satisfies OpcodeVariant;
@@ -7268,7 +7268,7 @@ const variant_BC = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts H from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts H from A to set the flags, but leaves A unchanged.",
     "instruction": "cp h"
   }
 } as const satisfies OpcodeVariant;
@@ -7297,7 +7297,7 @@ const variant_BC_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts H from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts H from A to set the flags, but leaves A unchanged.",
     "instruction": "cp h"
   }
 } as const satisfies OpcodeVariant;
@@ -7323,7 +7323,7 @@ const variant_BD = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts L from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts L from A to set the flags, but leaves A unchanged.",
     "instruction": "cp l"
   }
 } as const satisfies OpcodeVariant;
@@ -7352,7 +7352,7 @@ const variant_BD_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts L from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts L from A to set the flags, but leaves A unchanged.",
     "instruction": "cp l"
   }
 } as const satisfies OpcodeVariant;
@@ -7380,7 +7380,7 @@ const variant_BE = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Subtracts (HL) from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts (HL) from A to set the flags, but leaves A unchanged.",
     "instruction": "cp (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -7411,7 +7411,7 @@ const variant_BE_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Subtracts (HL) from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts (HL) from A to set the flags, but leaves A unchanged.",
     "instruction": "cp (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -7437,7 +7437,7 @@ const variant_BF = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts A from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts A from A to set the flags, but leaves A unchanged.",
     "instruction": "cp a"
   }
 } as const satisfies OpcodeVariant;
@@ -7466,7 +7466,7 @@ const variant_BF_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Subtracts A from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts A from A to set the flags, but leaves A unchanged.",
     "instruction": "cp a"
   }
 } as const satisfies OpcodeVariant;
@@ -7492,7 +7492,7 @@ const variant_C0 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the zero flag is unset, the top stack entry is popped into PC.",
+    "description": "If the zero flag is unset, pops the top stack entry into PC.",
     "instruction": "ret nz"
   }
 } as const satisfies OpcodeVariant;
@@ -7518,7 +7518,7 @@ const variant_C1 = {
     "byte_count": 1,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "The memory location pointed to by SP is stored into C and SP is incremented. The memory location pointed to by SP is stored into B and SP is incremented again.",
+    "description": "Loads the value pointed to by SP into C and increments SP, then loads the value pointed to by SP into B and increments SP again.",
     "instruction": "pop bc"
   }
 } as const satisfies OpcodeVariant;
@@ -7548,7 +7548,7 @@ const variant_C2_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the zero flag is unset, <var>nnnn</var> is copied to PC.",
+    "description": "If the zero flag is unset, jumps to <var>nnnn</var>.",
     "instruction": "jp nz,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -7575,7 +7575,7 @@ const variant_C3_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "<var>nnnn</var> is copied to PC.",
+    "description": "Jumps to <var>nnnn</var>.",
     "instruction": "jp nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -7605,7 +7605,7 @@ const variant_C4_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the zero flag is unset, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the zero flag is unset, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call nz,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -7631,7 +7631,7 @@ const variant_C5 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "SP is decremented and B is stored into the memory location pointed to by SP. SP is decremented again and C is stored into the memory location pointed to by SP.",
+    "description": "Decrements SP and stores B into the memory location pointed to by SP, then decrements SP again and stores C there.",
     "instruction": "push bc"
   }
 } as const satisfies OpcodeVariant;
@@ -7714,7 +7714,7 @@ const variant_C7 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 0.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 00h.",
     "instruction": "rst 00"
   }
 } as const satisfies OpcodeVariant;
@@ -7740,7 +7740,7 @@ const variant_C8 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the zero flag is set, the top stack entry is popped into PC.",
+    "description": "If the zero flag is set, pops the top stack entry into PC.",
     "instruction": "ret z"
   }
 } as const satisfies OpcodeVariant;
@@ -7762,7 +7762,7 @@ const variant_C9 = {
     "byte_count": 1,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "The top stack entry is popped into PC.",
+    "description": "Pops the top stack entry into PC.",
     "instruction": "ret"
   }
 } as const satisfies OpcodeVariant;
@@ -7792,7 +7792,7 @@ const variant_CA_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the zero flag is set, <var>nnnn</var> is copied to PC.",
+    "description": "If the zero flag is set, jumps to <var>nnnn</var>.",
     "instruction": "jp z,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -7819,7 +7819,7 @@ const variant_CB_00 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates B left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc b"
   }
 } as const satisfies OpcodeVariant;
@@ -7846,7 +7846,7 @@ const variant_CB_01 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates C left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc c"
   }
 } as const satisfies OpcodeVariant;
@@ -7873,7 +7873,7 @@ const variant_CB_02 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates D left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc d"
   }
 } as const satisfies OpcodeVariant;
@@ -7900,7 +7900,7 @@ const variant_CB_03 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates E left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc e"
   }
 } as const satisfies OpcodeVariant;
@@ -7927,7 +7927,7 @@ const variant_CB_04 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates H left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc h"
   }
 } as const satisfies OpcodeVariant;
@@ -7954,7 +7954,7 @@ const variant_CB_05 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates L left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc l"
   }
 } as const satisfies OpcodeVariant;
@@ -7983,7 +7983,7 @@ const variant_CB_06 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates (HL) left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -8010,7 +8010,7 @@ const variant_CB_07 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates A left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc a"
   }
 } as const satisfies OpcodeVariant;
@@ -8037,7 +8037,7 @@ const variant_CB_08 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates B right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc b"
   }
 } as const satisfies OpcodeVariant;
@@ -8064,7 +8064,7 @@ const variant_CB_09 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates C right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc c"
   }
 } as const satisfies OpcodeVariant;
@@ -8091,7 +8091,7 @@ const variant_CB_0A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates D right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc d"
   }
 } as const satisfies OpcodeVariant;
@@ -8118,7 +8118,7 @@ const variant_CB_0B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates E right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc e"
   }
 } as const satisfies OpcodeVariant;
@@ -8145,7 +8145,7 @@ const variant_CB_0C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates H right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc h"
   }
 } as const satisfies OpcodeVariant;
@@ -8172,7 +8172,7 @@ const variant_CB_0D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates L right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc l"
   }
 } as const satisfies OpcodeVariant;
@@ -8201,7 +8201,7 @@ const variant_CB_0E = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates (HL) right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -8228,7 +8228,7 @@ const variant_CB_0F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates A right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc a"
   }
 } as const satisfies OpcodeVariant;
@@ -8255,7 +8255,7 @@ const variant_CB_10 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates B left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl b"
   }
 } as const satisfies OpcodeVariant;
@@ -8282,7 +8282,7 @@ const variant_CB_11 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates C left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl c"
   }
 } as const satisfies OpcodeVariant;
@@ -8309,7 +8309,7 @@ const variant_CB_12 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates D left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl d"
   }
 } as const satisfies OpcodeVariant;
@@ -8336,7 +8336,7 @@ const variant_CB_13 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates E left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl e"
   }
 } as const satisfies OpcodeVariant;
@@ -8363,7 +8363,7 @@ const variant_CB_14 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates H left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl h"
   }
 } as const satisfies OpcodeVariant;
@@ -8390,7 +8390,7 @@ const variant_CB_15 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates L left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl l"
   }
 } as const satisfies OpcodeVariant;
@@ -8419,7 +8419,7 @@ const variant_CB_16 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates (HL) left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -8446,7 +8446,7 @@ const variant_CB_17 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates A left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl a"
   }
 } as const satisfies OpcodeVariant;
@@ -8473,7 +8473,7 @@ const variant_CB_18 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates B right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr b"
   }
 } as const satisfies OpcodeVariant;
@@ -8500,7 +8500,7 @@ const variant_CB_19 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates C right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr c"
   }
 } as const satisfies OpcodeVariant;
@@ -8527,7 +8527,7 @@ const variant_CB_1A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates D right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr d"
   }
 } as const satisfies OpcodeVariant;
@@ -8554,7 +8554,7 @@ const variant_CB_1B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates E right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr e"
   }
 } as const satisfies OpcodeVariant;
@@ -8581,7 +8581,7 @@ const variant_CB_1C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates H right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr h"
   }
 } as const satisfies OpcodeVariant;
@@ -8608,7 +8608,7 @@ const variant_CB_1D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates L right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr l"
   }
 } as const satisfies OpcodeVariant;
@@ -8637,7 +8637,7 @@ const variant_CB_1E = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates (HL) right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -8664,7 +8664,7 @@ const variant_CB_1F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates A right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr a"
   }
 } as const satisfies OpcodeVariant;
@@ -8691,7 +8691,7 @@ const variant_CB_20 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts B left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla b"
   }
 } as const satisfies OpcodeVariant;
@@ -8718,7 +8718,7 @@ const variant_CB_21 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts C left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla c"
   }
 } as const satisfies OpcodeVariant;
@@ -8745,7 +8745,7 @@ const variant_CB_22 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts D left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla d"
   }
 } as const satisfies OpcodeVariant;
@@ -8772,7 +8772,7 @@ const variant_CB_23 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts E left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla e"
   }
 } as const satisfies OpcodeVariant;
@@ -8799,7 +8799,7 @@ const variant_CB_24 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts H left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla h"
   }
 } as const satisfies OpcodeVariant;
@@ -8826,7 +8826,7 @@ const variant_CB_25 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts L left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla l"
   }
 } as const satisfies OpcodeVariant;
@@ -8855,7 +8855,7 @@ const variant_CB_26 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts (HL) left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -8882,7 +8882,7 @@ const variant_CB_27 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts A left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla a"
   }
 } as const satisfies OpcodeVariant;
@@ -8909,7 +8909,7 @@ const variant_CB_28 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts B right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra b"
   }
 } as const satisfies OpcodeVariant;
@@ -8936,7 +8936,7 @@ const variant_CB_29 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts C right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra c"
   }
 } as const satisfies OpcodeVariant;
@@ -8963,7 +8963,7 @@ const variant_CB_2A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts D right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra d"
   }
 } as const satisfies OpcodeVariant;
@@ -8990,7 +8990,7 @@ const variant_CB_2B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts E right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra e"
   }
 } as const satisfies OpcodeVariant;
@@ -9017,7 +9017,7 @@ const variant_CB_2C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts H right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra h"
   }
 } as const satisfies OpcodeVariant;
@@ -9044,7 +9044,7 @@ const variant_CB_2D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts L right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra l"
   }
 } as const satisfies OpcodeVariant;
@@ -9073,7 +9073,7 @@ const variant_CB_2E = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts (HL) right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -9100,7 +9100,7 @@ const variant_CB_2F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts A right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra a"
   }
 } as const satisfies OpcodeVariant;
@@ -9127,7 +9127,7 @@ const variant_CB_30 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts B left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll b"
   }
 } as const satisfies OpcodeVariant;
@@ -9154,7 +9154,7 @@ const variant_CB_31 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts C left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll c"
   }
 } as const satisfies OpcodeVariant;
@@ -9181,7 +9181,7 @@ const variant_CB_32 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts D left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll d"
   }
 } as const satisfies OpcodeVariant;
@@ -9208,7 +9208,7 @@ const variant_CB_33 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts E left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll e"
   }
 } as const satisfies OpcodeVariant;
@@ -9235,7 +9235,7 @@ const variant_CB_34 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts H left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll h"
   }
 } as const satisfies OpcodeVariant;
@@ -9262,7 +9262,7 @@ const variant_CB_35 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts L left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll l"
   }
 } as const satisfies OpcodeVariant;
@@ -9291,7 +9291,7 @@ const variant_CB_36 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts (HL) left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -9318,7 +9318,7 @@ const variant_CB_37 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts A left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll a"
   }
 } as const satisfies OpcodeVariant;
@@ -9345,7 +9345,7 @@ const variant_CB_38 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts B right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl b"
   }
 } as const satisfies OpcodeVariant;
@@ -9372,7 +9372,7 @@ const variant_CB_39 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts C right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl c"
   }
 } as const satisfies OpcodeVariant;
@@ -9399,7 +9399,7 @@ const variant_CB_3A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts D right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl d"
   }
 } as const satisfies OpcodeVariant;
@@ -9426,7 +9426,7 @@ const variant_CB_3B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts E right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl e"
   }
 } as const satisfies OpcodeVariant;
@@ -9453,7 +9453,7 @@ const variant_CB_3C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of H are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts H right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl h"
   }
 } as const satisfies OpcodeVariant;
@@ -9480,7 +9480,7 @@ const variant_CB_3D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of L are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts L right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl l"
   }
 } as const satisfies OpcodeVariant;
@@ -9509,7 +9509,7 @@ const variant_CB_3E = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The contents of (HL) are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts (HL) right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -9536,7 +9536,7 @@ const variant_CB_3F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts A right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl a"
   }
 } as const satisfies OpcodeVariant;
@@ -15374,7 +15374,7 @@ const variant_CC_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the zero flag is set, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the zero flag is set, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call z,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -15401,7 +15401,7 @@ const variant_CD_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 17,
-    "description": "The current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -15484,7 +15484,7 @@ const variant_CF = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 8.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 08h.",
     "instruction": "rst 08"
   }
 } as const satisfies OpcodeVariant;
@@ -15510,7 +15510,7 @@ const variant_D0 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the carry flag is unset, the top stack entry is popped into PC.",
+    "description": "If the carry flag is unset, pops the top stack entry into PC.",
     "instruction": "ret nc"
   }
 } as const satisfies OpcodeVariant;
@@ -15536,7 +15536,7 @@ const variant_D1 = {
     "byte_count": 1,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "The memory location pointed to by SP is stored into E and SP is incremented. The memory location pointed to by SP is stored into D and SP is incremented again.",
+    "description": "Loads the value pointed to by SP into E and increments SP, then loads the value pointed to by SP into D and increments SP again.",
     "instruction": "pop de"
   }
 } as const satisfies OpcodeVariant;
@@ -15566,7 +15566,7 @@ const variant_D2_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the carry flag is unset, <var>nnnn</var> is copied to PC.",
+    "description": "If the carry flag is unset, jumps to <var>nnnn</var>.",
     "instruction": "jp nc,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -15598,7 +15598,7 @@ const variant_D3_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The value of A is written to the port whose address is formed by A in the high bits and <var>nn</var> in the low bits.",
+    "description": "Writes A to the port whose address has A in the high byte and <var>nn</var> in the low byte.",
     "instruction": "out (nn),a"
   }
 } as const satisfies OpcodeVariant;
@@ -15628,7 +15628,7 @@ const variant_D3_nn_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The value of A is written to the port whose address is formed by A in the high bits and <var>nn</var> in the low bits.",
+    "description": "Writes A to the port whose address has A in the high byte and <var>nn</var> in the low byte.",
     "instruction": "out (nn),a"
   }
 } as const satisfies OpcodeVariant;
@@ -15658,7 +15658,7 @@ const variant_D4_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the carry flag is unset, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the carry flag is unset, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call nc,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -15684,7 +15684,7 @@ const variant_D5 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "SP is decremented and D is stored into the memory location pointed to by SP. SP is decremented again and E is stored into the memory location pointed to by SP.",
+    "description": "Decrements SP and stores D into the memory location pointed to by SP, then decrements SP again and stores E there.",
     "instruction": "push de"
   }
 } as const satisfies OpcodeVariant;
@@ -15767,7 +15767,7 @@ const variant_D7 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 16.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 10h.",
     "instruction": "rst 10"
   }
 } as const satisfies OpcodeVariant;
@@ -15793,7 +15793,7 @@ const variant_D8 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the carry flag is set, the top stack entry is popped into PC.",
+    "description": "If the carry flag is set, pops the top stack entry into PC.",
     "instruction": "ret c"
   }
 } as const satisfies OpcodeVariant;
@@ -15845,7 +15845,7 @@ const variant_DA_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the carry flag is set, <var>nnnn</var> is copied to PC.",
+    "description": "If the carry flag is set, jumps to <var>nnnn</var>.",
     "instruction": "jp c,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -15877,7 +15877,7 @@ const variant_DB_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "A byte from the port whose address is formed by A in the high bits and <var>nn</var> in the low bits is written to A.",
+    "description": "Reads a byte into A from the port whose address has A in the high byte and <var>nn</var> in the low byte.",
     "instruction": "in a,(nn)"
   }
 } as const satisfies OpcodeVariant;
@@ -15907,7 +15907,7 @@ const variant_DB_nn_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "A byte from the port whose address is formed by A in the high bits and <var>nn</var> in the low bits is written to A.",
+    "description": "Reads a byte into A from the port whose address has A in the high byte and <var>nn</var> in the low byte.",
     "instruction": "in a,(nn)"
   }
 } as const satisfies OpcodeVariant;
@@ -15937,7 +15937,7 @@ const variant_DC_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the carry flag is set, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the carry flag is set, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call c,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -15967,7 +15967,7 @@ const variant_DD_09 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of BC is added to IX.",
+    "description": "Adds BC to IX.",
     "instruction": "add ix,bc"
   }
 } as const satisfies OpcodeVariant;
@@ -15997,7 +15997,7 @@ const variant_DD_19 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of DE is added to IX.",
+    "description": "Adds DE to IX.",
     "instruction": "add ix,de"
   }
 } as const satisfies OpcodeVariant;
@@ -16028,7 +16028,7 @@ const variant_DD_21_nnnn = {
     "byte_count": 4,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Loads <var>nnnn</var> into register IX.",
+    "description": "Loads <var>nnnn</var> into IX.",
     "instruction": "ld ix,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -16203,7 +16203,7 @@ const variant_DD_29 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of IX is added to IX.",
+    "description": "Adds IX to IX.",
     "instruction": "add ix,ix"
   }
 } as const satisfies OpcodeVariant;
@@ -16448,7 +16448,7 @@ const variant_DD_36_dd_nn = {
     "byte_count": 4,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores <var>nn</var> to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores <var>nn</var> into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),nn"
   }
 } as const satisfies OpcodeVariant;
@@ -16478,7 +16478,7 @@ const variant_DD_39 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of SP is added to IX.",
+    "description": "Adds SP to IX.",
     "instruction": "add ix,sp"
   }
 } as const satisfies OpcodeVariant;
@@ -16508,7 +16508,7 @@ const variant_DD_44 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into B.",
+    "description": "Loads IXH into B.",
     "instruction": "ld b,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -16538,7 +16538,7 @@ const variant_DD_45 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into B.",
+    "description": "Loads IXL into B.",
     "instruction": "ld b,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -16603,7 +16603,7 @@ const variant_DD_4C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into C.",
+    "description": "Loads IXH into C.",
     "instruction": "ld c,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -16633,7 +16633,7 @@ const variant_DD_4D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into C.",
+    "description": "Loads IXL into C.",
     "instruction": "ld c,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -16698,7 +16698,7 @@ const variant_DD_54 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into D.",
+    "description": "Loads IXH into D.",
     "instruction": "ld d,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -16728,7 +16728,7 @@ const variant_DD_55 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into D.",
+    "description": "Loads IXL into D.",
     "instruction": "ld d,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -16793,7 +16793,7 @@ const variant_DD_5C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into E.",
+    "description": "Loads IXH into E.",
     "instruction": "ld e,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -16823,7 +16823,7 @@ const variant_DD_5D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into E.",
+    "description": "Loads IXL into E.",
     "instruction": "ld e,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -16888,7 +16888,7 @@ const variant_DD_60 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into IXH.",
+    "description": "Loads B into IXH.",
     "instruction": "ld ixh,b"
   }
 } as const satisfies OpcodeVariant;
@@ -16918,7 +16918,7 @@ const variant_DD_61 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into IXH.",
+    "description": "Loads C into IXH.",
     "instruction": "ld ixh,c"
   }
 } as const satisfies OpcodeVariant;
@@ -16948,7 +16948,7 @@ const variant_DD_62 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into IXH.",
+    "description": "Loads D into IXH.",
     "instruction": "ld ixh,d"
   }
 } as const satisfies OpcodeVariant;
@@ -16978,7 +16978,7 @@ const variant_DD_63 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into IXH.",
+    "description": "Loads E into IXH.",
     "instruction": "ld ixh,e"
   }
 } as const satisfies OpcodeVariant;
@@ -17008,7 +17008,7 @@ const variant_DD_64 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into IXH.",
+    "description": "Loads IXH into IXH.",
     "instruction": "ld ixh,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -17038,7 +17038,7 @@ const variant_DD_65 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into IXH.",
+    "description": "Loads IXL into IXH.",
     "instruction": "ld ixh,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -17103,7 +17103,7 @@ const variant_DD_67 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into IXH.",
+    "description": "Loads A into IXH.",
     "instruction": "ld ixh,a"
   }
 } as const satisfies OpcodeVariant;
@@ -17133,7 +17133,7 @@ const variant_DD_68 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into IXL.",
+    "description": "Loads B into IXL.",
     "instruction": "ld ixl,b"
   }
 } as const satisfies OpcodeVariant;
@@ -17163,7 +17163,7 @@ const variant_DD_69 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into IXL.",
+    "description": "Loads C into IXL.",
     "instruction": "ld ixl,c"
   }
 } as const satisfies OpcodeVariant;
@@ -17193,7 +17193,7 @@ const variant_DD_6A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into IXL.",
+    "description": "Loads D into IXL.",
     "instruction": "ld ixl,d"
   }
 } as const satisfies OpcodeVariant;
@@ -17223,7 +17223,7 @@ const variant_DD_6B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into IXL.",
+    "description": "Loads E into IXL.",
     "instruction": "ld ixl,e"
   }
 } as const satisfies OpcodeVariant;
@@ -17253,7 +17253,7 @@ const variant_DD_6C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into IXL.",
+    "description": "Loads IXH into IXL.",
     "instruction": "ld ixl,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -17283,7 +17283,7 @@ const variant_DD_6D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into IXL.",
+    "description": "Loads IXL into IXL.",
     "instruction": "ld ixl,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -17348,7 +17348,7 @@ const variant_DD_6F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into IXL.",
+    "description": "Loads A into IXL.",
     "instruction": "ld ixl,a"
   }
 } as const satisfies OpcodeVariant;
@@ -17383,7 +17383,7 @@ const variant_DD_70_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores B to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores B into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -17418,7 +17418,7 @@ const variant_DD_71_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores C to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores C into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -17453,7 +17453,7 @@ const variant_DD_72_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores D to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores D into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -17488,7 +17488,7 @@ const variant_DD_73_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores E to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores E into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -17523,7 +17523,7 @@ const variant_DD_74_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores H to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores H into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -17558,7 +17558,7 @@ const variant_DD_75_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores L to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores L into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -17593,7 +17593,7 @@ const variant_DD_77_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores A to the memory location pointed to by IX plus <var>dd</var>.",
+    "description": "Stores A into the memory location pointed to by IX plus <var>dd</var>.",
     "instruction": "ld (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -17623,7 +17623,7 @@ const variant_DD_7C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXH are loaded into A.",
+    "description": "Loads IXH into A.",
     "instruction": "ld a,ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -17653,7 +17653,7 @@ const variant_DD_7D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IXL are loaded into A.",
+    "description": "Loads IXL into A.",
     "instruction": "ld a,ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18439,7 +18439,7 @@ const variant_DD_A4 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IXH.",
+    "description": "Sets A to the bitwise AND of A and IXH.",
     "instruction": "and ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -18469,7 +18469,7 @@ const variant_DD_A4_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IXH.",
+    "description": "Sets A to the bitwise AND of A and IXH.",
     "instruction": "and ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -18496,7 +18496,7 @@ const variant_DD_A5 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IXL.",
+    "description": "Sets A to the bitwise AND of A and IXL.",
     "instruction": "and ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18526,7 +18526,7 @@ const variant_DD_A5_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IXL.",
+    "description": "Sets A to the bitwise AND of A and IXL.",
     "instruction": "and ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18558,7 +18558,7 @@ const variant_DD_A6_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise AND on A with the value pointed to by IX plus <var>dd</var>.",
+    "description": "Sets A to the bitwise AND of A and the value pointed to by IX plus <var>dd</var>.",
     "instruction": "and (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -18593,7 +18593,7 @@ const variant_DD_A6_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise AND on A with the value pointed to by IX plus <var>dd</var>.",
+    "description": "Sets A to the bitwise AND of A and the value pointed to by IX plus <var>dd</var>.",
     "instruction": "and (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -18620,7 +18620,7 @@ const variant_DD_AC = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IXH.",
+    "description": "Sets A to the bitwise XOR of A and IXH.",
     "instruction": "xor ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -18650,7 +18650,7 @@ const variant_DD_AC_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IXH.",
+    "description": "Sets A to the bitwise XOR of A and IXH.",
     "instruction": "xor ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -18677,7 +18677,7 @@ const variant_DD_AD = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IXL.",
+    "description": "Sets A to the bitwise XOR of A and IXL.",
     "instruction": "xor ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18707,7 +18707,7 @@ const variant_DD_AD_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IXL.",
+    "description": "Sets A to the bitwise XOR of A and IXL.",
     "instruction": "xor ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18739,7 +18739,7 @@ const variant_DD_AE_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise XOR on A with the value pointed to by IX plus <var>dd</var>.",
+    "description": "Sets A to the bitwise XOR of A and the value pointed to by IX plus <var>dd</var>.",
     "instruction": "xor (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -18774,7 +18774,7 @@ const variant_DD_AE_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise XOR on A with the value pointed to by IX plus <var>dd</var>.",
+    "description": "Sets A to the bitwise XOR of A and the value pointed to by IX plus <var>dd</var>.",
     "instruction": "xor (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -18801,7 +18801,7 @@ const variant_DD_B4 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IXH.",
+    "description": "Sets A to the bitwise OR of A and IXH.",
     "instruction": "or ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -18831,7 +18831,7 @@ const variant_DD_B4_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IXH.",
+    "description": "Sets A to the bitwise OR of A and IXH.",
     "instruction": "or ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -18858,7 +18858,7 @@ const variant_DD_B5 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IXL.",
+    "description": "Sets A to the bitwise OR of A and IXL.",
     "instruction": "or ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18888,7 +18888,7 @@ const variant_DD_B5_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IXL.",
+    "description": "Sets A to the bitwise OR of A and IXL.",
     "instruction": "or ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -18920,7 +18920,7 @@ const variant_DD_B6_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise OR on A with the value pointed to by IX plus <var>dd</var>.",
+    "description": "Sets A to the bitwise OR of A and the value pointed to by IX plus <var>dd</var>.",
     "instruction": "or (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -18955,7 +18955,7 @@ const variant_DD_B6_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise OR on A with the value pointed to by IX plus <var>dd</var>.",
+    "description": "Sets A to the bitwise OR of A and the value pointed to by IX plus <var>dd</var>.",
     "instruction": "or (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -18982,7 +18982,7 @@ const variant_DD_BC = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IXH from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IXH from A to set the flags, but leaves A unchanged.",
     "instruction": "cp ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -19012,7 +19012,7 @@ const variant_DD_BC_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IXH from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IXH from A to set the flags, but leaves A unchanged.",
     "instruction": "cp ixh"
   }
 } as const satisfies OpcodeVariant;
@@ -19039,7 +19039,7 @@ const variant_DD_BD = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IXL from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IXL from A to set the flags, but leaves A unchanged.",
     "instruction": "cp ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -19069,7 +19069,7 @@ const variant_DD_BD_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IXL from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IXL from A to set the flags, but leaves A unchanged.",
     "instruction": "cp ixl"
   }
 } as const satisfies OpcodeVariant;
@@ -19101,7 +19101,7 @@ const variant_DD_BE_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Subtracts the value pointed to by IX plus <var>dd</var> from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts the value pointed to by IX plus <var>dd</var> from A to set the flags, but leaves A unchanged.",
     "instruction": "cp (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -19136,7 +19136,7 @@ const variant_DD_BE_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Subtracts the value pointed to by IX plus <var>dd</var> from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts the value pointed to by IX plus <var>dd</var> from A to set the flags, but leaves A unchanged.",
     "instruction": "cp (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -19172,7 +19172,7 @@ const variant_DD_CB_dd_00 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in B.",
     "instruction": "rlc (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -19208,7 +19208,7 @@ const variant_DD_CB_dd_01 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in C.",
     "instruction": "rlc (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -19244,7 +19244,7 @@ const variant_DD_CB_dd_02 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in D.",
     "instruction": "rlc (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -19280,7 +19280,7 @@ const variant_DD_CB_dd_03 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in E.",
     "instruction": "rlc (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -19316,7 +19316,7 @@ const variant_DD_CB_dd_04 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in H.",
     "instruction": "rlc (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -19352,7 +19352,7 @@ const variant_DD_CB_dd_05 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in L.",
     "instruction": "rlc (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -19385,7 +19385,7 @@ const variant_DD_CB_dd_06 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -19421,7 +19421,7 @@ const variant_DD_CB_dd_07 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in A.",
     "instruction": "rlc (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -19457,7 +19457,7 @@ const variant_DD_CB_dd_08 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in B.",
     "instruction": "rrc (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -19493,7 +19493,7 @@ const variant_DD_CB_dd_09 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in C.",
     "instruction": "rrc (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -19529,7 +19529,7 @@ const variant_DD_CB_dd_0A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in D.",
     "instruction": "rrc (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -19565,7 +19565,7 @@ const variant_DD_CB_dd_0B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in E.",
     "instruction": "rrc (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -19601,7 +19601,7 @@ const variant_DD_CB_dd_0C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in H.",
     "instruction": "rrc (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -19637,7 +19637,7 @@ const variant_DD_CB_dd_0D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in L.",
     "instruction": "rrc (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -19670,7 +19670,7 @@ const variant_DD_CB_dd_0E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -19706,7 +19706,7 @@ const variant_DD_CB_dd_0F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in A.",
     "instruction": "rrc (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -19742,7 +19742,7 @@ const variant_DD_CB_dd_10 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in B.",
     "instruction": "rl (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -19778,7 +19778,7 @@ const variant_DD_CB_dd_11 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in C.",
     "instruction": "rl (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -19814,7 +19814,7 @@ const variant_DD_CB_dd_12 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in D.",
     "instruction": "rl (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -19850,7 +19850,7 @@ const variant_DD_CB_dd_13 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in E.",
     "instruction": "rl (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -19886,7 +19886,7 @@ const variant_DD_CB_dd_14 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in H.",
     "instruction": "rl (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -19922,7 +19922,7 @@ const variant_DD_CB_dd_15 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in L.",
     "instruction": "rl (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -19955,7 +19955,7 @@ const variant_DD_CB_dd_16 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -19991,7 +19991,7 @@ const variant_DD_CB_dd_17 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in A.",
     "instruction": "rl (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -20027,7 +20027,7 @@ const variant_DD_CB_dd_18 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in B.",
     "instruction": "rr (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -20063,7 +20063,7 @@ const variant_DD_CB_dd_19 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in C.",
     "instruction": "rr (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -20099,7 +20099,7 @@ const variant_DD_CB_dd_1A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in D.",
     "instruction": "rr (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -20135,7 +20135,7 @@ const variant_DD_CB_dd_1B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in E.",
     "instruction": "rr (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -20171,7 +20171,7 @@ const variant_DD_CB_dd_1C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in H.",
     "instruction": "rr (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -20207,7 +20207,7 @@ const variant_DD_CB_dd_1D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in L.",
     "instruction": "rr (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -20240,7 +20240,7 @@ const variant_DD_CB_dd_1E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -20276,7 +20276,7 @@ const variant_DD_CB_dd_1F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in A.",
     "instruction": "rr (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -20312,7 +20312,7 @@ const variant_DD_CB_dd_20 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in B.",
     "instruction": "sla (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -20348,7 +20348,7 @@ const variant_DD_CB_dd_21 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in C.",
     "instruction": "sla (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -20384,7 +20384,7 @@ const variant_DD_CB_dd_22 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in D.",
     "instruction": "sla (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -20420,7 +20420,7 @@ const variant_DD_CB_dd_23 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in E.",
     "instruction": "sla (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -20456,7 +20456,7 @@ const variant_DD_CB_dd_24 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in H.",
     "instruction": "sla (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -20492,7 +20492,7 @@ const variant_DD_CB_dd_25 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in L.",
     "instruction": "sla (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -20525,7 +20525,7 @@ const variant_DD_CB_dd_26 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -20561,7 +20561,7 @@ const variant_DD_CB_dd_27 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in A.",
     "instruction": "sla (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -20597,7 +20597,7 @@ const variant_DD_CB_dd_28 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in B.",
     "instruction": "sra (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -20633,7 +20633,7 @@ const variant_DD_CB_dd_29 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in C.",
     "instruction": "sra (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -20669,7 +20669,7 @@ const variant_DD_CB_dd_2A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in D.",
     "instruction": "sra (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -20705,7 +20705,7 @@ const variant_DD_CB_dd_2B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in E.",
     "instruction": "sra (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -20741,7 +20741,7 @@ const variant_DD_CB_dd_2C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in H.",
     "instruction": "sra (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -20777,7 +20777,7 @@ const variant_DD_CB_dd_2D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in L.",
     "instruction": "sra (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -20810,7 +20810,7 @@ const variant_DD_CB_dd_2E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -20846,7 +20846,7 @@ const variant_DD_CB_dd_2F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in A.",
     "instruction": "sra (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -20882,7 +20882,7 @@ const variant_DD_CB_dd_30 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in B.",
     "instruction": "sll (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -20918,7 +20918,7 @@ const variant_DD_CB_dd_31 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in C.",
     "instruction": "sll (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -20954,7 +20954,7 @@ const variant_DD_CB_dd_32 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in D.",
     "instruction": "sll (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -20990,7 +20990,7 @@ const variant_DD_CB_dd_33 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in E.",
     "instruction": "sll (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -21026,7 +21026,7 @@ const variant_DD_CB_dd_34 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in H.",
     "instruction": "sll (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -21062,7 +21062,7 @@ const variant_DD_CB_dd_35 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in L.",
     "instruction": "sll (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -21095,7 +21095,7 @@ const variant_DD_CB_dd_36 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -21131,7 +21131,7 @@ const variant_DD_CB_dd_37 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in A.",
     "instruction": "sll (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -21167,7 +21167,7 @@ const variant_DD_CB_dd_38 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in B.",
     "instruction": "srl (ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -21203,7 +21203,7 @@ const variant_DD_CB_dd_39 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in C.",
     "instruction": "srl (ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -21239,7 +21239,7 @@ const variant_DD_CB_dd_3A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in D.",
     "instruction": "srl (ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -21275,7 +21275,7 @@ const variant_DD_CB_dd_3B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in E.",
     "instruction": "srl (ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -21311,7 +21311,7 @@ const variant_DD_CB_dd_3C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in H.",
     "instruction": "srl (ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -21347,7 +21347,7 @@ const variant_DD_CB_dd_3D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in L.",
     "instruction": "srl (ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -21380,7 +21380,7 @@ const variant_DD_CB_dd_3E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl (ix+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -21416,7 +21416,7 @@ const variant_DD_CB_dd_3F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IX plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IX plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in A.",
     "instruction": "srl (ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -21743,7 +21743,7 @@ const variant_DD_CB_dd_80 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 0,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -21782,7 +21782,7 @@ const variant_DD_CB_dd_81 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 0,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -21821,7 +21821,7 @@ const variant_DD_CB_dd_82 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 0,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -21860,7 +21860,7 @@ const variant_DD_CB_dd_83 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 0,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -21899,7 +21899,7 @@ const variant_DD_CB_dd_84 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 0,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -21938,7 +21938,7 @@ const variant_DD_CB_dd_85 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 0,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -22013,7 +22013,7 @@ const variant_DD_CB_dd_87 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 0,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -22052,7 +22052,7 @@ const variant_DD_CB_dd_88 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 1,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -22091,7 +22091,7 @@ const variant_DD_CB_dd_89 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 1,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -22130,7 +22130,7 @@ const variant_DD_CB_dd_8A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 1,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -22169,7 +22169,7 @@ const variant_DD_CB_dd_8B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 1,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -22208,7 +22208,7 @@ const variant_DD_CB_dd_8C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 1,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -22247,7 +22247,7 @@ const variant_DD_CB_dd_8D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 1,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -22322,7 +22322,7 @@ const variant_DD_CB_dd_8F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 1,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -22361,7 +22361,7 @@ const variant_DD_CB_dd_90 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 2,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -22400,7 +22400,7 @@ const variant_DD_CB_dd_91 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 2,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -22439,7 +22439,7 @@ const variant_DD_CB_dd_92 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 2,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -22478,7 +22478,7 @@ const variant_DD_CB_dd_93 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 2,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -22517,7 +22517,7 @@ const variant_DD_CB_dd_94 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 2,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -22556,7 +22556,7 @@ const variant_DD_CB_dd_95 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 2,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -22631,7 +22631,7 @@ const variant_DD_CB_dd_97 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 2,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -22670,7 +22670,7 @@ const variant_DD_CB_dd_98 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 3,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -22709,7 +22709,7 @@ const variant_DD_CB_dd_99 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 3,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -22748,7 +22748,7 @@ const variant_DD_CB_dd_9A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 3,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -22787,7 +22787,7 @@ const variant_DD_CB_dd_9B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 3,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -22826,7 +22826,7 @@ const variant_DD_CB_dd_9C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 3,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -22865,7 +22865,7 @@ const variant_DD_CB_dd_9D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 3,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -22940,7 +22940,7 @@ const variant_DD_CB_dd_9F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 3,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -22979,7 +22979,7 @@ const variant_DD_CB_dd_A0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 4,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -23018,7 +23018,7 @@ const variant_DD_CB_dd_A1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 4,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -23057,7 +23057,7 @@ const variant_DD_CB_dd_A2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 4,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -23096,7 +23096,7 @@ const variant_DD_CB_dd_A3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 4,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -23135,7 +23135,7 @@ const variant_DD_CB_dd_A4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 4,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -23174,7 +23174,7 @@ const variant_DD_CB_dd_A5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 4,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -23249,7 +23249,7 @@ const variant_DD_CB_dd_A7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 4,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -23288,7 +23288,7 @@ const variant_DD_CB_dd_A8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 5,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -23327,7 +23327,7 @@ const variant_DD_CB_dd_A9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 5,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -23366,7 +23366,7 @@ const variant_DD_CB_dd_AA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 5,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -23405,7 +23405,7 @@ const variant_DD_CB_dd_AB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 5,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -23444,7 +23444,7 @@ const variant_DD_CB_dd_AC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 5,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -23483,7 +23483,7 @@ const variant_DD_CB_dd_AD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 5,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -23558,7 +23558,7 @@ const variant_DD_CB_dd_AF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 5,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -23597,7 +23597,7 @@ const variant_DD_CB_dd_B0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 6,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -23636,7 +23636,7 @@ const variant_DD_CB_dd_B1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 6,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -23675,7 +23675,7 @@ const variant_DD_CB_dd_B2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 6,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -23714,7 +23714,7 @@ const variant_DD_CB_dd_B3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 6,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -23753,7 +23753,7 @@ const variant_DD_CB_dd_B4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 6,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -23792,7 +23792,7 @@ const variant_DD_CB_dd_B5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 6,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -23867,7 +23867,7 @@ const variant_DD_CB_dd_B7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 6,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -23906,7 +23906,7 @@ const variant_DD_CB_dd_B8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 7,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -23945,7 +23945,7 @@ const variant_DD_CB_dd_B9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 7,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -23984,7 +23984,7 @@ const variant_DD_CB_dd_BA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 7,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -24023,7 +24023,7 @@ const variant_DD_CB_dd_BB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 7,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -24062,7 +24062,7 @@ const variant_DD_CB_dd_BC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 7,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -24101,7 +24101,7 @@ const variant_DD_CB_dd_BD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 7,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -24176,7 +24176,7 @@ const variant_DD_CB_dd_BF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 7,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -24215,7 +24215,7 @@ const variant_DD_CB_dd_C0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 0,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -24254,7 +24254,7 @@ const variant_DD_CB_dd_C1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 0,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -24293,7 +24293,7 @@ const variant_DD_CB_dd_C2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 0,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -24332,7 +24332,7 @@ const variant_DD_CB_dd_C3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 0,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -24371,7 +24371,7 @@ const variant_DD_CB_dd_C4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 0,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -24410,7 +24410,7 @@ const variant_DD_CB_dd_C5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 0,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -24485,7 +24485,7 @@ const variant_DD_CB_dd_C7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 0 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 0,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -24524,7 +24524,7 @@ const variant_DD_CB_dd_C8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 1,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -24563,7 +24563,7 @@ const variant_DD_CB_dd_C9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 1,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -24602,7 +24602,7 @@ const variant_DD_CB_dd_CA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 1,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -24641,7 +24641,7 @@ const variant_DD_CB_dd_CB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 1,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -24680,7 +24680,7 @@ const variant_DD_CB_dd_CC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 1,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -24719,7 +24719,7 @@ const variant_DD_CB_dd_CD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 1,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -24794,7 +24794,7 @@ const variant_DD_CB_dd_CF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 1 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 1,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -24833,7 +24833,7 @@ const variant_DD_CB_dd_D0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 2,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -24872,7 +24872,7 @@ const variant_DD_CB_dd_D1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 2,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -24911,7 +24911,7 @@ const variant_DD_CB_dd_D2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 2,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -24950,7 +24950,7 @@ const variant_DD_CB_dd_D3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 2,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -24989,7 +24989,7 @@ const variant_DD_CB_dd_D4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 2,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -25028,7 +25028,7 @@ const variant_DD_CB_dd_D5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 2,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -25103,7 +25103,7 @@ const variant_DD_CB_dd_D7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 2 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 2,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -25142,7 +25142,7 @@ const variant_DD_CB_dd_D8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 3,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -25181,7 +25181,7 @@ const variant_DD_CB_dd_D9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 3,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -25220,7 +25220,7 @@ const variant_DD_CB_dd_DA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 3,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -25259,7 +25259,7 @@ const variant_DD_CB_dd_DB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 3,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -25298,7 +25298,7 @@ const variant_DD_CB_dd_DC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 3,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -25337,7 +25337,7 @@ const variant_DD_CB_dd_DD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 3,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -25412,7 +25412,7 @@ const variant_DD_CB_dd_DF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 3 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 3,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -25451,7 +25451,7 @@ const variant_DD_CB_dd_E0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 4,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -25490,7 +25490,7 @@ const variant_DD_CB_dd_E1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 4,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -25529,7 +25529,7 @@ const variant_DD_CB_dd_E2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 4,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -25568,7 +25568,7 @@ const variant_DD_CB_dd_E3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 4,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -25607,7 +25607,7 @@ const variant_DD_CB_dd_E4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 4,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -25646,7 +25646,7 @@ const variant_DD_CB_dd_E5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 4,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -25721,7 +25721,7 @@ const variant_DD_CB_dd_E7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 4 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 4,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -25760,7 +25760,7 @@ const variant_DD_CB_dd_E8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 5,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -25799,7 +25799,7 @@ const variant_DD_CB_dd_E9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 5,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -25838,7 +25838,7 @@ const variant_DD_CB_dd_EA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 5,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -25877,7 +25877,7 @@ const variant_DD_CB_dd_EB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 5,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -25916,7 +25916,7 @@ const variant_DD_CB_dd_EC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 5,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -25955,7 +25955,7 @@ const variant_DD_CB_dd_ED = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 5,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -26030,7 +26030,7 @@ const variant_DD_CB_dd_EF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 5 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 5,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -26069,7 +26069,7 @@ const variant_DD_CB_dd_F0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 6,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -26108,7 +26108,7 @@ const variant_DD_CB_dd_F1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 6,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -26147,7 +26147,7 @@ const variant_DD_CB_dd_F2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 6,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -26186,7 +26186,7 @@ const variant_DD_CB_dd_F3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 6,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -26225,7 +26225,7 @@ const variant_DD_CB_dd_F4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 6,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -26264,7 +26264,7 @@ const variant_DD_CB_dd_F5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 6,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -26339,7 +26339,7 @@ const variant_DD_CB_dd_F7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 6 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 6,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -26378,7 +26378,7 @@ const variant_DD_CB_dd_F8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 7,(ix+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -26417,7 +26417,7 @@ const variant_DD_CB_dd_F9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 7,(ix+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -26456,7 +26456,7 @@ const variant_DD_CB_dd_FA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 7,(ix+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -26495,7 +26495,7 @@ const variant_DD_CB_dd_FB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 7,(ix+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -26534,7 +26534,7 @@ const variant_DD_CB_dd_FC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 7,(ix+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -26573,7 +26573,7 @@ const variant_DD_CB_dd_FD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 7,(ix+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -26648,7 +26648,7 @@ const variant_DD_CB_dd_FF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 7 of the memory location pointed to by IX plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 7,(ix+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -26675,7 +26675,7 @@ const variant_DD_E1 = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "The memory location pointed to by SP is stored into IXL and SP is incremented. The memory location pointed to by SP is stored into IXH and SP is incremented again.",
+    "description": "Loads the value pointed to by SP into IXL and increments SP, then loads the value pointed to by SP into IXH and increments SP again.",
     "instruction": "pop ix"
   }
 } as const satisfies OpcodeVariant;
@@ -26766,7 +26766,7 @@ const variant_DD_E5 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "SP is decremented and IXH is stored into the memory location pointed to by SP. SP is decremented again and IXL is stored into the memory location pointed to by SP.",
+    "description": "Decrements SP and stores IXH into the memory location pointed to by SP, then decrements SP again and stores IXL there.",
     "instruction": "push ix"
   }
 } as const satisfies OpcodeVariant;
@@ -26795,7 +26795,7 @@ const variant_DD_E9 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Loads the value of IX into PC.",
+    "description": "Jumps to the address in IX.",
     "instruction": "jp (ix)"
   }
 } as const satisfies OpcodeVariant;
@@ -26822,7 +26822,7 @@ const variant_DD_E9_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Loads the value of IX into PC.",
+    "description": "Jumps to the address in IX.",
     "instruction": "jp (ix)"
   }
 } as const satisfies OpcodeVariant;
@@ -26852,7 +26852,7 @@ const variant_DD_F9 = {
     "byte_count": 2,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "Loads the value of IX into SP.",
+    "description": "Loads IX into SP.",
     "instruction": "ld sp,ix"
   }
 } as const satisfies OpcodeVariant;
@@ -26935,7 +26935,7 @@ const variant_DF = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 24.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 18h.",
     "instruction": "rst 18"
   }
 } as const satisfies OpcodeVariant;
@@ -26961,7 +26961,7 @@ const variant_E0 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the parity/overflow flag is unset, the top stack entry is popped into PC.",
+    "description": "If the parity/overflow flag is unset, pops the top stack entry into PC.",
     "instruction": "ret po"
   }
 } as const satisfies OpcodeVariant;
@@ -26987,7 +26987,7 @@ const variant_E0_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the parity/overflow flag is unset, the top stack entry is popped into PC.",
+    "description": "If the parity/overflow flag is unset, pops the top stack entry into PC.",
     "instruction": "ret po"
   }
 } as const satisfies OpcodeVariant;
@@ -27013,7 +27013,7 @@ const variant_E1 = {
     "byte_count": 1,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "The memory location pointed to by SP is stored into L and SP is incremented. The memory location pointed to by SP is stored into H and SP is incremented again.",
+    "description": "Loads the value pointed to by SP into L and increments SP, then loads the value pointed to by SP into H and increments SP again.",
     "instruction": "pop hl"
   }
 } as const satisfies OpcodeVariant;
@@ -27043,7 +27043,7 @@ const variant_E2_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is unset, <var>nnnn</var> is copied to PC.",
+    "description": "If the parity/overflow flag is unset, jumps to <var>nnnn</var>.",
     "instruction": "jp po,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27073,7 +27073,7 @@ const variant_E2_nnnn_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is unset, <var>nnnn</var> is copied to PC.",
+    "description": "If the parity/overflow flag is unset, jumps to <var>nnnn</var>.",
     "instruction": "jp po,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27165,7 +27165,7 @@ const variant_E4_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is unset, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the parity/overflow flag is unset, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call po,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27195,7 +27195,7 @@ const variant_E4_nnnn_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is unset, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the parity/overflow flag is unset, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call po,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27221,7 +27221,7 @@ const variant_E5 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "SP is decremented and H is stored into the memory location pointed to by SP. SP is decremented again and L is stored into the memory location pointed to by SP.",
+    "description": "Decrements SP and stores H into the memory location pointed to by SP, then decrements SP again and stores L there.",
     "instruction": "push hl"
   }
 } as const satisfies OpcodeVariant;
@@ -27248,7 +27248,7 @@ const variant_E6_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise AND on A with <var>nn</var>.",
+    "description": "Sets A to the bitwise AND of A and <var>nn</var>.",
     "instruction": "and nn"
   }
 } as const satisfies OpcodeVariant;
@@ -27278,7 +27278,7 @@ const variant_E6_nn_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise AND on A with <var>nn</var>.",
+    "description": "Sets A to the bitwise AND of A and <var>nn</var>.",
     "instruction": "and nn"
   }
 } as const satisfies OpcodeVariant;
@@ -27304,7 +27304,7 @@ const variant_E7 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 32.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 20h.",
     "instruction": "rst 20"
   }
 } as const satisfies OpcodeVariant;
@@ -27330,7 +27330,7 @@ const variant_E8 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the parity/overflow flag is set, the top stack entry is popped into PC.",
+    "description": "If the parity/overflow flag is set, pops the top stack entry into PC.",
     "instruction": "ret pe"
   }
 } as const satisfies OpcodeVariant;
@@ -27356,7 +27356,7 @@ const variant_E8_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the parity/overflow flag is set, the top stack entry is popped into PC.",
+    "description": "If the parity/overflow flag is set, pops the top stack entry into PC.",
     "instruction": "ret pe"
   }
 } as const satisfies OpcodeVariant;
@@ -27384,7 +27384,7 @@ const variant_E9 = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Loads the value of HL into PC.",
+    "description": "Jumps to the address in HL.",
     "instruction": "jp (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -27410,7 +27410,7 @@ const variant_E9_pseudo = {
     "byte_count": 1,
     "with_jump_clock_count": 4,
     "without_jump_clock_count": 4,
-    "description": "Loads the value of HL into PC.",
+    "description": "Jumps to the address in HL.",
     "instruction": "jp (hl)"
   }
 } as const satisfies OpcodeVariant;
@@ -27440,7 +27440,7 @@ const variant_EA_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is set, <var>nnnn</var> is copied to PC.",
+    "description": "If the parity/overflow flag is set, jumps to <var>nnnn</var>.",
     "instruction": "jp pe,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27470,7 +27470,7 @@ const variant_EA_nnnn_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is set, <var>nnnn</var> is copied to PC.",
+    "description": "If the parity/overflow flag is set, jumps to <var>nnnn</var>.",
     "instruction": "jp pe,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27558,7 +27558,7 @@ const variant_EC_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is set, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the parity/overflow flag is set, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call pe,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27588,7 +27588,7 @@ const variant_EC_nnnn_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the parity/overflow flag is set, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the parity/overflow flag is set, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call pe,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -27620,7 +27620,7 @@ const variant_ED_40 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to B.",
+    "description": "Reads a byte into B from the port whose 16-bit address is in BC.",
     "instruction": "in b,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -27652,7 +27652,7 @@ const variant_ED_40_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to B.",
+    "description": "Reads a byte into B from the port whose 16-bit address is in BC.",
     "instruction": "in b,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -27684,7 +27684,7 @@ const variant_ED_41 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of B is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes B to the port whose 16-bit address is in BC.",
     "instruction": "out (c),b"
   }
 } as const satisfies OpcodeVariant;
@@ -27716,7 +27716,7 @@ const variant_ED_41_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of B is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes B to the port whose 16-bit address is in BC.",
     "instruction": "out (c),b"
   }
 } as const satisfies OpcodeVariant;
@@ -27802,7 +27802,7 @@ const variant_ED_44 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -27825,7 +27825,7 @@ const variant_ED_45 = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -27882,7 +27882,7 @@ const variant_ED_47 = {
     "byte_count": 2,
     "with_jump_clock_count": 9,
     "without_jump_clock_count": 9,
-    "description": "Stores the value of A into register I.",
+    "description": "Loads A into the interrupt vector register I.",
     "instruction": "ld i,a"
   }
 } as const satisfies OpcodeVariant;
@@ -27914,7 +27914,7 @@ const variant_ED_48 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to C.",
+    "description": "Reads a byte into C from the port whose 16-bit address is in BC.",
     "instruction": "in c,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -27946,7 +27946,7 @@ const variant_ED_48_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to C.",
+    "description": "Reads a byte into C from the port whose 16-bit address is in BC.",
     "instruction": "in c,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -27978,7 +27978,7 @@ const variant_ED_49 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of C is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes C to the port whose 16-bit address is in BC.",
     "instruction": "out (c),c"
   }
 } as const satisfies OpcodeVariant;
@@ -28010,7 +28010,7 @@ const variant_ED_49_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of C is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes C to the port whose 16-bit address is in BC.",
     "instruction": "out (c),c"
   }
 } as const satisfies OpcodeVariant;
@@ -28096,7 +28096,7 @@ const variant_ED_4D = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a maskable interrupt service routine. The top stack entry is popped into PC, and signals an I/O device that the interrupt has finished, allowing nested interrupts (not a consideration on the TI).",
+    "description": "Returns from a maskable interrupt service routine. Pops the top stack entry into PC and signals the I/O device that the interrupt has finished, which allows nested interrupts.",
     "instruction": "reti"
   }
 } as const satisfies OpcodeVariant;
@@ -28126,7 +28126,7 @@ const variant_ED_4F = {
     "byte_count": 2,
     "with_jump_clock_count": 9,
     "without_jump_clock_count": 9,
-    "description": "Stores the value of A into register R.",
+    "description": "Loads A into the memory refresh register R.",
     "instruction": "ld r,a"
   }
 } as const satisfies OpcodeVariant;
@@ -28158,7 +28158,7 @@ const variant_ED_50 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to D.",
+    "description": "Reads a byte into D from the port whose 16-bit address is in BC.",
     "instruction": "in d,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28190,7 +28190,7 @@ const variant_ED_50_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to D.",
+    "description": "Reads a byte into D from the port whose 16-bit address is in BC.",
     "instruction": "in d,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28222,7 +28222,7 @@ const variant_ED_51 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of D is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes D to the port whose 16-bit address is in BC.",
     "instruction": "out (c),d"
   }
 } as const satisfies OpcodeVariant;
@@ -28254,7 +28254,7 @@ const variant_ED_51_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of D is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes D to the port whose 16-bit address is in BC.",
     "instruction": "out (c),d"
   }
 } as const satisfies OpcodeVariant;
@@ -28374,7 +28374,7 @@ const variant_ED_57 = {
     "byte_count": 2,
     "with_jump_clock_count": 9,
     "without_jump_clock_count": 9,
-    "description": "Stores the value of register I into A.",
+    "description": "Loads the interrupt vector register I into A. The parity/overflow flag receives the interrupt flip-flop IFF2, which tells whether maskable interrupts are enabled.",
     "instruction": "ld a,i"
   }
 } as const satisfies OpcodeVariant;
@@ -28406,7 +28406,7 @@ const variant_ED_58 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to E.",
+    "description": "Reads a byte into E from the port whose 16-bit address is in BC.",
     "instruction": "in e,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28438,7 +28438,7 @@ const variant_ED_58_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to E.",
+    "description": "Reads a byte into E from the port whose 16-bit address is in BC.",
     "instruction": "in e,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28470,7 +28470,7 @@ const variant_ED_59 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of E is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes E to the port whose 16-bit address is in BC.",
     "instruction": "out (c),e"
   }
 } as const satisfies OpcodeVariant;
@@ -28502,7 +28502,7 @@ const variant_ED_59_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of E is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes E to the port whose 16-bit address is in BC.",
     "instruction": "out (c),e"
   }
 } as const satisfies OpcodeVariant;
@@ -28622,7 +28622,7 @@ const variant_ED_5F = {
     "byte_count": 2,
     "with_jump_clock_count": 9,
     "without_jump_clock_count": 9,
-    "description": "Stores the value of register R into A.",
+    "description": "Loads the memory refresh register R into A. The parity/overflow flag receives the interrupt flip-flop IFF2, which tells whether maskable interrupts are enabled.",
     "instruction": "ld a,r"
   }
 } as const satisfies OpcodeVariant;
@@ -28654,7 +28654,7 @@ const variant_ED_60 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to H.",
+    "description": "Reads a byte into H from the port whose 16-bit address is in BC.",
     "instruction": "in h,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28686,7 +28686,7 @@ const variant_ED_60_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to H.",
+    "description": "Reads a byte into H from the port whose 16-bit address is in BC.",
     "instruction": "in h,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28718,7 +28718,7 @@ const variant_ED_61 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of H is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes H to the port whose 16-bit address is in BC.",
     "instruction": "out (c),h"
   }
 } as const satisfies OpcodeVariant;
@@ -28750,7 +28750,7 @@ const variant_ED_61_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of H is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes H to the port whose 16-bit address is in BC.",
     "instruction": "out (c),h"
   }
 } as const satisfies OpcodeVariant;
@@ -28803,7 +28803,7 @@ const variant_ED_67 = {
     "byte_count": 2,
     "with_jump_clock_count": 18,
     "without_jump_clock_count": 18,
-    "description": "The contents of the low-order nibble of (HL) are copied to the low-order nibble of A. The previous contents are copied to the high-order nibble of (HL). The previous contents are copied to the low-order nibble of (HL).",
+    "description": "Copies the low nibble of (HL) to the low nibble of A, the previous low nibble of A to the high nibble of (HL), and the previous high nibble of (HL) to its low nibble.",
     "instruction": "rrd"
   }
 } as const satisfies OpcodeVariant;
@@ -28835,7 +28835,7 @@ const variant_ED_68 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to L.",
+    "description": "Reads a byte into L from the port whose 16-bit address is in BC.",
     "instruction": "in l,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28867,7 +28867,7 @@ const variant_ED_68_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to L.",
+    "description": "Reads a byte into L from the port whose 16-bit address is in BC.",
     "instruction": "in l,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -28899,7 +28899,7 @@ const variant_ED_69 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of L is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes L to the port whose 16-bit address is in BC.",
     "instruction": "out (c),l"
   }
 } as const satisfies OpcodeVariant;
@@ -28931,7 +28931,7 @@ const variant_ED_69_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of L is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes L to the port whose 16-bit address is in BC.",
     "instruction": "out (c),l"
   }
 } as const satisfies OpcodeVariant;
@@ -28984,7 +28984,7 @@ const variant_ED_6F = {
     "byte_count": 2,
     "with_jump_clock_count": 18,
     "without_jump_clock_count": 18,
-    "description": "The contents of the low-order nibble of (HL) are copied to the high-order nibble of (HL). The previous contents are copied to the low-order nibble of A. The previous contents are copied to the low-order nibble of (HL).",
+    "description": "Copies the low nibble of (HL) to its high nibble, the previous high nibble of (HL) to the low nibble of A, and the previous low nibble of A to the low nibble of (HL).",
     "instruction": "rld"
   }
 } as const satisfies OpcodeVariant;
@@ -29013,7 +29013,7 @@ const variant_ED_70 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "Inputs a byte from the port at the 16-bit address contained in the BC register pair and affects flags only.",
+    "description": "Reads a byte from the port whose 16-bit address is in BC and uses it only to set the flags.",
     "instruction": "in (c)"
   }
 } as const satisfies OpcodeVariant;
@@ -29042,7 +29042,7 @@ const variant_ED_70_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "Inputs a byte from the port at the 16-bit address contained in the BC register pair and affects flags only.",
+    "description": "Reads a byte from the port whose 16-bit address is in BC and uses it only to set the flags.",
     "instruction": "in (c)"
   }
 } as const satisfies OpcodeVariant;
@@ -29074,7 +29074,7 @@ const variant_ED_71 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "Outputs a zero (on NMOS Z80s) or 255 (on CMOS Z80s) to the port at the 16-bit address contained in the BC register pair.   <a href=\"https://worldofspectrum.org/z88forever/dn327/z80undoc.htm\">Read More</a>",
+    "description": "Writes zero to the port whose 16-bit address is in BC.",
     "instruction": "out (c),0"
   }
 } as const satisfies OpcodeVariant;
@@ -29106,7 +29106,7 @@ const variant_ED_71_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "Outputs a zero (on NMOS Z80s) or 255 (on CMOS Z80s) to the port at the 16-bit address contained in the BC register pair.   <a href=\"https://worldofspectrum.org/z88forever/dn327/z80undoc.htm\">Read More</a>",
+    "description": "Writes zero to the port whose 16-bit address is in BC.",
     "instruction": "out (c),0"
   }
 } as const satisfies OpcodeVariant;
@@ -29201,7 +29201,7 @@ const variant_ED_78 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to A.",
+    "description": "Reads a byte into A from the port whose 16-bit address is in BC.",
     "instruction": "in a,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -29233,7 +29233,7 @@ const variant_ED_78_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to A.",
+    "description": "Reads a byte into A from the port whose 16-bit address is in BC.",
     "instruction": "in a,(c)"
   }
 } as const satisfies OpcodeVariant;
@@ -29265,7 +29265,7 @@ const variant_ED_79 = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of A is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes A to the port whose 16-bit address is in BC.",
     "instruction": "out (c),a"
   }
 } as const satisfies OpcodeVariant;
@@ -29297,7 +29297,7 @@ const variant_ED_79_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 12,
     "without_jump_clock_count": 12,
-    "description": "The value of A is written to the port at the 16-bit address contained in the BC register pair.",
+    "description": "Writes A to the port whose 16-bit address is in BC.",
     "instruction": "out (c),a"
   }
 } as const satisfies OpcodeVariant;
@@ -29383,7 +29383,7 @@ const variant_ED_A0 = {
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL and DE are incremented and BC is decremented. p/v is reset if BC becomes zero and set otherwise.",
+    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then increments HL and DE and decrements BC. Resets the parity/overflow flag if BC becomes zero, and sets it otherwise.",
     "instruction": "ldi"
   }
 } as const satisfies OpcodeVariant;
@@ -29406,7 +29406,7 @@ const variant_ED_A1 = {
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "Compares the value of the memory location pointed to by HL with A. Then HL is incremented and BC is decremented. p/v is reset if BC becomes zero and set otherwise.",
+    "description": "Compares the value of the memory location pointed to by HL with A. Then increments HL and decrements BC. Resets the parity/overflow flag if BC becomes zero, and sets it otherwise.",
     "instruction": "cpi"
   }
 } as const satisfies OpcodeVariant;
@@ -29425,11 +29425,11 @@ const variant_ED_A2 = {
     "opcodes": "EDA2",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  * ",
+    "flags": "    * ",
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to the memory location pointed to by HL. Then HL is incremented and B is decremented. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Reads a byte from the port whose 16-bit address is in BC and stores it into the memory location pointed to by HL. Then increments HL and decrements B. Sets the zero flag if B becomes zero, and resets it otherwise.",
     "instruction": "ini"
   }
 } as const satisfies OpcodeVariant;
@@ -29448,11 +29448,11 @@ const variant_ED_A3 = {
     "opcodes": "EDA3",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  * ",
+    "flags": "    * ",
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "B is decremented. A byte from the memory location pointed to by HL is written to the port at the 16-bit address contained in the BC register pair. Then HL is incremented. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Decrements B and writes the value pointed to by HL to the port whose 16-bit address is in BC. Then increments HL. Sets the zero flag if B becomes zero, and resets it otherwise.",
     "instruction": "outi"
   }
 } as const satisfies OpcodeVariant;
@@ -29475,7 +29475,7 @@ const variant_ED_A8 = {
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL, DE, and BC are decremented. p/v is reset if BC becomes zero and set otherwise.",
+    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then decrements HL, DE, and BC. Resets the parity/overflow flag if BC becomes zero, and sets it otherwise.",
     "instruction": "ldd"
   }
 } as const satisfies OpcodeVariant;
@@ -29498,7 +29498,7 @@ const variant_ED_A9 = {
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "Compares the value of the memory location pointed to by HL with A. Then HL and BC are decremented. p/v is reset if BC becomes zero and set otherwise.",
+    "description": "Compares the value of the memory location pointed to by HL with A. Then decrements HL and BC. Resets the parity/overflow flag if BC becomes zero, and sets it otherwise.",
     "instruction": "cpd"
   }
 } as const satisfies OpcodeVariant;
@@ -29517,11 +29517,11 @@ const variant_ED_AA = {
     "opcodes": "EDAA",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  * ",
+    "flags": "    * ",
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to the memory location pointed to by HL. Then HL and B are decremented. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Reads a byte from the port whose 16-bit address is in BC and stores it into the memory location pointed to by HL. Then decrements HL and B. Sets the zero flag if B becomes zero, and resets it otherwise.",
     "instruction": "ind"
   }
 } as const satisfies OpcodeVariant;
@@ -29540,11 +29540,11 @@ const variant_ED_AB = {
     "opcodes": "EDAB",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  * ",
+    "flags": "    * ",
     "byte_count": 2,
     "with_jump_clock_count": 16,
     "without_jump_clock_count": 16,
-    "description": "B is decremented. A byte from the memory location pointed to by HL is written to the port at the 16-bit address contained in the BC register pair. Then HL is decremented. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Decrements B and writes the value pointed to by HL to the port whose 16-bit address is in BC. Then decrements HL. Sets the zero flag if B becomes zero, and resets it otherwise.",
     "instruction": "outd"
   }
 } as const satisfies OpcodeVariant;
@@ -29567,7 +29567,7 @@ const variant_ED_B0 = {
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL and DE are incremented and BC is decremented. If BC is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing.",
+    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then increments HL and DE and decrements BC. Repeats this operation until BC is zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "ldir"
   }
 } as const satisfies OpcodeVariant;
@@ -29590,7 +29590,7 @@ const variant_ED_B1 = {
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "Compares the value of the memory location pointed to by HL with A. Then HL is incremented and BC is decremented. If BC is not zero and z is not set, this operation is repeated. p/v is reset if BC becomes zero and set otherwise, acting as an indicator that HL reached a memory location whose value equalled A before the counter went to zero. Interrupts can trigger while this instruction is processing.",
+    "description": "Compares the value of the memory location pointed to by HL with A. Then increments HL and decrements BC. Repeats this operation until BC is zero or the zero flag is set. Resets the parity/overflow flag if BC becomes zero and sets it otherwise, so a set flag shows that HL reached a memory location whose value equalled A before the counter went to zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "cpir"
   }
 } as const satisfies OpcodeVariant;
@@ -29609,11 +29609,11 @@ const variant_ED_B2 = {
     "opcodes": "EDB2",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  1 ",
+    "flags": "    1 ",
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to the memory location pointed to by HL. Then HL is incremented and B is decremented. If B is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Reads a byte from the port whose 16-bit address is in BC and stores it into the memory location pointed to by HL. Then increments HL and decrements B. Repeats this operation until B is zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "inir"
   }
 } as const satisfies OpcodeVariant;
@@ -29632,11 +29632,11 @@ const variant_ED_B3 = {
     "opcodes": "EDB3",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  1 ",
+    "flags": "    1 ",
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "B is decremented. A byte from the memory location pointed to by HL is written to the port at the 16-bit address contained in the BC register pair. Then HL is incremented. If B is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Decrements B and writes the value pointed to by HL to the port whose 16-bit address is in BC. Then increments HL. Repeats this operation until B is zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "otir"
   }
 } as const satisfies OpcodeVariant;
@@ -29659,7 +29659,7 @@ const variant_ED_B8 = {
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL, DE, and BC are decremented. If BC is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing.",
+    "description": "Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then decrements HL, DE, and BC. Repeats this operation until BC is zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "lddr"
   }
 } as const satisfies OpcodeVariant;
@@ -29682,7 +29682,7 @@ const variant_ED_B9 = {
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "Compares the value of the memory location pointed to by HL with A. Then HL and BC are decremented. If BC is not zero and z is not set, this operation is repeated. p/v is reset if BC becomes zero and set otherwise, acting as an indicator that HL reached a memory location whose value equalled A before the counter went to zero. Interrupts can trigger while this instruction is processing.",
+    "description": "Compares the value of the memory location pointed to by HL with A. Then decrements HL and BC. Repeats this operation until BC is zero or the zero flag is set. Resets the parity/overflow flag if BC becomes zero and sets it otherwise, so a set flag shows that HL reached a memory location whose value equalled A before the counter went to zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "cpdr"
   }
 } as const satisfies OpcodeVariant;
@@ -29701,11 +29701,11 @@ const variant_ED_BA = {
     "opcodes": "EDBA",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  1 ",
+    "flags": "    1 ",
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "A byte from the port at the 16-bit address contained in the BC register pair is written to the memory location pointed to by HL. Then HL and B are decremented. If B is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Reads a byte from the port whose 16-bit address is in BC and stores it into the memory location pointed to by HL. Then decrements HL and B. Repeats this operation until B is zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "indr"
   }
 } as const satisfies OpcodeVariant;
@@ -29724,11 +29724,11 @@ const variant_ED_BB = {
     "opcodes": "EDBB",
     "undocumented": false,
     "z180": false,
-    "flags": " 1  1 ",
+    "flags": "    1 ",
     "byte_count": 2,
     "with_jump_clock_count": 21,
     "without_jump_clock_count": 16,
-    "description": "B is decremented. A byte from the memory location pointed to by HL is written to the port at the 16-bit address contained in the BC register pair. Then HL is decremented. If B is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing. Note that the carry flag may be affected, contrary to documentation.   <a href=\"http://z80.info/z80undoc3.txt\">Read More</a>",
+    "description": "Decrements B and writes the value pointed to by HL to the port whose 16-bit address is in BC. Then decrements HL. Repeats this operation until B is zero. Interrupts can trigger while this instruction is processing.",
     "instruction": "otdr"
   }
 } as const satisfies OpcodeVariant;
@@ -29755,7 +29755,7 @@ const variant_EE_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise XOR on A with <var>nn</var>.",
+    "description": "Sets A to the bitwise XOR of A and <var>nn</var>.",
     "instruction": "xor nn"
   }
 } as const satisfies OpcodeVariant;
@@ -29785,7 +29785,7 @@ const variant_EE_nn_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise XOR on A with <var>nn</var>.",
+    "description": "Sets A to the bitwise XOR of A and <var>nn</var>.",
     "instruction": "xor nn"
   }
 } as const satisfies OpcodeVariant;
@@ -29811,7 +29811,7 @@ const variant_EF = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 40.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 28h.",
     "instruction": "rst 28"
   }
 } as const satisfies OpcodeVariant;
@@ -29837,7 +29837,7 @@ const variant_F0 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the sign flag is unset, the top stack entry is popped into PC.",
+    "description": "If the sign flag is unset, pops the top stack entry into PC.",
     "instruction": "ret p"
   }
 } as const satisfies OpcodeVariant;
@@ -29863,7 +29863,7 @@ const variant_F1 = {
     "byte_count": 1,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "The memory location pointed to by SP is stored into F and SP is incremented. The memory location pointed to by SP is stored into A and SP is incremented again.",
+    "description": "Loads the value pointed to by SP into F and increments SP, then loads the value pointed to by SP into A and increments SP again.",
     "instruction": "pop af"
   }
 } as const satisfies OpcodeVariant;
@@ -29893,7 +29893,7 @@ const variant_F2_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the sign flag is unset, <var>nnnn</var> is copied to PC.",
+    "description": "If the sign flag is unset, jumps to <var>nnnn</var>.",
     "instruction": "jp p,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -29945,7 +29945,7 @@ const variant_F4_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the sign flag is unset, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the sign flag is unset, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call p,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -29971,7 +29971,7 @@ const variant_F5 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "SP is decremented and A is stored into the memory location pointed to by SP. SP is decremented again and F is stored into the memory location pointed to by SP.",
+    "description": "Decrements SP and stores A into the memory location pointed to by SP, then decrements SP again and stores F there.",
     "instruction": "push af"
   }
 } as const satisfies OpcodeVariant;
@@ -29998,7 +29998,7 @@ const variant_F6_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise OR on A with <var>nn</var>.",
+    "description": "Sets A to the bitwise OR of A and <var>nn</var>.",
     "instruction": "or nn"
   }
 } as const satisfies OpcodeVariant;
@@ -30028,7 +30028,7 @@ const variant_F6_nn_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Bitwise OR on A with <var>nn</var>.",
+    "description": "Sets A to the bitwise OR of A and <var>nn</var>.",
     "instruction": "or nn"
   }
 } as const satisfies OpcodeVariant;
@@ -30054,7 +30054,7 @@ const variant_F7 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 48.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 30h.",
     "instruction": "rst 30"
   }
 } as const satisfies OpcodeVariant;
@@ -30080,7 +30080,7 @@ const variant_F8 = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 5,
-    "description": "If the sign flag is set, the top stack entry is popped into PC.",
+    "description": "If the sign flag is set, pops the top stack entry into PC.",
     "instruction": "ret m"
   }
 } as const satisfies OpcodeVariant;
@@ -30109,7 +30109,7 @@ const variant_F9 = {
     "byte_count": 1,
     "with_jump_clock_count": 6,
     "without_jump_clock_count": 6,
-    "description": "Loads the value of HL into SP.",
+    "description": "Loads HL into SP.",
     "instruction": "ld sp,hl"
   }
 } as const satisfies OpcodeVariant;
@@ -30139,7 +30139,7 @@ const variant_FA_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "If the sign flag is set, <var>nnnn</var> is copied to PC.",
+    "description": "If the sign flag is set, jumps to <var>nnnn</var>.",
     "instruction": "jp m,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -30191,7 +30191,7 @@ const variant_FC_nnnn = {
     "byte_count": 3,
     "with_jump_clock_count": 17,
     "without_jump_clock_count": 10,
-    "description": "If the sign flag is set, the current PC value plus three is pushed onto the stack, then is loaded with <var>nnnn</var>.",
+    "description": "If the sign flag is set, pushes the address of the next instruction onto the stack, then jumps to <var>nnnn</var>.",
     "instruction": "call m,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -30221,7 +30221,7 @@ const variant_FD_09 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of BC is added to IY.",
+    "description": "Adds BC to IY.",
     "instruction": "add iy,bc"
   }
 } as const satisfies OpcodeVariant;
@@ -30251,7 +30251,7 @@ const variant_FD_19 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of DE is added to IY.",
+    "description": "Adds DE to IY.",
     "instruction": "add iy,de"
   }
 } as const satisfies OpcodeVariant;
@@ -30282,7 +30282,7 @@ const variant_FD_21_nnnn = {
     "byte_count": 4,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Loads <var>nnnn</var> into register IY.",
+    "description": "Loads <var>nnnn</var> into IY.",
     "instruction": "ld iy,nnnn"
   }
 } as const satisfies OpcodeVariant;
@@ -30457,7 +30457,7 @@ const variant_FD_29 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of IY is added to IY.",
+    "description": "Adds IY to IY.",
     "instruction": "add iy,iy"
   }
 } as const satisfies OpcodeVariant;
@@ -30702,7 +30702,7 @@ const variant_FD_36_dd_nn = {
     "byte_count": 4,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores <var>nn</var> to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores <var>nn</var> into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),nn"
   }
 } as const satisfies OpcodeVariant;
@@ -30732,7 +30732,7 @@ const variant_FD_39 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "The value of SP is added to IY.",
+    "description": "Adds SP to IY.",
     "instruction": "add iy,sp"
   }
 } as const satisfies OpcodeVariant;
@@ -30762,7 +30762,7 @@ const variant_FD_44 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into B.",
+    "description": "Loads IYH into B.",
     "instruction": "ld b,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -30792,7 +30792,7 @@ const variant_FD_45 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into B.",
+    "description": "Loads IYL into B.",
     "instruction": "ld b,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -30857,7 +30857,7 @@ const variant_FD_4C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into C.",
+    "description": "Loads IYH into C.",
     "instruction": "ld c,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -30887,7 +30887,7 @@ const variant_FD_4D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into C.",
+    "description": "Loads IYL into C.",
     "instruction": "ld c,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -30952,7 +30952,7 @@ const variant_FD_54 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into D.",
+    "description": "Loads IYH into D.",
     "instruction": "ld d,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -30982,7 +30982,7 @@ const variant_FD_55 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into D.",
+    "description": "Loads IYL into D.",
     "instruction": "ld d,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -31047,7 +31047,7 @@ const variant_FD_5C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into E.",
+    "description": "Loads IYH into E.",
     "instruction": "ld e,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -31077,7 +31077,7 @@ const variant_FD_5D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into E.",
+    "description": "Loads IYL into E.",
     "instruction": "ld e,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -31142,7 +31142,7 @@ const variant_FD_60 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into IYH.",
+    "description": "Loads B into IYH.",
     "instruction": "ld iyh,b"
   }
 } as const satisfies OpcodeVariant;
@@ -31172,7 +31172,7 @@ const variant_FD_61 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into IYH.",
+    "description": "Loads C into IYH.",
     "instruction": "ld iyh,c"
   }
 } as const satisfies OpcodeVariant;
@@ -31202,7 +31202,7 @@ const variant_FD_62 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into IYH.",
+    "description": "Loads D into IYH.",
     "instruction": "ld iyh,d"
   }
 } as const satisfies OpcodeVariant;
@@ -31232,7 +31232,7 @@ const variant_FD_63 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into IYH.",
+    "description": "Loads E into IYH.",
     "instruction": "ld iyh,e"
   }
 } as const satisfies OpcodeVariant;
@@ -31262,7 +31262,7 @@ const variant_FD_64 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into IYH.",
+    "description": "Loads IYH into IYH.",
     "instruction": "ld iyh,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -31292,7 +31292,7 @@ const variant_FD_65 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into IYH.",
+    "description": "Loads IYL into IYH.",
     "instruction": "ld iyh,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -31357,7 +31357,7 @@ const variant_FD_67 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into IYH.",
+    "description": "Loads A into IYH.",
     "instruction": "ld iyh,a"
   }
 } as const satisfies OpcodeVariant;
@@ -31387,7 +31387,7 @@ const variant_FD_68 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into IYL.",
+    "description": "Loads B into IYL.",
     "instruction": "ld iyl,b"
   }
 } as const satisfies OpcodeVariant;
@@ -31417,7 +31417,7 @@ const variant_FD_69 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into IYL.",
+    "description": "Loads C into IYL.",
     "instruction": "ld iyl,c"
   }
 } as const satisfies OpcodeVariant;
@@ -31447,7 +31447,7 @@ const variant_FD_6A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into IYL.",
+    "description": "Loads D into IYL.",
     "instruction": "ld iyl,d"
   }
 } as const satisfies OpcodeVariant;
@@ -31477,7 +31477,7 @@ const variant_FD_6B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into IYL.",
+    "description": "Loads E into IYL.",
     "instruction": "ld iyl,e"
   }
 } as const satisfies OpcodeVariant;
@@ -31507,7 +31507,7 @@ const variant_FD_6C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into IYL.",
+    "description": "Loads IYH into IYL.",
     "instruction": "ld iyl,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -31537,7 +31537,7 @@ const variant_FD_6D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into IYL.",
+    "description": "Loads IYL into IYL.",
     "instruction": "ld iyl,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -31602,7 +31602,7 @@ const variant_FD_6F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into IYL.",
+    "description": "Loads A into IYL.",
     "instruction": "ld iyl,a"
   }
 } as const satisfies OpcodeVariant;
@@ -31637,7 +31637,7 @@ const variant_FD_70_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores B to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores B into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -31672,7 +31672,7 @@ const variant_FD_71_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores C to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores C into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -31707,7 +31707,7 @@ const variant_FD_72_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores D to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores D into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -31742,7 +31742,7 @@ const variant_FD_73_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores E to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores E into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -31777,7 +31777,7 @@ const variant_FD_74_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores H to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores H into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -31812,7 +31812,7 @@ const variant_FD_75_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores L to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores L into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -31847,7 +31847,7 @@ const variant_FD_77_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Stores A to the memory location pointed to by IY plus <var>dd</var>.",
+    "description": "Stores A into the memory location pointed to by IY plus <var>dd</var>.",
     "instruction": "ld (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -31877,7 +31877,7 @@ const variant_FD_7C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYH are loaded into A.",
+    "description": "Loads IYH into A.",
     "instruction": "ld a,iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -31907,7 +31907,7 @@ const variant_FD_7D = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of IYL are loaded into A.",
+    "description": "Loads IYL into A.",
     "instruction": "ld a,iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -32693,7 +32693,7 @@ const variant_FD_A4 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IYH.",
+    "description": "Sets A to the bitwise AND of A and IYH.",
     "instruction": "and iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -32723,7 +32723,7 @@ const variant_FD_A4_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IYH.",
+    "description": "Sets A to the bitwise AND of A and IYH.",
     "instruction": "and iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -32750,7 +32750,7 @@ const variant_FD_A5 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IYL.",
+    "description": "Sets A to the bitwise AND of A and IYL.",
     "instruction": "and iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -32780,7 +32780,7 @@ const variant_FD_A5_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with IYL.",
+    "description": "Sets A to the bitwise AND of A and IYL.",
     "instruction": "and iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -32812,7 +32812,7 @@ const variant_FD_A6_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise AND on A with the value pointed to by IY plus <var>dd</var>.",
+    "description": "Sets A to the bitwise AND of A and the value pointed to by IY plus <var>dd</var>.",
     "instruction": "and (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -32847,7 +32847,7 @@ const variant_FD_A6_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise AND on A with the value pointed to by IY plus <var>dd</var>.",
+    "description": "Sets A to the bitwise AND of A and the value pointed to by IY plus <var>dd</var>.",
     "instruction": "and (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -32874,7 +32874,7 @@ const variant_FD_AC = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IYH.",
+    "description": "Sets A to the bitwise XOR of A and IYH.",
     "instruction": "xor iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -32904,7 +32904,7 @@ const variant_FD_AC_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IYH.",
+    "description": "Sets A to the bitwise XOR of A and IYH.",
     "instruction": "xor iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -32931,7 +32931,7 @@ const variant_FD_AD = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IYL.",
+    "description": "Sets A to the bitwise XOR of A and IYL.",
     "instruction": "xor iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -32961,7 +32961,7 @@ const variant_FD_AD_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with IYL.",
+    "description": "Sets A to the bitwise XOR of A and IYL.",
     "instruction": "xor iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -32993,7 +32993,7 @@ const variant_FD_AE_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise XOR on A with the value pointed to by IY plus <var>dd</var>.",
+    "description": "Sets A to the bitwise XOR of A and the value pointed to by IY plus <var>dd</var>.",
     "instruction": "xor (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33028,7 +33028,7 @@ const variant_FD_AE_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise XOR on A with the value pointed to by IY plus <var>dd</var>.",
+    "description": "Sets A to the bitwise XOR of A and the value pointed to by IY plus <var>dd</var>.",
     "instruction": "xor (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33055,7 +33055,7 @@ const variant_FD_B4 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IYH.",
+    "description": "Sets A to the bitwise OR of A and IYH.",
     "instruction": "or iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -33085,7 +33085,7 @@ const variant_FD_B4_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IYH.",
+    "description": "Sets A to the bitwise OR of A and IYH.",
     "instruction": "or iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -33112,7 +33112,7 @@ const variant_FD_B5 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IYL.",
+    "description": "Sets A to the bitwise OR of A and IYL.",
     "instruction": "or iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -33142,7 +33142,7 @@ const variant_FD_B5_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with IYL.",
+    "description": "Sets A to the bitwise OR of A and IYL.",
     "instruction": "or iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -33174,7 +33174,7 @@ const variant_FD_B6_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise OR on A with the value pointed to by IY plus <var>dd</var>.",
+    "description": "Sets A to the bitwise OR of A and the value pointed to by IY plus <var>dd</var>.",
     "instruction": "or (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33209,7 +33209,7 @@ const variant_FD_B6_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Bitwise OR on A with the value pointed to by IY plus <var>dd</var>.",
+    "description": "Sets A to the bitwise OR of A and the value pointed to by IY plus <var>dd</var>.",
     "instruction": "or (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33236,7 +33236,7 @@ const variant_FD_BC = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IYH from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IYH from A to set the flags, but leaves A unchanged.",
     "instruction": "cp iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -33266,7 +33266,7 @@ const variant_FD_BC_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IYH from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IYH from A to set the flags, but leaves A unchanged.",
     "instruction": "cp iyh"
   }
 } as const satisfies OpcodeVariant;
@@ -33293,7 +33293,7 @@ const variant_FD_BD = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IYL from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IYL from A to set the flags, but leaves A unchanged.",
     "instruction": "cp iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -33323,7 +33323,7 @@ const variant_FD_BD_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts IYL from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts IYL from A to set the flags, but leaves A unchanged.",
     "instruction": "cp iyl"
   }
 } as const satisfies OpcodeVariant;
@@ -33355,7 +33355,7 @@ const variant_FD_BE_dd = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Subtracts the value pointed to by IY plus <var>dd</var> from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts the value pointed to by IY plus <var>dd</var> from A to set the flags, but leaves A unchanged.",
     "instruction": "cp (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33390,7 +33390,7 @@ const variant_FD_BE_dd_pseudo = {
     "byte_count": 3,
     "with_jump_clock_count": 19,
     "without_jump_clock_count": 19,
-    "description": "Subtracts the value pointed to by IY plus <var>dd</var> from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts the value pointed to by IY plus <var>dd</var> from A to set the flags, but leaves A unchanged.",
     "instruction": "cp (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33426,7 +33426,7 @@ const variant_FD_CB_dd_00 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in B.",
     "instruction": "rlc (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -33462,7 +33462,7 @@ const variant_FD_CB_dd_01 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in C.",
     "instruction": "rlc (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -33498,7 +33498,7 @@ const variant_FD_CB_dd_02 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in D.",
     "instruction": "rlc (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -33534,7 +33534,7 @@ const variant_FD_CB_dd_03 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in E.",
     "instruction": "rlc (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -33570,7 +33570,7 @@ const variant_FD_CB_dd_04 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in H.",
     "instruction": "rlc (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -33606,7 +33606,7 @@ const variant_FD_CB_dd_05 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in L.",
     "instruction": "rlc (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -33639,7 +33639,7 @@ const variant_FD_CB_dd_06 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0.",
     "instruction": "rlc (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33675,7 +33675,7 @@ const variant_FD_CB_dd_07 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and bit 0. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and to bit 0. Also stores the result in A.",
     "instruction": "rlc (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -33711,7 +33711,7 @@ const variant_FD_CB_dd_08 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in B.",
     "instruction": "rrc (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -33747,7 +33747,7 @@ const variant_FD_CB_dd_09 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in C.",
     "instruction": "rrc (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -33783,7 +33783,7 @@ const variant_FD_CB_dd_0A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in D.",
     "instruction": "rrc (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -33819,7 +33819,7 @@ const variant_FD_CB_dd_0B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in E.",
     "instruction": "rrc (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -33855,7 +33855,7 @@ const variant_FD_CB_dd_0C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in H.",
     "instruction": "rrc (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -33891,7 +33891,7 @@ const variant_FD_CB_dd_0D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in L.",
     "instruction": "rrc (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -33924,7 +33924,7 @@ const variant_FD_CB_dd_0E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7.",
     "instruction": "rrc (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -33960,7 +33960,7 @@ const variant_FD_CB_dd_0F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and bit 7. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and to bit 7. Also stores the result in A.",
     "instruction": "rrc (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -33996,7 +33996,7 @@ const variant_FD_CB_dd_10 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in B.",
     "instruction": "rl (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -34032,7 +34032,7 @@ const variant_FD_CB_dd_11 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in C.",
     "instruction": "rl (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -34068,7 +34068,7 @@ const variant_FD_CB_dd_12 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in D.",
     "instruction": "rl (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -34104,7 +34104,7 @@ const variant_FD_CB_dd_13 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in E.",
     "instruction": "rl (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -34140,7 +34140,7 @@ const variant_FD_CB_dd_14 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in H.",
     "instruction": "rl (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -34176,7 +34176,7 @@ const variant_FD_CB_dd_15 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in L.",
     "instruction": "rl (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -34209,7 +34209,7 @@ const variant_FD_CB_dd_16 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0.",
     "instruction": "rl (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -34245,7 +34245,7 @@ const variant_FD_CB_dd_17 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated left one bit position. The contents of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and the previous carry flag to bit 0. Also stores the result in A.",
     "instruction": "rl (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -34281,7 +34281,7 @@ const variant_FD_CB_dd_18 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in B.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in B.",
     "instruction": "rr (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -34317,7 +34317,7 @@ const variant_FD_CB_dd_19 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in C.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in C.",
     "instruction": "rr (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -34353,7 +34353,7 @@ const variant_FD_CB_dd_1A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in D.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in D.",
     "instruction": "rr (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -34389,7 +34389,7 @@ const variant_FD_CB_dd_1B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in E.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in E.",
     "instruction": "rr (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -34425,7 +34425,7 @@ const variant_FD_CB_dd_1C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in H.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in H.",
     "instruction": "rr (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -34461,7 +34461,7 @@ const variant_FD_CB_dd_1D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in L.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in L.",
     "instruction": "rr (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -34494,7 +34494,7 @@ const variant_FD_CB_dd_1E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7.",
     "instruction": "rr (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -34530,7 +34530,7 @@ const variant_FD_CB_dd_1F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are rotated right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7. The result is then stored in A.",
+    "description": "Rotates the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and the previous carry flag to bit 7. Also stores the result in A.",
     "instruction": "rr (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -34566,7 +34566,7 @@ const variant_FD_CB_dd_20 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in B.",
     "instruction": "sla (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -34602,7 +34602,7 @@ const variant_FD_CB_dd_21 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in C.",
     "instruction": "sla (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -34638,7 +34638,7 @@ const variant_FD_CB_dd_22 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in D.",
     "instruction": "sla (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -34674,7 +34674,7 @@ const variant_FD_CB_dd_23 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in E.",
     "instruction": "sla (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -34710,7 +34710,7 @@ const variant_FD_CB_dd_24 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in H.",
     "instruction": "sla (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -34746,7 +34746,7 @@ const variant_FD_CB_dd_25 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in L.",
     "instruction": "sla (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -34779,7 +34779,7 @@ const variant_FD_CB_dd_26 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0.",
     "instruction": "sla (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -34815,7 +34815,7 @@ const variant_FD_CB_dd_27 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are copied to the carry flag and a zero is put into bit 0. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a zero into bit 0. Also stores the result in A.",
     "instruction": "sla (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -34851,7 +34851,7 @@ const variant_FD_CB_dd_28 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in B.",
     "instruction": "sra (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -34887,7 +34887,7 @@ const variant_FD_CB_dd_29 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in C.",
     "instruction": "sra (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -34923,7 +34923,7 @@ const variant_FD_CB_dd_2A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in D.",
     "instruction": "sra (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -34959,7 +34959,7 @@ const variant_FD_CB_dd_2B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in E.",
     "instruction": "sra (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -34995,7 +34995,7 @@ const variant_FD_CB_dd_2C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in H.",
     "instruction": "sra (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -35031,7 +35031,7 @@ const variant_FD_CB_dd_2D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in L.",
     "instruction": "sra (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -35064,7 +35064,7 @@ const variant_FD_CB_dd_2E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged.",
     "instruction": "sra (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -35100,7 +35100,7 @@ const variant_FD_CB_dd_2F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and leaves bit 7 unchanged. Also stores the result in A.",
     "instruction": "sra (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -35136,7 +35136,7 @@ const variant_FD_CB_dd_30 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in B.",
     "instruction": "sll (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -35172,7 +35172,7 @@ const variant_FD_CB_dd_31 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in C.",
     "instruction": "sll (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -35208,7 +35208,7 @@ const variant_FD_CB_dd_32 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in D.",
     "instruction": "sll (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -35244,7 +35244,7 @@ const variant_FD_CB_dd_33 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in E.",
     "instruction": "sll (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -35280,7 +35280,7 @@ const variant_FD_CB_dd_34 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in H.",
     "instruction": "sll (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -35316,7 +35316,7 @@ const variant_FD_CB_dd_35 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in L.",
     "instruction": "sll (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -35349,7 +35349,7 @@ const variant_FD_CB_dd_36 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0.",
     "instruction": "sll (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -35385,7 +35385,7 @@ const variant_FD_CB_dd_37 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted left one bit position. The contents of bit 7 are put into the carry flag and a one is put into bit 0. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> left one bit position. Copies bit 7 to the carry flag and puts a one into bit 0. Also stores the result in A.",
     "instruction": "sll (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -35421,7 +35421,7 @@ const variant_FD_CB_dd_38 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in B.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in B.",
     "instruction": "srl (iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -35457,7 +35457,7 @@ const variant_FD_CB_dd_39 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in C.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in C.",
     "instruction": "srl (iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -35493,7 +35493,7 @@ const variant_FD_CB_dd_3A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in D.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in D.",
     "instruction": "srl (iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -35529,7 +35529,7 @@ const variant_FD_CB_dd_3B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in E.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in E.",
     "instruction": "srl (iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -35565,7 +35565,7 @@ const variant_FD_CB_dd_3C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in H.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in H.",
     "instruction": "srl (iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -35601,7 +35601,7 @@ const variant_FD_CB_dd_3D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in L.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in L.",
     "instruction": "srl (iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -35634,7 +35634,7 @@ const variant_FD_CB_dd_3E = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7.",
     "instruction": "srl (iy+dd)"
   }
 } as const satisfies OpcodeVariant;
@@ -35670,7 +35670,7 @@ const variant_FD_CB_dd_3F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "The contents of the memory location pointed to by IY plus <var>dd</var> are shifted right one bit position. The contents of bit 0 are copied to the carry flag and a zero is put into bit 7. The result is then stored in A.",
+    "description": "Shifts the memory location pointed to by IY plus <var>dd</var> right one bit position. Copies bit 0 to the carry flag and puts a zero into bit 7. Also stores the result in A.",
     "instruction": "srl (iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -35997,7 +35997,7 @@ const variant_FD_CB_dd_80 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 0,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -36036,7 +36036,7 @@ const variant_FD_CB_dd_81 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 0,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -36075,7 +36075,7 @@ const variant_FD_CB_dd_82 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 0,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -36114,7 +36114,7 @@ const variant_FD_CB_dd_83 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 0,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -36153,7 +36153,7 @@ const variant_FD_CB_dd_84 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 0,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -36192,7 +36192,7 @@ const variant_FD_CB_dd_85 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 0,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -36267,7 +36267,7 @@ const variant_FD_CB_dd_87 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 0,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -36306,7 +36306,7 @@ const variant_FD_CB_dd_88 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 1,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -36345,7 +36345,7 @@ const variant_FD_CB_dd_89 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 1,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -36384,7 +36384,7 @@ const variant_FD_CB_dd_8A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 1,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -36423,7 +36423,7 @@ const variant_FD_CB_dd_8B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 1,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -36462,7 +36462,7 @@ const variant_FD_CB_dd_8C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 1,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -36501,7 +36501,7 @@ const variant_FD_CB_dd_8D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 1,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -36576,7 +36576,7 @@ const variant_FD_CB_dd_8F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 1,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -36615,7 +36615,7 @@ const variant_FD_CB_dd_90 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 2,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -36654,7 +36654,7 @@ const variant_FD_CB_dd_91 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 2,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -36693,7 +36693,7 @@ const variant_FD_CB_dd_92 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 2,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -36732,7 +36732,7 @@ const variant_FD_CB_dd_93 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 2,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -36771,7 +36771,7 @@ const variant_FD_CB_dd_94 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 2,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -36810,7 +36810,7 @@ const variant_FD_CB_dd_95 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 2,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -36885,7 +36885,7 @@ const variant_FD_CB_dd_97 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 2,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -36924,7 +36924,7 @@ const variant_FD_CB_dd_98 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 3,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -36963,7 +36963,7 @@ const variant_FD_CB_dd_99 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 3,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -37002,7 +37002,7 @@ const variant_FD_CB_dd_9A = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 3,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -37041,7 +37041,7 @@ const variant_FD_CB_dd_9B = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 3,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -37080,7 +37080,7 @@ const variant_FD_CB_dd_9C = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 3,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -37119,7 +37119,7 @@ const variant_FD_CB_dd_9D = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 3,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -37194,7 +37194,7 @@ const variant_FD_CB_dd_9F = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 3,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -37233,7 +37233,7 @@ const variant_FD_CB_dd_A0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 4,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -37272,7 +37272,7 @@ const variant_FD_CB_dd_A1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 4,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -37311,7 +37311,7 @@ const variant_FD_CB_dd_A2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 4,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -37350,7 +37350,7 @@ const variant_FD_CB_dd_A3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 4,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -37389,7 +37389,7 @@ const variant_FD_CB_dd_A4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 4,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -37428,7 +37428,7 @@ const variant_FD_CB_dd_A5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 4,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -37503,7 +37503,7 @@ const variant_FD_CB_dd_A7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 4,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -37542,7 +37542,7 @@ const variant_FD_CB_dd_A8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 5,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -37581,7 +37581,7 @@ const variant_FD_CB_dd_A9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 5,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -37620,7 +37620,7 @@ const variant_FD_CB_dd_AA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 5,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -37659,7 +37659,7 @@ const variant_FD_CB_dd_AB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 5,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -37698,7 +37698,7 @@ const variant_FD_CB_dd_AC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 5,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -37737,7 +37737,7 @@ const variant_FD_CB_dd_AD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 5,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -37812,7 +37812,7 @@ const variant_FD_CB_dd_AF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 5,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -37851,7 +37851,7 @@ const variant_FD_CB_dd_B0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 6,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -37890,7 +37890,7 @@ const variant_FD_CB_dd_B1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 6,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -37929,7 +37929,7 @@ const variant_FD_CB_dd_B2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 6,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -37968,7 +37968,7 @@ const variant_FD_CB_dd_B3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 6,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -38007,7 +38007,7 @@ const variant_FD_CB_dd_B4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 6,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -38046,7 +38046,7 @@ const variant_FD_CB_dd_B5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 6,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -38121,7 +38121,7 @@ const variant_FD_CB_dd_B7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 6,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -38160,7 +38160,7 @@ const variant_FD_CB_dd_B8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "res 7,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -38199,7 +38199,7 @@ const variant_FD_CB_dd_B9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "res 7,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -38238,7 +38238,7 @@ const variant_FD_CB_dd_BA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "res 7,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -38277,7 +38277,7 @@ const variant_FD_CB_dd_BB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "res 7,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -38316,7 +38316,7 @@ const variant_FD_CB_dd_BC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "res 7,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -38355,7 +38355,7 @@ const variant_FD_CB_dd_BD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "res 7,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -38430,7 +38430,7 @@ const variant_FD_CB_dd_BF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Resets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "res 7,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -38469,7 +38469,7 @@ const variant_FD_CB_dd_C0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 0,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -38508,7 +38508,7 @@ const variant_FD_CB_dd_C1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 0,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -38547,7 +38547,7 @@ const variant_FD_CB_dd_C2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 0,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -38586,7 +38586,7 @@ const variant_FD_CB_dd_C3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 0,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -38625,7 +38625,7 @@ const variant_FD_CB_dd_C4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 0,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -38664,7 +38664,7 @@ const variant_FD_CB_dd_C5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 0,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -38739,7 +38739,7 @@ const variant_FD_CB_dd_C7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 0 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 0,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -38778,7 +38778,7 @@ const variant_FD_CB_dd_C8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 1,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -38817,7 +38817,7 @@ const variant_FD_CB_dd_C9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 1,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -38856,7 +38856,7 @@ const variant_FD_CB_dd_CA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 1,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -38895,7 +38895,7 @@ const variant_FD_CB_dd_CB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 1,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -38934,7 +38934,7 @@ const variant_FD_CB_dd_CC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 1,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -38973,7 +38973,7 @@ const variant_FD_CB_dd_CD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 1,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -39048,7 +39048,7 @@ const variant_FD_CB_dd_CF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 1 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 1,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -39087,7 +39087,7 @@ const variant_FD_CB_dd_D0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 2,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -39126,7 +39126,7 @@ const variant_FD_CB_dd_D1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 2,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -39165,7 +39165,7 @@ const variant_FD_CB_dd_D2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 2,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -39204,7 +39204,7 @@ const variant_FD_CB_dd_D3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 2,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -39243,7 +39243,7 @@ const variant_FD_CB_dd_D4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 2,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -39282,7 +39282,7 @@ const variant_FD_CB_dd_D5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 2,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -39357,7 +39357,7 @@ const variant_FD_CB_dd_D7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 2 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 2,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -39396,7 +39396,7 @@ const variant_FD_CB_dd_D8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 3,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -39435,7 +39435,7 @@ const variant_FD_CB_dd_D9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 3,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -39474,7 +39474,7 @@ const variant_FD_CB_dd_DA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 3,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -39513,7 +39513,7 @@ const variant_FD_CB_dd_DB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 3,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -39552,7 +39552,7 @@ const variant_FD_CB_dd_DC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 3,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -39591,7 +39591,7 @@ const variant_FD_CB_dd_DD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 3,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -39666,7 +39666,7 @@ const variant_FD_CB_dd_DF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 3 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 3,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -39705,7 +39705,7 @@ const variant_FD_CB_dd_E0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 4,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -39744,7 +39744,7 @@ const variant_FD_CB_dd_E1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 4,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -39783,7 +39783,7 @@ const variant_FD_CB_dd_E2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 4,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -39822,7 +39822,7 @@ const variant_FD_CB_dd_E3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 4,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -39861,7 +39861,7 @@ const variant_FD_CB_dd_E4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 4,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -39900,7 +39900,7 @@ const variant_FD_CB_dd_E5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 4,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -39975,7 +39975,7 @@ const variant_FD_CB_dd_E7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 4 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 4,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -40014,7 +40014,7 @@ const variant_FD_CB_dd_E8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 5,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -40053,7 +40053,7 @@ const variant_FD_CB_dd_E9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 5,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -40092,7 +40092,7 @@ const variant_FD_CB_dd_EA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 5,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -40131,7 +40131,7 @@ const variant_FD_CB_dd_EB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 5,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -40170,7 +40170,7 @@ const variant_FD_CB_dd_EC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 5,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -40209,7 +40209,7 @@ const variant_FD_CB_dd_ED = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 5,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -40284,7 +40284,7 @@ const variant_FD_CB_dd_EF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 5 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 5,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -40323,7 +40323,7 @@ const variant_FD_CB_dd_F0 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 6,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -40362,7 +40362,7 @@ const variant_FD_CB_dd_F1 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 6,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -40401,7 +40401,7 @@ const variant_FD_CB_dd_F2 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 6,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -40440,7 +40440,7 @@ const variant_FD_CB_dd_F3 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 6,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -40479,7 +40479,7 @@ const variant_FD_CB_dd_F4 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 6,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -40518,7 +40518,7 @@ const variant_FD_CB_dd_F5 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 6,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -40593,7 +40593,7 @@ const variant_FD_CB_dd_F7 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 6 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 6,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -40632,7 +40632,7 @@ const variant_FD_CB_dd_F8 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in B.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in B.",
     "instruction": "set 7,(iy+dd),b"
   }
 } as const satisfies OpcodeVariant;
@@ -40671,7 +40671,7 @@ const variant_FD_CB_dd_F9 = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in C.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in C.",
     "instruction": "set 7,(iy+dd),c"
   }
 } as const satisfies OpcodeVariant;
@@ -40710,7 +40710,7 @@ const variant_FD_CB_dd_FA = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in D.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in D.",
     "instruction": "set 7,(iy+dd),d"
   }
 } as const satisfies OpcodeVariant;
@@ -40749,7 +40749,7 @@ const variant_FD_CB_dd_FB = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in E.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in E.",
     "instruction": "set 7,(iy+dd),e"
   }
 } as const satisfies OpcodeVariant;
@@ -40788,7 +40788,7 @@ const variant_FD_CB_dd_FC = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in H.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in H.",
     "instruction": "set 7,(iy+dd),h"
   }
 } as const satisfies OpcodeVariant;
@@ -40827,7 +40827,7 @@ const variant_FD_CB_dd_FD = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in L.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in L.",
     "instruction": "set 7,(iy+dd),l"
   }
 } as const satisfies OpcodeVariant;
@@ -40902,7 +40902,7 @@ const variant_FD_CB_dd_FF = {
     "byte_count": 4,
     "with_jump_clock_count": 23,
     "without_jump_clock_count": 23,
-    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. The result is then stored in A.",
+    "description": "Sets bit 7 of the memory location pointed to by IY plus <var>dd</var>. Also stores the result in A.",
     "instruction": "set 7,(iy+dd),a"
   }
 } as const satisfies OpcodeVariant;
@@ -40929,7 +40929,7 @@ const variant_FD_E1 = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "The memory location pointed to by SP is stored into IYL and SP is incremented. The memory location pointed to by SP is stored into IYH and SP is incremented again.",
+    "description": "Loads the value pointed to by SP into IYL and increments SP, then loads the value pointed to by SP into IYH and increments SP again.",
     "instruction": "pop iy"
   }
 } as const satisfies OpcodeVariant;
@@ -41020,7 +41020,7 @@ const variant_FD_E5 = {
     "byte_count": 2,
     "with_jump_clock_count": 15,
     "without_jump_clock_count": 15,
-    "description": "SP is decremented and IYH is stored into the memory location pointed to by SP. SP is decremented again and IYL is stored into the memory location pointed to by SP.",
+    "description": "Decrements SP and stores IYH into the memory location pointed to by SP, then decrements SP again and stores IYL there.",
     "instruction": "push iy"
   }
 } as const satisfies OpcodeVariant;
@@ -41049,7 +41049,7 @@ const variant_FD_E9 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Loads the value of IY into PC.",
+    "description": "Jumps to the address in IY.",
     "instruction": "jp (iy)"
   }
 } as const satisfies OpcodeVariant;
@@ -41076,7 +41076,7 @@ const variant_FD_E9_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Loads the value of IY into PC.",
+    "description": "Jumps to the address in IY.",
     "instruction": "jp (iy)"
   }
 } as const satisfies OpcodeVariant;
@@ -41106,7 +41106,7 @@ const variant_FD_F9 = {
     "byte_count": 2,
     "with_jump_clock_count": 10,
     "without_jump_clock_count": 10,
-    "description": "Loads the value of IY into SP.",
+    "description": "Loads IY into SP.",
     "instruction": "ld sp,iy"
   }
 } as const satisfies OpcodeVariant;
@@ -41133,7 +41133,7 @@ const variant_FE_nn = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Subtracts <var>nn</var> from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts <var>nn</var> from A to set the flags, but leaves A unchanged.",
     "instruction": "cp nn"
   }
 } as const satisfies OpcodeVariant;
@@ -41163,7 +41163,7 @@ const variant_FE_nn_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 7,
     "without_jump_clock_count": 7,
-    "description": "Subtracts <var>nn</var> from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts <var>nn</var> from A to set the flags, but leaves A unchanged.",
     "instruction": "cp nn"
   }
 } as const satisfies OpcodeVariant;
@@ -41189,7 +41189,7 @@ const variant_FF = {
     "byte_count": 1,
     "with_jump_clock_count": 11,
     "without_jump_clock_count": 11,
-    "description": "The current PC value plus one is pushed onto the stack, then is loaded with 56.",
+    "description": "Pushes the address of the next instruction onto the stack, then jumps to address 38h.",
     "instruction": "rst 38"
   }
 } as const satisfies OpcodeVariant;
@@ -41660,7 +41660,7 @@ const variant_DD_40 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into B.",
+    "description": "Loads B into B.",
     "instruction": "ld b,b"
   }
 } as const satisfies OpcodeVariant;
@@ -41691,7 +41691,7 @@ const variant_DD_41 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into B.",
+    "description": "Loads C into B.",
     "instruction": "ld b,c"
   }
 } as const satisfies OpcodeVariant;
@@ -41722,7 +41722,7 @@ const variant_DD_42 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into B.",
+    "description": "Loads D into B.",
     "instruction": "ld b,d"
   }
 } as const satisfies OpcodeVariant;
@@ -41753,7 +41753,7 @@ const variant_DD_43 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into B.",
+    "description": "Loads E into B.",
     "instruction": "ld b,e"
   }
 } as const satisfies OpcodeVariant;
@@ -41784,7 +41784,7 @@ const variant_DD_47 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into B.",
+    "description": "Loads A into B.",
     "instruction": "ld b,a"
   }
 } as const satisfies OpcodeVariant;
@@ -41815,7 +41815,7 @@ const variant_DD_48 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into C.",
+    "description": "Loads B into C.",
     "instruction": "ld c,b"
   }
 } as const satisfies OpcodeVariant;
@@ -41846,7 +41846,7 @@ const variant_DD_49 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into C.",
+    "description": "Loads C into C.",
     "instruction": "ld c,c"
   }
 } as const satisfies OpcodeVariant;
@@ -41877,7 +41877,7 @@ const variant_DD_4A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into C.",
+    "description": "Loads D into C.",
     "instruction": "ld c,d"
   }
 } as const satisfies OpcodeVariant;
@@ -41908,7 +41908,7 @@ const variant_DD_4B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into C.",
+    "description": "Loads E into C.",
     "instruction": "ld c,e"
   }
 } as const satisfies OpcodeVariant;
@@ -41939,7 +41939,7 @@ const variant_DD_4F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into C.",
+    "description": "Loads A into C.",
     "instruction": "ld c,a"
   }
 } as const satisfies OpcodeVariant;
@@ -41970,7 +41970,7 @@ const variant_DD_50 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into D.",
+    "description": "Loads B into D.",
     "instruction": "ld d,b"
   }
 } as const satisfies OpcodeVariant;
@@ -42001,7 +42001,7 @@ const variant_DD_51 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into D.",
+    "description": "Loads C into D.",
     "instruction": "ld d,c"
   }
 } as const satisfies OpcodeVariant;
@@ -42032,7 +42032,7 @@ const variant_DD_52 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into D.",
+    "description": "Loads D into D.",
     "instruction": "ld d,d"
   }
 } as const satisfies OpcodeVariant;
@@ -42063,7 +42063,7 @@ const variant_DD_53 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into D.",
+    "description": "Loads E into D.",
     "instruction": "ld d,e"
   }
 } as const satisfies OpcodeVariant;
@@ -42094,7 +42094,7 @@ const variant_DD_57 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into D.",
+    "description": "Loads A into D.",
     "instruction": "ld d,a"
   }
 } as const satisfies OpcodeVariant;
@@ -42125,7 +42125,7 @@ const variant_DD_58 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into E.",
+    "description": "Loads B into E.",
     "instruction": "ld e,b"
   }
 } as const satisfies OpcodeVariant;
@@ -42156,7 +42156,7 @@ const variant_DD_59 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into E.",
+    "description": "Loads C into E.",
     "instruction": "ld e,c"
   }
 } as const satisfies OpcodeVariant;
@@ -42187,7 +42187,7 @@ const variant_DD_5A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into E.",
+    "description": "Loads D into E.",
     "instruction": "ld e,d"
   }
 } as const satisfies OpcodeVariant;
@@ -42218,7 +42218,7 @@ const variant_DD_5B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into E.",
+    "description": "Loads E into E.",
     "instruction": "ld e,e"
   }
 } as const satisfies OpcodeVariant;
@@ -42249,7 +42249,7 @@ const variant_DD_5F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into E.",
+    "description": "Loads A into E.",
     "instruction": "ld e,a"
   }
 } as const satisfies OpcodeVariant;
@@ -42280,7 +42280,7 @@ const variant_DD_78 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into A.",
+    "description": "Loads B into A.",
     "instruction": "ld a,b"
   }
 } as const satisfies OpcodeVariant;
@@ -42311,7 +42311,7 @@ const variant_DD_79 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into A.",
+    "description": "Loads C into A.",
     "instruction": "ld a,c"
   }
 } as const satisfies OpcodeVariant;
@@ -42342,7 +42342,7 @@ const variant_DD_7A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into A.",
+    "description": "Loads D into A.",
     "instruction": "ld a,d"
   }
 } as const satisfies OpcodeVariant;
@@ -42373,7 +42373,7 @@ const variant_DD_7B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into A.",
+    "description": "Loads E into A.",
     "instruction": "ld a,e"
   }
 } as const satisfies OpcodeVariant;
@@ -42404,7 +42404,7 @@ const variant_DD_7F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into A.",
+    "description": "Loads A into A.",
     "instruction": "ld a,a"
   }
 } as const satisfies OpcodeVariant;
@@ -43612,7 +43612,7 @@ const variant_DD_A0 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with B.",
+    "description": "Sets A to the bitwise AND of A and B.",
     "instruction": "and b"
   }
 } as const satisfies OpcodeVariant;
@@ -43643,7 +43643,7 @@ const variant_DD_A0_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with B.",
+    "description": "Sets A to the bitwise AND of A and B.",
     "instruction": "and b"
   }
 } as const satisfies OpcodeVariant;
@@ -43671,7 +43671,7 @@ const variant_DD_A1 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with C.",
+    "description": "Sets A to the bitwise AND of A and C.",
     "instruction": "and c"
   }
 } as const satisfies OpcodeVariant;
@@ -43702,7 +43702,7 @@ const variant_DD_A1_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with C.",
+    "description": "Sets A to the bitwise AND of A and C.",
     "instruction": "and c"
   }
 } as const satisfies OpcodeVariant;
@@ -43730,7 +43730,7 @@ const variant_DD_A2 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with D.",
+    "description": "Sets A to the bitwise AND of A and D.",
     "instruction": "and d"
   }
 } as const satisfies OpcodeVariant;
@@ -43761,7 +43761,7 @@ const variant_DD_A2_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with D.",
+    "description": "Sets A to the bitwise AND of A and D.",
     "instruction": "and d"
   }
 } as const satisfies OpcodeVariant;
@@ -43789,7 +43789,7 @@ const variant_DD_A3 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with E.",
+    "description": "Sets A to the bitwise AND of A and E.",
     "instruction": "and e"
   }
 } as const satisfies OpcodeVariant;
@@ -43820,7 +43820,7 @@ const variant_DD_A3_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with E.",
+    "description": "Sets A to the bitwise AND of A and E.",
     "instruction": "and e"
   }
 } as const satisfies OpcodeVariant;
@@ -43848,7 +43848,7 @@ const variant_DD_A7 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with A.",
+    "description": "Sets A to the bitwise AND of A and A.",
     "instruction": "and a"
   }
 } as const satisfies OpcodeVariant;
@@ -43879,7 +43879,7 @@ const variant_DD_A7_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with A.",
+    "description": "Sets A to the bitwise AND of A and A.",
     "instruction": "and a"
   }
 } as const satisfies OpcodeVariant;
@@ -43907,7 +43907,7 @@ const variant_DD_A8 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with B.",
+    "description": "Sets A to the bitwise XOR of A and B.",
     "instruction": "xor b"
   }
 } as const satisfies OpcodeVariant;
@@ -43938,7 +43938,7 @@ const variant_DD_A8_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with B.",
+    "description": "Sets A to the bitwise XOR of A and B.",
     "instruction": "xor b"
   }
 } as const satisfies OpcodeVariant;
@@ -43966,7 +43966,7 @@ const variant_DD_A9 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with C.",
+    "description": "Sets A to the bitwise XOR of A and C.",
     "instruction": "xor c"
   }
 } as const satisfies OpcodeVariant;
@@ -43997,7 +43997,7 @@ const variant_DD_A9_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with C.",
+    "description": "Sets A to the bitwise XOR of A and C.",
     "instruction": "xor c"
   }
 } as const satisfies OpcodeVariant;
@@ -44025,7 +44025,7 @@ const variant_DD_AA = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with D.",
+    "description": "Sets A to the bitwise XOR of A and D.",
     "instruction": "xor d"
   }
 } as const satisfies OpcodeVariant;
@@ -44056,7 +44056,7 @@ const variant_DD_AA_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with D.",
+    "description": "Sets A to the bitwise XOR of A and D.",
     "instruction": "xor d"
   }
 } as const satisfies OpcodeVariant;
@@ -44084,7 +44084,7 @@ const variant_DD_AB = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with E.",
+    "description": "Sets A to the bitwise XOR of A and E.",
     "instruction": "xor e"
   }
 } as const satisfies OpcodeVariant;
@@ -44115,7 +44115,7 @@ const variant_DD_AB_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with E.",
+    "description": "Sets A to the bitwise XOR of A and E.",
     "instruction": "xor e"
   }
 } as const satisfies OpcodeVariant;
@@ -44143,7 +44143,7 @@ const variant_DD_AF = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with A.",
+    "description": "Sets A to the bitwise XOR of A and A.",
     "instruction": "xor a"
   }
 } as const satisfies OpcodeVariant;
@@ -44174,7 +44174,7 @@ const variant_DD_AF_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with A.",
+    "description": "Sets A to the bitwise XOR of A and A.",
     "instruction": "xor a"
   }
 } as const satisfies OpcodeVariant;
@@ -44202,7 +44202,7 @@ const variant_DD_B0 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with B.",
+    "description": "Sets A to the bitwise OR of A and B.",
     "instruction": "or b"
   }
 } as const satisfies OpcodeVariant;
@@ -44233,7 +44233,7 @@ const variant_DD_B0_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with B.",
+    "description": "Sets A to the bitwise OR of A and B.",
     "instruction": "or b"
   }
 } as const satisfies OpcodeVariant;
@@ -44261,7 +44261,7 @@ const variant_DD_B1 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with C.",
+    "description": "Sets A to the bitwise OR of A and C.",
     "instruction": "or c"
   }
 } as const satisfies OpcodeVariant;
@@ -44292,7 +44292,7 @@ const variant_DD_B1_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with C.",
+    "description": "Sets A to the bitwise OR of A and C.",
     "instruction": "or c"
   }
 } as const satisfies OpcodeVariant;
@@ -44320,7 +44320,7 @@ const variant_DD_B2 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with D.",
+    "description": "Sets A to the bitwise OR of A and D.",
     "instruction": "or d"
   }
 } as const satisfies OpcodeVariant;
@@ -44351,7 +44351,7 @@ const variant_DD_B2_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with D.",
+    "description": "Sets A to the bitwise OR of A and D.",
     "instruction": "or d"
   }
 } as const satisfies OpcodeVariant;
@@ -44379,7 +44379,7 @@ const variant_DD_B3 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with E.",
+    "description": "Sets A to the bitwise OR of A and E.",
     "instruction": "or e"
   }
 } as const satisfies OpcodeVariant;
@@ -44410,7 +44410,7 @@ const variant_DD_B3_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with E.",
+    "description": "Sets A to the bitwise OR of A and E.",
     "instruction": "or e"
   }
 } as const satisfies OpcodeVariant;
@@ -44438,7 +44438,7 @@ const variant_DD_B7 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with A.",
+    "description": "Sets A to the bitwise OR of A and A.",
     "instruction": "or a"
   }
 } as const satisfies OpcodeVariant;
@@ -44469,7 +44469,7 @@ const variant_DD_B7_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with A.",
+    "description": "Sets A to the bitwise OR of A and A.",
     "instruction": "or a"
   }
 } as const satisfies OpcodeVariant;
@@ -44497,7 +44497,7 @@ const variant_DD_B8 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts B from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts B from A to set the flags, but leaves A unchanged.",
     "instruction": "cp b"
   }
 } as const satisfies OpcodeVariant;
@@ -44528,7 +44528,7 @@ const variant_DD_B8_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts B from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts B from A to set the flags, but leaves A unchanged.",
     "instruction": "cp b"
   }
 } as const satisfies OpcodeVariant;
@@ -44556,7 +44556,7 @@ const variant_DD_B9 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts C from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts C from A to set the flags, but leaves A unchanged.",
     "instruction": "cp c"
   }
 } as const satisfies OpcodeVariant;
@@ -44587,7 +44587,7 @@ const variant_DD_B9_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts C from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts C from A to set the flags, but leaves A unchanged.",
     "instruction": "cp c"
   }
 } as const satisfies OpcodeVariant;
@@ -44615,7 +44615,7 @@ const variant_DD_BA = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts D from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts D from A to set the flags, but leaves A unchanged.",
     "instruction": "cp d"
   }
 } as const satisfies OpcodeVariant;
@@ -44646,7 +44646,7 @@ const variant_DD_BA_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts D from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts D from A to set the flags, but leaves A unchanged.",
     "instruction": "cp d"
   }
 } as const satisfies OpcodeVariant;
@@ -44674,7 +44674,7 @@ const variant_DD_BB = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts E from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts E from A to set the flags, but leaves A unchanged.",
     "instruction": "cp e"
   }
 } as const satisfies OpcodeVariant;
@@ -44705,7 +44705,7 @@ const variant_DD_BB_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts E from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts E from A to set the flags, but leaves A unchanged.",
     "instruction": "cp e"
   }
 } as const satisfies OpcodeVariant;
@@ -44733,7 +44733,7 @@ const variant_DD_BF = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts A from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts A from A to set the flags, but leaves A unchanged.",
     "instruction": "cp a"
   }
 } as const satisfies OpcodeVariant;
@@ -44764,7 +44764,7 @@ const variant_DD_BF_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts A from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts A from A to set the flags, but leaves A unchanged.",
     "instruction": "cp a"
   }
 } as const satisfies OpcodeVariant;
@@ -46860,7 +46860,7 @@ const variant_ED_4C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -46912,7 +46912,7 @@ const variant_ED_54 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -46936,7 +46936,7 @@ const variant_ED_55 = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -46960,7 +46960,7 @@ const variant_ED_5C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -46984,7 +46984,7 @@ const variant_ED_5D = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -47042,7 +47042,7 @@ const variant_ED_64 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -47066,7 +47066,7 @@ const variant_ED_65 = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -47152,7 +47152,7 @@ const variant_ED_6C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -47176,7 +47176,7 @@ const variant_ED_6D = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -47228,7 +47228,7 @@ const variant_ED_74 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -47252,7 +47252,7 @@ const variant_ED_75 = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -47304,7 +47304,7 @@ const variant_ED_7C = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are negated (two's complement). Operation is the same as subtracting A from zero.",
+    "description": "Negates A (two's complement), which is the same as subtracting A from zero.",
     "instruction": "neg"
   }
 } as const satisfies OpcodeVariant;
@@ -47328,7 +47328,7 @@ const variant_ED_7D = {
     "byte_count": 2,
     "with_jump_clock_count": 14,
     "without_jump_clock_count": 14,
-    "description": "Used at the end of a non-maskable interrupt service routine (located at 0066h) to pop the top stack entry into PC. The value of IFF2 is copied to IFF1 so that maskable interrupts are allowed to continue as before. NMIs are not enabled on the TI.",
+    "description": "Returns from a non-maskable interrupt service routine, which is located at 0066h. Pops the top stack entry into PC and copies IFF2 to IFF1, so that maskable interrupts are allowed to continue as before.",
     "instruction": "retn"
   }
 } as const satisfies OpcodeVariant;
@@ -47827,7 +47827,7 @@ const variant_FD_40 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into B.",
+    "description": "Loads B into B.",
     "instruction": "ld b,b"
   }
 } as const satisfies OpcodeVariant;
@@ -47858,7 +47858,7 @@ const variant_FD_41 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into B.",
+    "description": "Loads C into B.",
     "instruction": "ld b,c"
   }
 } as const satisfies OpcodeVariant;
@@ -47889,7 +47889,7 @@ const variant_FD_42 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into B.",
+    "description": "Loads D into B.",
     "instruction": "ld b,d"
   }
 } as const satisfies OpcodeVariant;
@@ -47920,7 +47920,7 @@ const variant_FD_43 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into B.",
+    "description": "Loads E into B.",
     "instruction": "ld b,e"
   }
 } as const satisfies OpcodeVariant;
@@ -47951,7 +47951,7 @@ const variant_FD_47 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into B.",
+    "description": "Loads A into B.",
     "instruction": "ld b,a"
   }
 } as const satisfies OpcodeVariant;
@@ -47982,7 +47982,7 @@ const variant_FD_48 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into C.",
+    "description": "Loads B into C.",
     "instruction": "ld c,b"
   }
 } as const satisfies OpcodeVariant;
@@ -48013,7 +48013,7 @@ const variant_FD_49 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into C.",
+    "description": "Loads C into C.",
     "instruction": "ld c,c"
   }
 } as const satisfies OpcodeVariant;
@@ -48044,7 +48044,7 @@ const variant_FD_4A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into C.",
+    "description": "Loads D into C.",
     "instruction": "ld c,d"
   }
 } as const satisfies OpcodeVariant;
@@ -48075,7 +48075,7 @@ const variant_FD_4B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into C.",
+    "description": "Loads E into C.",
     "instruction": "ld c,e"
   }
 } as const satisfies OpcodeVariant;
@@ -48106,7 +48106,7 @@ const variant_FD_4F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into C.",
+    "description": "Loads A into C.",
     "instruction": "ld c,a"
   }
 } as const satisfies OpcodeVariant;
@@ -48137,7 +48137,7 @@ const variant_FD_50 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into D.",
+    "description": "Loads B into D.",
     "instruction": "ld d,b"
   }
 } as const satisfies OpcodeVariant;
@@ -48168,7 +48168,7 @@ const variant_FD_51 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into D.",
+    "description": "Loads C into D.",
     "instruction": "ld d,c"
   }
 } as const satisfies OpcodeVariant;
@@ -48199,7 +48199,7 @@ const variant_FD_52 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into D.",
+    "description": "Loads D into D.",
     "instruction": "ld d,d"
   }
 } as const satisfies OpcodeVariant;
@@ -48230,7 +48230,7 @@ const variant_FD_53 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into D.",
+    "description": "Loads E into D.",
     "instruction": "ld d,e"
   }
 } as const satisfies OpcodeVariant;
@@ -48261,7 +48261,7 @@ const variant_FD_57 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into D.",
+    "description": "Loads A into D.",
     "instruction": "ld d,a"
   }
 } as const satisfies OpcodeVariant;
@@ -48292,7 +48292,7 @@ const variant_FD_58 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into E.",
+    "description": "Loads B into E.",
     "instruction": "ld e,b"
   }
 } as const satisfies OpcodeVariant;
@@ -48323,7 +48323,7 @@ const variant_FD_59 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into E.",
+    "description": "Loads C into E.",
     "instruction": "ld e,c"
   }
 } as const satisfies OpcodeVariant;
@@ -48354,7 +48354,7 @@ const variant_FD_5A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into E.",
+    "description": "Loads D into E.",
     "instruction": "ld e,d"
   }
 } as const satisfies OpcodeVariant;
@@ -48385,7 +48385,7 @@ const variant_FD_5B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into E.",
+    "description": "Loads E into E.",
     "instruction": "ld e,e"
   }
 } as const satisfies OpcodeVariant;
@@ -48416,7 +48416,7 @@ const variant_FD_5F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into E.",
+    "description": "Loads A into E.",
     "instruction": "ld e,a"
   }
 } as const satisfies OpcodeVariant;
@@ -48447,7 +48447,7 @@ const variant_FD_78 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of B are loaded into A.",
+    "description": "Loads B into A.",
     "instruction": "ld a,b"
   }
 } as const satisfies OpcodeVariant;
@@ -48478,7 +48478,7 @@ const variant_FD_79 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of C are loaded into A.",
+    "description": "Loads C into A.",
     "instruction": "ld a,c"
   }
 } as const satisfies OpcodeVariant;
@@ -48509,7 +48509,7 @@ const variant_FD_7A = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of D are loaded into A.",
+    "description": "Loads D into A.",
     "instruction": "ld a,d"
   }
 } as const satisfies OpcodeVariant;
@@ -48540,7 +48540,7 @@ const variant_FD_7B = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of E are loaded into A.",
+    "description": "Loads E into A.",
     "instruction": "ld a,e"
   }
 } as const satisfies OpcodeVariant;
@@ -48571,7 +48571,7 @@ const variant_FD_7F = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "The contents of A are loaded into A.",
+    "description": "Loads A into A.",
     "instruction": "ld a,a"
   }
 } as const satisfies OpcodeVariant;
@@ -49779,7 +49779,7 @@ const variant_FD_A0 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with B.",
+    "description": "Sets A to the bitwise AND of A and B.",
     "instruction": "and b"
   }
 } as const satisfies OpcodeVariant;
@@ -49810,7 +49810,7 @@ const variant_FD_A0_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with B.",
+    "description": "Sets A to the bitwise AND of A and B.",
     "instruction": "and b"
   }
 } as const satisfies OpcodeVariant;
@@ -49838,7 +49838,7 @@ const variant_FD_A1 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with C.",
+    "description": "Sets A to the bitwise AND of A and C.",
     "instruction": "and c"
   }
 } as const satisfies OpcodeVariant;
@@ -49869,7 +49869,7 @@ const variant_FD_A1_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with C.",
+    "description": "Sets A to the bitwise AND of A and C.",
     "instruction": "and c"
   }
 } as const satisfies OpcodeVariant;
@@ -49897,7 +49897,7 @@ const variant_FD_A2 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with D.",
+    "description": "Sets A to the bitwise AND of A and D.",
     "instruction": "and d"
   }
 } as const satisfies OpcodeVariant;
@@ -49928,7 +49928,7 @@ const variant_FD_A2_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with D.",
+    "description": "Sets A to the bitwise AND of A and D.",
     "instruction": "and d"
   }
 } as const satisfies OpcodeVariant;
@@ -49956,7 +49956,7 @@ const variant_FD_A3 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with E.",
+    "description": "Sets A to the bitwise AND of A and E.",
     "instruction": "and e"
   }
 } as const satisfies OpcodeVariant;
@@ -49987,7 +49987,7 @@ const variant_FD_A3_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with E.",
+    "description": "Sets A to the bitwise AND of A and E.",
     "instruction": "and e"
   }
 } as const satisfies OpcodeVariant;
@@ -50015,7 +50015,7 @@ const variant_FD_A7 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with A.",
+    "description": "Sets A to the bitwise AND of A and A.",
     "instruction": "and a"
   }
 } as const satisfies OpcodeVariant;
@@ -50046,7 +50046,7 @@ const variant_FD_A7_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise AND on A with A.",
+    "description": "Sets A to the bitwise AND of A and A.",
     "instruction": "and a"
   }
 } as const satisfies OpcodeVariant;
@@ -50074,7 +50074,7 @@ const variant_FD_A8 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with B.",
+    "description": "Sets A to the bitwise XOR of A and B.",
     "instruction": "xor b"
   }
 } as const satisfies OpcodeVariant;
@@ -50105,7 +50105,7 @@ const variant_FD_A8_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with B.",
+    "description": "Sets A to the bitwise XOR of A and B.",
     "instruction": "xor b"
   }
 } as const satisfies OpcodeVariant;
@@ -50133,7 +50133,7 @@ const variant_FD_A9 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with C.",
+    "description": "Sets A to the bitwise XOR of A and C.",
     "instruction": "xor c"
   }
 } as const satisfies OpcodeVariant;
@@ -50164,7 +50164,7 @@ const variant_FD_A9_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with C.",
+    "description": "Sets A to the bitwise XOR of A and C.",
     "instruction": "xor c"
   }
 } as const satisfies OpcodeVariant;
@@ -50192,7 +50192,7 @@ const variant_FD_AA = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with D.",
+    "description": "Sets A to the bitwise XOR of A and D.",
     "instruction": "xor d"
   }
 } as const satisfies OpcodeVariant;
@@ -50223,7 +50223,7 @@ const variant_FD_AA_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with D.",
+    "description": "Sets A to the bitwise XOR of A and D.",
     "instruction": "xor d"
   }
 } as const satisfies OpcodeVariant;
@@ -50251,7 +50251,7 @@ const variant_FD_AB = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with E.",
+    "description": "Sets A to the bitwise XOR of A and E.",
     "instruction": "xor e"
   }
 } as const satisfies OpcodeVariant;
@@ -50282,7 +50282,7 @@ const variant_FD_AB_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with E.",
+    "description": "Sets A to the bitwise XOR of A and E.",
     "instruction": "xor e"
   }
 } as const satisfies OpcodeVariant;
@@ -50310,7 +50310,7 @@ const variant_FD_AF = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with A.",
+    "description": "Sets A to the bitwise XOR of A and A.",
     "instruction": "xor a"
   }
 } as const satisfies OpcodeVariant;
@@ -50341,7 +50341,7 @@ const variant_FD_AF_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise XOR on A with A.",
+    "description": "Sets A to the bitwise XOR of A and A.",
     "instruction": "xor a"
   }
 } as const satisfies OpcodeVariant;
@@ -50369,7 +50369,7 @@ const variant_FD_B0 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with B.",
+    "description": "Sets A to the bitwise OR of A and B.",
     "instruction": "or b"
   }
 } as const satisfies OpcodeVariant;
@@ -50400,7 +50400,7 @@ const variant_FD_B0_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with B.",
+    "description": "Sets A to the bitwise OR of A and B.",
     "instruction": "or b"
   }
 } as const satisfies OpcodeVariant;
@@ -50428,7 +50428,7 @@ const variant_FD_B1 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with C.",
+    "description": "Sets A to the bitwise OR of A and C.",
     "instruction": "or c"
   }
 } as const satisfies OpcodeVariant;
@@ -50459,7 +50459,7 @@ const variant_FD_B1_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with C.",
+    "description": "Sets A to the bitwise OR of A and C.",
     "instruction": "or c"
   }
 } as const satisfies OpcodeVariant;
@@ -50487,7 +50487,7 @@ const variant_FD_B2 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with D.",
+    "description": "Sets A to the bitwise OR of A and D.",
     "instruction": "or d"
   }
 } as const satisfies OpcodeVariant;
@@ -50518,7 +50518,7 @@ const variant_FD_B2_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with D.",
+    "description": "Sets A to the bitwise OR of A and D.",
     "instruction": "or d"
   }
 } as const satisfies OpcodeVariant;
@@ -50546,7 +50546,7 @@ const variant_FD_B3 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with E.",
+    "description": "Sets A to the bitwise OR of A and E.",
     "instruction": "or e"
   }
 } as const satisfies OpcodeVariant;
@@ -50577,7 +50577,7 @@ const variant_FD_B3_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with E.",
+    "description": "Sets A to the bitwise OR of A and E.",
     "instruction": "or e"
   }
 } as const satisfies OpcodeVariant;
@@ -50605,7 +50605,7 @@ const variant_FD_B7 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with A.",
+    "description": "Sets A to the bitwise OR of A and A.",
     "instruction": "or a"
   }
 } as const satisfies OpcodeVariant;
@@ -50636,7 +50636,7 @@ const variant_FD_B7_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Bitwise OR on A with A.",
+    "description": "Sets A to the bitwise OR of A and A.",
     "instruction": "or a"
   }
 } as const satisfies OpcodeVariant;
@@ -50664,7 +50664,7 @@ const variant_FD_B8 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts B from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts B from A to set the flags, but leaves A unchanged.",
     "instruction": "cp b"
   }
 } as const satisfies OpcodeVariant;
@@ -50695,7 +50695,7 @@ const variant_FD_B8_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts B from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts B from A to set the flags, but leaves A unchanged.",
     "instruction": "cp b"
   }
 } as const satisfies OpcodeVariant;
@@ -50723,7 +50723,7 @@ const variant_FD_B9 = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts C from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts C from A to set the flags, but leaves A unchanged.",
     "instruction": "cp c"
   }
 } as const satisfies OpcodeVariant;
@@ -50754,7 +50754,7 @@ const variant_FD_B9_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts C from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts C from A to set the flags, but leaves A unchanged.",
     "instruction": "cp c"
   }
 } as const satisfies OpcodeVariant;
@@ -50782,7 +50782,7 @@ const variant_FD_BA = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts D from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts D from A to set the flags, but leaves A unchanged.",
     "instruction": "cp d"
   }
 } as const satisfies OpcodeVariant;
@@ -50813,7 +50813,7 @@ const variant_FD_BA_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts D from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts D from A to set the flags, but leaves A unchanged.",
     "instruction": "cp d"
   }
 } as const satisfies OpcodeVariant;
@@ -50841,7 +50841,7 @@ const variant_FD_BB = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts E from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts E from A to set the flags, but leaves A unchanged.",
     "instruction": "cp e"
   }
 } as const satisfies OpcodeVariant;
@@ -50872,7 +50872,7 @@ const variant_FD_BB_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts E from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts E from A to set the flags, but leaves A unchanged.",
     "instruction": "cp e"
   }
 } as const satisfies OpcodeVariant;
@@ -50900,7 +50900,7 @@ const variant_FD_BF = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts A from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts A from A to set the flags, but leaves A unchanged.",
     "instruction": "cp a"
   }
 } as const satisfies OpcodeVariant;
@@ -50931,7 +50931,7 @@ const variant_FD_BF_pseudo = {
     "byte_count": 2,
     "with_jump_clock_count": 8,
     "without_jump_clock_count": 8,
-    "description": "Subtracts A from A and affects flags according to the result. A is not modified.",
+    "description": "Subtracts A from A to set the flags, but leaves A unchanged.",
     "instruction": "cp a"
   }
 } as const satisfies OpcodeVariant;
